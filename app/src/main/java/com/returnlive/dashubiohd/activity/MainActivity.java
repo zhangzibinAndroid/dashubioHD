@@ -1,5 +1,6 @@
 package com.returnlive.dashubiohd.activity;
 
+import android.content.Intent;
 import android.os.Bundle;
 import android.view.KeyEvent;
 import android.view.View;
@@ -11,6 +12,12 @@ import android.widget.Toast;
 import com.returnlive.dashubiohd.R;
 import com.returnlive.dashubiohd.application.MyApplication;
 import com.returnlive.dashubiohd.base.BaseActivity;
+import com.returnlive.dashubiohd.fragment.main.HelpFragment;
+import com.returnlive.dashubiohd.fragment.main.MainFirstFragment;
+import com.returnlive.dashubiohd.fragment.main.UserLoginFragment;
+import com.returnlive.dashubiohd.fragment.main.UserManageFragment;
+import com.returnlive.dashubiohd.fragment.main.UserRegisterFragment;
+import com.returnlive.dashubiohd.fragment.main.WarningSettingFragment;
 import com.returnlive.dashubiohd.view.RoundImageView;
 import com.zhy.autolayout.AutoFrameLayout;
 
@@ -41,6 +48,12 @@ public class MainActivity extends BaseActivity {
     @BindView(R.id.content)
     AutoFrameLayout content;
     private Unbinder unbinder;
+    private MainFirstFragment mainFirstFragment;
+    private UserRegisterFragment userRegisterFragment;
+    private UserLoginFragment userLoginFragment;
+    private UserManageFragment userManageFragment;
+    private WarningSettingFragment warningSettingFragment;
+    private HelpFragment helpFragment;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -52,8 +65,17 @@ public class MainActivity extends BaseActivity {
     }
 
     private void initView() {
+        mainFirstFragment = new MainFirstFragment();
+        userRegisterFragment = new UserRegisterFragment();
+        userLoginFragment = new UserLoginFragment();
+        userManageFragment = new UserManageFragment();
+        warningSettingFragment = new WarningSettingFragment();
+        helpFragment = new HelpFragment();
+        Intent intent = getIntent();
+        String companyName = intent.getStringExtra("companyName");
+        tvCompanyName.setText(companyName);
         tv_sel[0].setSelected(true);
-
+        setReplaceFragment(R.id.content,mainFirstFragment);
     }
 
 
@@ -87,27 +109,31 @@ public class MainActivity extends BaseActivity {
         switch (view.getId()) {
             case R.id.tv_first:
                 tv_sel[0].setSelected(true);
-                JumpActivity(HomeActivity.class);
-
+                setReplaceFragment(R.id.content,mainFirstFragment);
                 break;
             case R.id.tv_user_register:
                 tv_sel[1].setSelected(true);
+                setReplaceFragment(R.id.content,userRegisterFragment);
 
                 break;
             case R.id.tv_user_login:
                 tv_sel[2].setSelected(true);
+                setReplaceFragment(R.id.content,userLoginFragment);
 
                 break;
             case R.id.tv_user_manage:
                 tv_sel[3].setSelected(true);
+                setReplaceFragment(R.id.content,userManageFragment);
 
                 break;
             case R.id.tv_warning_setting:
                 tv_sel[4].setSelected(true);
+                setReplaceFragment(R.id.content,warningSettingFragment);
 
                 break;
             case R.id.tv_help:
                 tv_sel[5].setSelected(true);
+                setReplaceFragment(R.id.content,helpFragment);
 
                 break;
         }

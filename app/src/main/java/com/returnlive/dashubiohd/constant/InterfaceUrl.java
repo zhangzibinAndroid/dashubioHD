@@ -1,0 +1,21 @@
+package com.returnlive.dashubiohd.constant;
+
+/**
+ * Created by 张梓彬 on 2017/7/13 0013.
+ */
+
+public class InterfaceUrl {
+    public static String zSesson = "t_session_";
+    public static String code = "";
+    public static String t_session_code = "";
+    public static final String BASE_URL = "http://dashubio.cn/Mobile/";
+    public static final String EQUIPMENT_REGISTER = BASE_URL+"Login/register";//设备注册
+    public static final String VERIFICATION_CODE= BASE_URL+"Login/sendCode";//短信验证码
+    public static final String LOGIN_URL= BASE_URL+"Login/login";//登录接口
+    public static final String HELP_URL= BASE_URL+"Index/help/";//帮助接口需要添加sesson和code
+    public static final String WARNING_URL= BASE_URL+"Index/hwarning/";//预警设置接口需要添加sesson和code
+
+
+
+
+}

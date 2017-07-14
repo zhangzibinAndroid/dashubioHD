@@ -24,6 +24,7 @@
     <dimen name="px20">20px</dimen>
     <dimen name="px22">22px</dimen>
     <dimen name="px23">23px</dimen>
+    <dimen name="px24">24px</dimen>
     <dimen name="px25">25px</dimen>
     <dimen name="px26">26px</dimen>
     <dimen name="px28">28px</dimen>
@@ -49,6 +50,7 @@
     <dimen name="px49">49px</dimen>
     <dimen name="px50">50px</dimen>
     <dimen name="px55">55px</dimen>
+    <dimen name="px56">56px</dimen>
     <dimen name="px60">60px</dimen>
     <dimen name="px65">65px</dimen>
     <dimen name="px70">70px</dimen>
