@@ -13,7 +13,8 @@ import android.widget.LinearLayout;
 import android.widget.TextView;
 import android.widget.Toast;
 
-import com.andview.refreshview.callback.IHeaderCallBack;
+import com.andview.refreshview.XRefreshView;
+import com.andview.refreshview.callback.IFooterCallBack;
 import com.returnlive.dashubiohd.R;
 
 import java.text.SimpleDateFormat;
@@ -26,13 +27,13 @@ import java.util.Date;
  * 描述： xrefresh刷新头部布局
  */
 
-public class ViewHeader extends LinearLayout implements IHeaderCallBack {
+public class ViewFooter extends LinearLayout implements IFooterCallBack {
     private ImageView img_refresh;
     private TextView tv_pullLoad;
     private TextView tv_refreshTime;
     private Context context;
 
-    public ViewHeader(Context context) {
+    public ViewFooter(Context context) {
         super(context);
         this.context = context;
         setBackgroundColor(Color.parseColor("#f3f3f3"));
@@ -43,7 +44,7 @@ public class ViewHeader extends LinearLayout implements IHeaderCallBack {
      * @param context
      * @param attrs
      */
-    public ViewHeader(Context context, AttributeSet attrs) {
+    public ViewFooter(Context context, AttributeSet attrs) {
         super(context, attrs);
         initView(context);
     }
@@ -59,16 +60,9 @@ public class ViewHeader extends LinearLayout implements IHeaderCallBack {
         setListRefreshTime(currentTime);
     }
 
-    public void setRefreshTime(long lastRefreshTime) {
-    }
 
-    public void hide() {
-        setVisibility(View.GONE);
-    }
 
-    public void show() {
-        setVisibility(View.VISIBLE);
-    }
+
 
     public void setListRefreshTime(long time){
             try {
@@ -81,23 +75,19 @@ public class ViewHeader extends LinearLayout implements IHeaderCallBack {
     }
 
 
+
+
+    @Override
+    public void callWhenNotAutoLoadMore(XRefreshView xRefreshView) {
+
+    }
+
     /**
      * 正常状态
      */
     @Override
-    public void onStateNormal() {
-        tv_pullLoad.setText(R.string.xrefreshview_header_hint_normal);
-    }
-
-    /**
-     * 准备刷新
-     */
-    @Override
     public void onStateReady() {
-        tv_pullLoad.setText(R.string.xrefreshview_header_hint_ready);
-        //重新调用，否则时间不刷新
-        long currentTime = System.currentTimeMillis();
-        setListRefreshTime(currentTime);
+        tv_pullLoad.setText(R.string.xrefreshview_header_hint_normal);
     }
 
     /**
@@ -106,6 +96,16 @@ public class ViewHeader extends LinearLayout implements IHeaderCallBack {
     @Override
     public void onStateRefreshing() {
         tv_pullLoad.setText(R.string.xrefreshview_header_hint_refreshing);
+        //重新调用，否则时间不刷新
+        long currentTime = System.currentTimeMillis();
+        setListRefreshTime(currentTime);
+    }
+
+    @Override
+    public void onReleaseToLoadMore() {
+        tv_pullLoad.setText(R.string.xrefreshview_header_hint_ready);
+
+
     }
 
 
@@ -119,26 +119,27 @@ public class ViewHeader extends LinearLayout implements IHeaderCallBack {
         tv_pullLoad.setText(success ? R.string.xrefreshview_header_hint_loaded : R.string.xrefreshview_header_hint_loaded_fail);
     }
 
-
-    /**
-     * 获取headerview显示的高度与headerview高度的比例
-     *
-     * @param headerMovePercent 移动距离和headerview高度的比例
-     * @param offsetY           headerview移动的距离
-     */
     @Override
-    public void onHeaderMove(double headerMovePercent, int offsetY, int deltaY) {
-        //
+    public void onStateComplete() {
+        setVisibility(View.GONE);
     }
 
-
-    /**
-     * 获得headerview的高度,如果不想headerview全部被隐藏，就可以只返回一部分的高度
-     *
-     * @return
-     */
     @Override
-    public int getHeaderHeight() {
+    public void show(boolean show) {
+        Log.e("ZZZ", "show: "+show );
+//        if (show){
+            setVisibility(View.VISIBLE);
+//        }else {
+//        }
+    }
+
+    @Override
+    public boolean isShowing() {
+        return false;
+    }
+
+    @Override
+    public int getFooterHeight() {
         return getMeasuredHeight();
     }
 }

@@ -8,6 +8,13 @@ import android.view.ViewGroup;
 
 import com.returnlive.dashubiohd.R;
 import com.returnlive.dashubiohd.base.BaseFragment;
+import com.returnlive.dashubiohd.bean.EventLoginMessage;
+
+import org.greenrobot.eventbus.EventBus;
+
+import butterknife.ButterKnife;
+import butterknife.OnClick;
+import butterknife.Unbinder;
 
 /**
  * 作者： 张梓彬
@@ -16,8 +23,10 @@ import com.returnlive.dashubiohd.base.BaseFragment;
  * 描述： 用户登录
  */
 public class UserLoginFragment extends BaseFragment {
-
-
+    private Unbinder unbinder;
+    public static final String action = "idcard.scan";
+    private static final String TAG = "TAG";
+    private final int TAKEPHOTO_CODE=2;
     public UserLoginFragment() {
         // Required empty public constructor
     }
@@ -26,8 +35,29 @@ public class UserLoginFragment extends BaseFragment {
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container,
                              Bundle savedInstanceState) {
-        // Inflate the layout for this fragment
-        return inflater.inflate(R.layout.fragment_user_login, container, false);
+        view = inflater.inflate(R.layout.fragment_user_login, container, false);
+        unbinder = ButterKnife.bind(this, view);
+        return view;
+    }
+
+
+    @Override
+    public void onDestroyView() {
+        super.onDestroyView();
+        unbinder.unbind();
+    }
+
+    @OnClick({R.id.btn_card, R.id.btn_search, R.id.btn_self})
+    public void onViewClicked(View view) {
+        switch (view.getId()) {
+            case R.id.btn_card:
+                EventBus.getDefault().post(new EventLoginMessage("cardMessage"));
+                break;
+            case R.id.btn_search:
+            case R.id.btn_self:
+                EventBus.getDefault().post(new EventLoginMessage("message"));
+                break;
+        }
     }
 
 }

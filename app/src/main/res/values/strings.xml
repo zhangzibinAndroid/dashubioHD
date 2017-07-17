@@ -111,6 +111,7 @@
     <string name="early_warning_setting">预警设置</string>
     <string name="use_help">使用帮助</string>
     <string name="user_not_exist_please_register_first">用户不存在，请先注册</string>
+    <string name="camera_card">请将身份证放置在摄像头区域，识别信息后自动登录</string>
 
     <string name="full_name">姓名</string>
     <string name="gender">性别</string>

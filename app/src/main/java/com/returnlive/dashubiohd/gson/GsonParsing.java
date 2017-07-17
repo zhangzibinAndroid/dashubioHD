@@ -1,9 +1,11 @@
 package com.returnlive.dashubiohd.gson;
 
 import com.google.gson.Gson;
+import com.returnlive.dashubiohd.bean.CameraCardBean;
 import com.returnlive.dashubiohd.bean.ErrorCodeBean;
 import com.returnlive.dashubiohd.bean.HelpMessageBean;
 import com.returnlive.dashubiohd.bean.LoginBean;
+import com.returnlive.dashubiohd.bean.UserListBean;
 import com.returnlive.dashubiohd.bean.WarningBean;
 import com.returnlive.dashubiohd.constant.InterfaceUrl;
 
@@ -45,6 +47,18 @@ public class GsonParsing {
         WarningBean result = GsonUtils.parseJsonWithGson(json, WarningBean.class);
         return result;
     }
+
+    public static UserListBean getUserListMessage(String json){
+        UserListBean result = GsonUtils.parseJsonWithGson(json, UserListBean.class);
+        return result;
+    }
+
+    public static CameraCardBean getCardMessageJson(String json) throws Exception{
+        CameraCardBean result = GsonUtils.parseJsonWithGson(json, CameraCardBean.class);
+        return result;
+    }
+
+
 }
 
 

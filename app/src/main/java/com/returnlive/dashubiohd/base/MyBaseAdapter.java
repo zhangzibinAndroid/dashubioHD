@@ -36,6 +36,10 @@ public abstract class MyBaseAdapter<E> extends BaseAdapter{
 		list.addAll(e);//增加一个列表
 	}
 
+	public void addAllDataToMyadapterWithoutClean(List<E> e){
+		list.addAll(e);//增加一个列表
+	}
+
 	/**
 	 * 清空所有数据
 	 * */

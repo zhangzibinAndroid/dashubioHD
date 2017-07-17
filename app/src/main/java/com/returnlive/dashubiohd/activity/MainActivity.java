@@ -12,14 +12,20 @@ import android.widget.Toast;
 import com.returnlive.dashubiohd.R;
 import com.returnlive.dashubiohd.application.MyApplication;
 import com.returnlive.dashubiohd.base.BaseActivity;
+import com.returnlive.dashubiohd.bean.EventLoginMessage;
 import com.returnlive.dashubiohd.fragment.main.HelpFragment;
 import com.returnlive.dashubiohd.fragment.main.MainFirstFragment;
 import com.returnlive.dashubiohd.fragment.main.UserLoginFragment;
 import com.returnlive.dashubiohd.fragment.main.UserManageFragment;
 import com.returnlive.dashubiohd.fragment.main.UserRegisterFragment;
 import com.returnlive.dashubiohd.fragment.main.WarningSettingFragment;
+import com.returnlive.dashubiohd.fragment.other.CameraFragment;
 import com.returnlive.dashubiohd.view.RoundImageView;
 import com.zhy.autolayout.AutoFrameLayout;
+
+import org.greenrobot.eventbus.EventBus;
+import org.greenrobot.eventbus.Subscribe;
+import org.greenrobot.eventbus.ThreadMode;
 
 import butterknife.BindView;
 import butterknife.BindViews;
@@ -54,12 +60,14 @@ public class MainActivity extends BaseActivity {
     private UserManageFragment userManageFragment;
     private WarningSettingFragment warningSettingFragment;
     private HelpFragment helpFragment;
+    private CameraFragment cameraFragment;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
         unbinder = ButterKnife.bind(this);
+        EventBus.getDefault().register(this);
         getWindow().getAttributes().softInputMode = WindowManager.LayoutParams.SOFT_INPUT_STATE_HIDDEN;
         initView();
     }
@@ -71,6 +79,7 @@ public class MainActivity extends BaseActivity {
         userManageFragment = new UserManageFragment();
         warningSettingFragment = new WarningSettingFragment();
         helpFragment = new HelpFragment();
+        cameraFragment = new CameraFragment();
         Intent intent = getIntent();
         String companyName = intent.getStringExtra("companyName");
         tvCompanyName.setText(companyName);
@@ -102,6 +111,7 @@ public class MainActivity extends BaseActivity {
 
     @OnClick({R.id.tv_first, R.id.tv_user_register, R.id.tv_user_login, R.id.tv_user_manage, R.id.tv_warning_setting, R.id.tv_help})
     public void onViewClicked(View view) {
+        getWindow().getAttributes().softInputMode = WindowManager.LayoutParams.SOFT_INPUT_STATE_HIDDEN;
         for (int i = 0; i < tv_sel.length; i++) {
             tv_sel[i].setSelected(false);
         }
@@ -142,12 +152,29 @@ public class MainActivity extends BaseActivity {
     //为了避免影响选择器效果，和上面的监听分开
     @OnClick(R.id.tv_quit)
     public void onViewClicked() {
+        getWindow().getAttributes().softInputMode = WindowManager.LayoutParams.SOFT_INPUT_STATE_HIDDEN;
         finish();
+    }
+
+
+    @Subscribe(threadMode = ThreadMode.MAIN)
+    public void getMessage(EventLoginMessage event){
+        if (event.message.equals("message")){
+            setReplaceFragment(R.id.content,userManageFragment);
+        }
+    }
+
+    @Subscribe(threadMode = ThreadMode.MAIN)
+    public void getCardMessage(EventLoginMessage event){
+        if (event.message.equals("cardMessage")){
+            setReplaceFragment(R.id.content,cameraFragment);
+        }
     }
 
     @Override
     protected void onDestroy() {
         super.onDestroy();
         unbinder.unbind();
+        EventBus.getDefault().unregister(this);
     }
 }

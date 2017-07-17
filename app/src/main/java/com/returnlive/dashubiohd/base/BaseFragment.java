@@ -40,4 +40,12 @@ public class BaseFragment extends Fragment {
         intent.putExtra("helpContent",content);
         startActivity(intent);
     }
+
+    protected void JumpActivityWithData(Class<?> cls,String content) {
+        Intent intent = new Intent(getActivity(), cls);
+        intent.putExtra("userName",content);
+        startActivity(intent);
+    }
+
+
 }

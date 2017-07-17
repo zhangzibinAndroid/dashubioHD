@@ -1,5 +1,6 @@
 package com.returnlive.dashubiohd.activity;
 
+import android.content.Intent;
 import android.os.Bundle;
 import android.view.View;
 import android.widget.TextView;
@@ -37,6 +38,8 @@ public class HomeActivity extends BaseActivity {
 
     private void initView() {
         tv_sel[0].setSelected(true);
+        Intent intent = getIntent();
+        tvUserName.setText(intent.getStringExtra("userName"));
 
     }
 
