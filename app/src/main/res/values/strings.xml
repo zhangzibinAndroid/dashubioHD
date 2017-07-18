@@ -117,6 +117,7 @@
     <string name="gender">性别</string>
     <string name="folk">民族</string>
     <string name="birth">出生</string>
+    <string name="area">地区</string>
     <string name="address">地址</string>
     <string name="id_number">身份证号</string>
     <string name="phone_number">手机号码</string>

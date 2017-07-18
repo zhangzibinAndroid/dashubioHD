@@ -15,7 +15,8 @@ public class InterfaceUrl {
     public static final String HELP_URL= BASE_URL+"Index/help/";//帮助接口需要添加sesson和code
     public static final String WARNING_URL= BASE_URL+"Index/hwarning/";//预警设置接口需要添加sesson和code
     public static final String USER_MESSAGE_URL= BASE_URL+"Ulogin/userlist/";//用户列表接口需要添加sesson和code
-    public static final String USER_LOGIN_URL= BASE_URL+"Ulogin/userlogin/";//用户列表接口需要添加sesson和code
+    public static final String USER_LOGIN_URL= BASE_URL+"Ulogin/userlogin/";//用户登录接口需要添加sesson和code
+    public static final String MESSAGE_URL= BASE_URL+"Testing/tests/";//获取检测数据（首页）接口需要添加sesson和code
 
 
 

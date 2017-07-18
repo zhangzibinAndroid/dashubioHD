@@ -1,4 +1,5 @@
 <resources>
+
     <style name="AppTheme" parent="Theme.AppCompat.Light.NoActionBar">
         <!-- Customize your theme here. -->
         <item name="colorPrimary">@color/colorPrimary</item>
@@ -22,4 +23,44 @@
         <item name="android:layout_height">@dimen/px01</item>
         <item name="android:background">@color/line_color</item>
     </style>
+
+    <style name="ViewLineStyleSecond">
+        <item name="android:layout_width">match_parent</item>
+        <item name="android:layout_height">@dimen/px02</item>
+        <item name="android:background">@color/divider</item>
+    </style>
+
+
+    <style name="ReisterDialogTextIntroduce">
+        <item name="android:layout_width">@dimen/px80</item>
+        <item name="android:layout_height">match_parent</item>
+        <item name="android:textSize">@dimen/px30</item>
+        <item name="android:gravity">center_vertical</item>
+        <item name="android:paddingLeft">@dimen/px05</item>
+        <item name="android:textColor">@color/black</item>
+    </style>
+
+    <style name="ReisterDialogTextContext">
+        <item name="android:layout_width">match_parent</item>
+        <item name="android:layout_height">match_parent</item>
+        <item name="android:background">@null</item>
+        <item name="android:paddingLeft">@dimen/px10</item>
+        <item name="android:textSize">@dimen/px30</item>
+        <item name="android:gravity">center_vertical</item>
+    </style>
+
+    <style name="ReisterDialogLayout">
+        <item name="android:layout_width">match_parent</item>
+        <item name="android:layout_height">@dimen/px100</item>
+        <item name="android:padding">@dimen/px15</item>
+        <item name="android:orientation">horizontal</item>
+    </style>
+
+    <style name="CitySelTextViewStyle">
+        <item name="android:layout_width">match_parent</item>
+        <item name="android:layout_height">match_parent</item>
+        <item name="android:layout_weight">1</item>
+        <item name="android:gravity">center</item>
+    </style>
+
 </resources>
