@@ -18,17 +18,26 @@ import android.widget.ProgressBar;
 import android.widget.Toast;
 
 import com.returnlive.dashubiohd.R;
+import com.returnlive.dashubiohd.activity.HomeActivity;
 import com.returnlive.dashubiohd.base.BaseFragment;
 import com.returnlive.dashubiohd.bean.CameraCardBean;
+import com.returnlive.dashubiohd.bean.ErrorCodeBean;
+import com.returnlive.dashubiohd.bean.UserLoginBean;
+import com.returnlive.dashubiohd.constant.ErrorCode;
+import com.returnlive.dashubiohd.constant.InterfaceUrl;
 import com.returnlive.dashubiohd.fragment.main.UserLoginFragment;
 import com.returnlive.dashubiohd.gson.GsonParsing;
 import com.returnlive.dashubiohd.utils.CameraManager;
 import com.returnlive.dashubiohd.utils.FileUtil;
 import com.returnlive.dashubiohd.utils.HttpUtil;
 import com.returnlive.dashubiohd.utils.NetUtil;
+import com.zhy.http.okhttp.OkHttpUtils;
+import com.zhy.http.okhttp.callback.StringCallback;
 
 import java.io.File;
 import java.io.IOException;
+
+import okhttp3.Call;
 
 /**
  * 作者： 张梓彬
@@ -50,7 +59,7 @@ public class CameraFragment extends BaseFragment implements Callback {
         // Required empty public constructor
     }
 
-    private Handler mHandler=new Handler(){
+    private Handler mHandler = new Handler() {
 
         public void handleMessage(Message msg) {
             switch (msg.what) {
@@ -59,31 +68,31 @@ public class CameraFragment extends BaseFragment implements Callback {
                     mCameraManager.initPreView();
                     break;
                 case 1:
-                    jpegData=(byte[]) msg.obj;
-                    if(jpegData!=null && jpegData.length>0){
+                    jpegData = (byte[]) msg.obj;
+                    if (jpegData != null && jpegData.length > 0) {
                         pb.setVisibility(View.VISIBLE);
                         new Thread(new Runnable() {
                             @Override
                             public void run() {
-                                if((jpegData.length>(1000*1024*5))){
+                                if ((jpegData.length > (1000 * 1024 * 5))) {
                                     mHandler.sendMessage(mHandler.obtainMessage(3, getResources().getString(R.string.photo_too_lage)));
                                     return;
                                 }
-                                String result=null;
-                                boolean isavilable= NetUtil.isNetworkConnectionActive(getActivity());
-                                if(isavilable){
-                                    result = Scan(UserLoginFragment.action,jpegData,"jpg");
-                                    Log.d(TAG, ""+result);
+                                String result = null;
+                                boolean isavilable = NetUtil.isNetworkConnectionActive(getActivity());
+                                if (isavilable) {
+                                    result = Scan(UserLoginFragment.action, jpegData, "jpg");
+                                    Log.d(TAG, "" + result);
 
-                                    if(result.equals("-2")){
-                                        result="连接超时！";
+                                    if (result.equals("-2")) {
+                                        result = "连接超时！";
                                         mHandler.sendMessage(mHandler.obtainMessage(3, result));
-                                    }else if(HttpUtil.connFail.equals(result)){
+                                    } else if (HttpUtil.connFail.equals(result)) {
                                         mHandler.sendMessage(mHandler.obtainMessage(3, result));
-                                    }else{
+                                    } else {
                                         mHandler.sendMessage(mHandler.obtainMessage(4, result));
                                     }
-                                }else{
+                                } else {
                                     mHandler.sendMessage(mHandler.obtainMessage(3, "无网络，请确定网络是否连接!"));
                                 }
                             }
@@ -92,7 +101,7 @@ public class CameraFragment extends BaseFragment implements Callback {
                     break;
                 case 3:
                     pb.setVisibility(View.GONE);
-                    String str=msg.obj+"";
+                    String str = msg.obj + "";
                     Toast.makeText(getActivity(), str, Toast.LENGTH_SHORT).show();
                     mCameraManager.initPreView();
                     mShutter.setEnabled(true);
@@ -100,14 +109,14 @@ public class CameraFragment extends BaseFragment implements Callback {
                 case 4:
                     mShutter.setEnabled(true);
                     pb.setVisibility(View.GONE);
-                    String result=msg.obj+"";
-                    Log.e(TAG, "handleMessage: "+result );
+                    String result = msg.obj + "";
                     CameraCardBean cameraCardBean = null;
                     try {
                         cameraCardBean = GsonParsing.getCardMessageJson(result);
                         CameraCardBean.DataBean dataBean = cameraCardBean.getData();
-                        CameraCardBean.DataBean.ItemBean itemBean = dataBean.getItem();
-                        Log.e(TAG, "handleMessage: "+itemBean.getName());
+                        final CameraCardBean.DataBean.ItemBean itemBean = dataBean.getItem();
+                        Log.e(TAG, "handleMessage: " + itemBean.getCardno());
+                        loginInstance(itemBean.getCardno());
                         Toast.makeText(getActivity(), "操作成功", Toast.LENGTH_SHORT).show();
                     } catch (Exception e) {
                         Toast.makeText(getActivity(), "身份证识别失败", Toast.LENGTH_SHORT).show();
@@ -115,11 +124,11 @@ public class CameraFragment extends BaseFragment implements Callback {
 
                     break;
                 case 5:
-                    String filePath=msg.obj+"";
-                    byte[] data= FileUtil.getByteFromPath(filePath);
-                    if(data!=null && data.length>0){
-                        mHandler.sendMessage(mHandler.obtainMessage(1,data));
-                    }else{
+                    String filePath = msg.obj + "";
+                    byte[] data = FileUtil.getByteFromPath(filePath);
+                    if (data != null && data.length > 0) {
+                        mHandler.sendMessage(mHandler.obtainMessage(1, data));
+                    } else {
                         mHandler.sendMessage(mHandler.obtainMessage(0));
                     }
                     break;
@@ -128,7 +137,63 @@ public class CameraFragment extends BaseFragment implements Callback {
                     mCameraManager.initPreView();
                     break;
             }
-        };
+        }
+
+        ;
+    };
+
+    private void loginInstance(String cardID) {
+        OkHttpUtils.get().url(InterfaceUrl.USER_LOGIN_URL + sessonWithCode)
+                .addParams("card_id", cardID)
+                .build()
+                .execute(new StringCallback() {
+                    @Override
+                    public void onError(Call call, Exception e, int id) {
+                        toastOnUi("登录失败，请检查网络");
+                    }
+
+                    @Override
+                    public void onResponse(String response, int id) {
+                        Log.e(TAG, "onResponse: "+response );
+                        Message msg = new Message();
+                        msg.obj = response;
+                        loginHandler.sendMessage(msg);
+                    }
+                });
+    }
+
+    private Handler loginHandler = new Handler() {
+        @Override
+        public void handleMessage(Message msg) {
+            super.handleMessage(msg);
+            String result = (String) msg.obj;
+            if (result.indexOf(ErrorCode.SUCCESS) > 0) {
+                try {
+                    UserLoginBean bean = GsonParsing.getUserLoginMessageJson(result);
+                    if (bean.getData() ==null){
+                        Toast.makeText(getActivity(), getResources().getString(R.string.user_not_exist_please_register_first), Toast.LENGTH_SHORT).show();
+                    }else {
+                        UserLoginBean.UserLoginDataBean dataBean = bean.getData();
+                        JumpActivityWithUserData(HomeActivity.class,dataBean.getName(),dataBean.getId());
+                    }
+                    Log.e(TAG, "data: "+bean.getData() );
+                } catch (Exception e) {
+                    Toast.makeText(getActivity(), getResources().getString(R.string.connection_timeout_or_illegal_request), Toast.LENGTH_SHORT).show();
+                }
+
+            } else {
+                //解析
+                ErrorCodeBean errorCodeBean = null;
+                try {
+                    errorCodeBean = GsonParsing.sendCodeError(result);
+                    judge(errorCodeBean.getCode() + "");
+                } catch (Exception e) {
+                    Toast.makeText(getActivity(), getResources().getString(R.string.connection_timeout_or_illegal_request), Toast.LENGTH_SHORT).show();
+                }
+            }
+
+
+        }
     };
 
 
@@ -139,12 +204,12 @@ public class CameraFragment extends BaseFragment implements Callback {
         mCameraManager = new CameraManager(getActivity(), mHandler);
         initViews(view);
 
-        if(!Environment.getExternalStorageState().equals(Environment.MEDIA_MOUNTED)){
+        if (!Environment.getExternalStorageState().equals(Environment.MEDIA_MOUNTED)) {
             Toast.makeText(getActivity(), "请插入存储卡", Toast.LENGTH_LONG).show();
         }
 
         File dir = new File(CameraManager.strDir);
-        if(!dir.exists()){
+        if (!dir.exists()) {
             dir.mkdir();
         }
         return view;
@@ -172,23 +237,23 @@ public class CameraFragment extends BaseFragment implements Callback {
     public void surfaceCreated(SurfaceHolder holder) {
         try {
             mCameraManager.openCamera(mSurfaceHolder);
-            if(flashModel ==null || !mCameraManager.isSupportFlash(flashModel)){
-                flashModel =mCameraManager.getDefaultFlashMode();
+            if (flashModel == null || !mCameraManager.isSupportFlash(flashModel)) {
+                flashModel = mCameraManager.getDefaultFlashMode();
             }
             mCameraManager.setCameraFlashMode(flashModel);
-        }catch(RuntimeException e){
-            Toast.makeText(getActivity(), R.string.camera_open_error,Toast.LENGTH_SHORT).show();
-        }catch (IOException e) {
-            Toast.makeText(getActivity(), R.string.camera_open_error,Toast.LENGTH_SHORT).show();
+        } catch (RuntimeException e) {
+            Toast.makeText(getActivity(), R.string.camera_open_error, Toast.LENGTH_SHORT).show();
+        } catch (IOException e) {
+            Toast.makeText(getActivity(), R.string.camera_open_error, Toast.LENGTH_SHORT).show();
         }
     }
 
     @Override
     public void surfaceChanged(SurfaceHolder holder, int format, int width, int height) {
-        if(width>height){
-            mCameraManager.setPreviewSize(width,height);
-        }else{
-            mCameraManager.setPreviewSize(height,width);
+        if (width > height) {
+            mCameraManager.setPreviewSize(width, height);
+        } else {
+            mCameraManager.setPreviewSize(height, width);
         }
         mCameraManager.initPreView();
     }
@@ -198,7 +263,7 @@ public class CameraFragment extends BaseFragment implements Callback {
         mCameraManager.closeCamera();
     }
 
-    public static String Scan(String type,byte[] file,String ext){
+    public static String Scan(String type, byte[] file, String ext) {
         String xml = HttpUtil.getSendXML(type, ext);
         return HttpUtil.send(xml, file);
     }

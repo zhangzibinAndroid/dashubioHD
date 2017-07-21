@@ -3,6 +3,7 @@
     <color name="colorPrimary">#3F51B5</color>
     <color name="colorPrimaryDark">#303F9F</color>
     <color name="colorAccent">#FF4081</color>
+    <color name="text_shape">#009FE8</color>
 
     <color name="transparent">#00000000</color>
     <color name="text_color">#000000</color>
@@ -16,6 +17,7 @@
     <color name="menu_color">#0A0F22</color>
     <color name="btn_color">#00A0EA</color>
     <color name="line_color">#333333</color>
+    <color name="lv_bg">#EEEEEE</color>
 
     <color name="title_bg">#00a2ff</color>
     <color name="blue_dark">#1ab3ff</color>
@@ -26,6 +28,7 @@
     <color name="text_cff1212">#ff1212</color>
 
     <color name="divider">#e0e0e0</color>
+    <color name="expend_item_text">#66669A</color>
     <color name="menu_divider">@color/text_c323232</color>
     <color name="menu_pressed">#288993</color>
 

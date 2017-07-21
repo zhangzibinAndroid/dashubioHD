@@ -25,7 +25,6 @@ import butterknife.Unbinder;
 public class UserLoginFragment extends BaseFragment {
     private Unbinder unbinder;
     public static final String action = "idcard.scan";
-    private static final String TAG = "TAG";
     private final int TAKEPHOTO_CODE=2;
     public UserLoginFragment() {
         // Required empty public constructor

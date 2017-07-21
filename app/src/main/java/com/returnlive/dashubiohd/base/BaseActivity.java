@@ -247,8 +247,15 @@ public class BaseActivity extends AppCompatActivity {
                 toastOnUi("短信已成功发送");
             } else {
                 //解析
-                ErrorCodeBean errorCodeBean = GsonParsing.sendCodeError(result);
-                judge(errorCodeBean.getCode() + "");
+                ErrorCodeBean errorCodeBean = null;
+                try {
+                    errorCodeBean = GsonParsing.sendCodeError(result);
+                    judge(errorCodeBean.getCode() + "");
+
+                } catch (Exception e) {
+                    Toast.makeText(BaseActivity.this, getResources().getString(R.string.connection_timeout_or_illegal_request), Toast.LENGTH_SHORT).show();
+
+                }
             }
 
         }
@@ -263,9 +270,15 @@ public class BaseActivity extends AppCompatActivity {
             if (result.indexOf(ErrorCode.SUCCESS) > 0) {
                 Toast.makeText(BaseActivity.this, "设备注册成功", Toast.LENGTH_SHORT).show();
             } else {
-                ErrorCodeBean errorCodeBean = GsonParsing.sendCodeError(result);
-                judge(errorCodeBean.getCode() + "");
-                progressDialog.dismiss();
+                ErrorCodeBean errorCodeBean = null;
+                try {
+                    errorCodeBean = GsonParsing.sendCodeError(result);
+                    judge(errorCodeBean.getCode() + "");
+                    progressDialog.dismiss();
+                } catch (Exception e) {
+                    Toast.makeText(BaseActivity.this, getResources().getString(R.string.connection_timeout_or_illegal_request), Toast.LENGTH_SHORT).show();
+                }
+
             }
         }
     };
@@ -278,9 +291,16 @@ public class BaseActivity extends AppCompatActivity {
             String result = (String) msg.obj;
             if (result.indexOf(ErrorCode.SUCCESS) > 0) {
                 toastOnUi("登录成功");
-                LoginBean loginBean = GsonParsing.getMessage(result);
-                InterfaceUrl.code = loginBean.getCode();
-                String companyName = loginBean.getCompany();
+                LoginBean loginBean = null;
+                String companyName = "";
+                try {
+                    loginBean = GsonParsing.getMessage(result);
+                    InterfaceUrl.code = loginBean.getCode();
+                    companyName = loginBean.getCompany();
+                } catch (Exception e) {
+                    Toast.makeText(BaseActivity.this, getResources().getString(R.string.connection_timeout_or_illegal_request), Toast.LENGTH_SHORT).show();
+                }
+
                 try {
                     t_session_code = GsonParsing.gsonLoginSesson(result);
                 } catch (JSONException e) {
@@ -294,9 +314,15 @@ public class BaseActivity extends AppCompatActivity {
 
                 progressDialog.dismiss();
             } else {
-                ErrorCodeBean errorCodeBean = GsonParsing.sendCodeError(result);
-                judge(errorCodeBean.getCode() + "");
-                progressDialog.dismiss();
+                ErrorCodeBean errorCodeBean = null;
+                try {
+                    errorCodeBean = GsonParsing.sendCodeError(result);
+                    judge(errorCodeBean.getCode() + "");
+                    progressDialog.dismiss();
+                } catch (Exception e) {
+                    Toast.makeText(BaseActivity.this, getResources().getString(R.string.connection_timeout_or_illegal_request), Toast.LENGTH_SHORT).show();
+                }
+
             }
         }
     };

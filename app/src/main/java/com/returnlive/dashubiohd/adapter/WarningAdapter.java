@@ -48,7 +48,11 @@ public class WarningAdapter extends RecyclerView.Adapter<WarningAdapter.ViewHold
 
     @Override
     public int getItemCount() {
-        return dataList.size();
+        if (dataList!=null){
+            return dataList.size();
+        }else {
+            return 0;
+        }
     }
 
     static class ViewHolder extends RecyclerView.ViewHolder {

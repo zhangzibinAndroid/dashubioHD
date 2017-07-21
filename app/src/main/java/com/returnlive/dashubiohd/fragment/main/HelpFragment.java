@@ -9,16 +9,21 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.widget.AdapterView;
 import android.widget.ListView;
+import android.widget.Toast;
 
 import com.returnlive.dashubiohd.R;
-import com.returnlive.dashubiohd.activity.HelpActivity;
 import com.returnlive.dashubiohd.adapter.HelpAdapter;
 import com.returnlive.dashubiohd.base.BaseFragment;
+import com.returnlive.dashubiohd.bean.ErrorCodeBean;
+import com.returnlive.dashubiohd.bean.EventLoginMessage;
 import com.returnlive.dashubiohd.bean.HelpMessageBean;
+import com.returnlive.dashubiohd.constant.ErrorCode;
 import com.returnlive.dashubiohd.constant.InterfaceUrl;
 import com.returnlive.dashubiohd.gson.GsonParsing;
 import com.zhy.http.okhttp.OkHttpUtils;
 import com.zhy.http.okhttp.callback.StringCallback;
+
+import org.greenrobot.eventbus.EventBus;
 
 import butterknife.BindView;
 import butterknife.ButterKnife;
@@ -32,7 +37,8 @@ import okhttp3.Call;
  * 描述： 使用帮助
  */
 public class HelpFragment extends BaseFragment {
-    private static final String TAG = "HelpFragment";
+    public static String title = "";
+    public static String content = "";
 
     @BindView(R.id.lv_help)
     ListView lvHelp;
@@ -59,14 +65,13 @@ public class HelpFragment extends BaseFragment {
         lvHelp.setOnItemClickListener(new AdapterView.OnItemClickListener() {
             @Override
             public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
-                String title = "";
-                String content = "";
+
                 for (int i = 0; i < helpAdapter.getHelpDataBeanList().size(); i++) {
                     HelpMessageBean.HelpDataBean bean = (HelpMessageBean.HelpDataBean) helpAdapter.getHelpDataBeanList().get(position);
                     content = bean.getContent();
                     title = bean.getTitle();
                 }
-                JumpActivityWithData(HelpActivity.class,title,content);
+                EventBus.getDefault().post(new EventLoginMessage("HelpMessage"));
             }
         });
         new Thread(new Runnable() {
@@ -105,9 +110,28 @@ public class HelpFragment extends BaseFragment {
         public void handleMessage(Message msg) {
             super.handleMessage(msg);
             String result = (String) msg.obj;
-            HelpMessageBean helpMessageBean = GsonParsing.getHelpMessage(result);
-            helpAdapter.addDATA(helpMessageBean);
-            helpAdapter.notifyDataSetChanged();
+            if (result.indexOf(ErrorCode.SUCCESS) > 0) {
+                HelpMessageBean helpMessageBean = null;
+                try {
+                    helpMessageBean = GsonParsing.getHelpMessage(result);
+                    helpAdapter.addDATA(helpMessageBean);
+                    helpAdapter.notifyDataSetChanged();
+                } catch (Exception e) {
+                    Toast.makeText(getActivity(), getResources().getString(R.string.connection_timeout_or_illegal_request), Toast.LENGTH_SHORT).show();
+                }
+            }else {
+                //解析
+                ErrorCodeBean errorCodeBean = null;
+                try {
+                    errorCodeBean = GsonParsing.sendCodeError(result);
+                    judge(errorCodeBean.getCode() + "");
+                } catch (Exception e) {
+                    Toast.makeText(getActivity(), getResources().getString(R.string.connection_timeout_or_illegal_request), Toast.LENGTH_SHORT).show();
+                }
+            }
+
+
+
         }
     };
 }

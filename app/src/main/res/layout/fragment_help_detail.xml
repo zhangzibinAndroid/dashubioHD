@@ -28,7 +28,7 @@
                     android:layout_height="wrap_content"
                     android:layout_centerHorizontal="true"
                     android:text="标题"
-                    android:textSize="@dimen/px50"/>
+                    android:textSize="@dimen/px35"/>
 
                 <TextView android:id="@+id/tv_helpcontext"
                     android:layout_width="wrap_content"
@@ -36,7 +36,7 @@
                     android:layout_below="@+id/tv_helptitle"
                     android:text="内容"
                     android:layout_marginLeft="@dimen/px20"
-                    android:textSize="@dimen/px40"/>
+                    android:textSize="@dimen/px30"/>
             </com.zhy.autolayout.AutoRelativeLayout>
         </com.zhy.autolayout.AutoLinearLayout>
     </ScrollView>

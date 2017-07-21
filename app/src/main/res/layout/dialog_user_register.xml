@@ -2,16 +2,22 @@
 <com.zhy.autolayout.AutoRelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
+    android:focusable="true"
+    android:focusableInTouchMode="true"
     android:paddingBottom="@dimen/px30">
 
     <ScrollView
         android:layout_width="match_parent"
-        android:layout_height="match_parent">
+        android:layout_height="match_parent"
+        android:layout_alignParentStart="true"
+        android:layout_alignParentTop="true"
+        android:fillViewport="true">
 
         <com.zhy.autolayout.AutoLinearLayout
             android:layout_width="match_parent"
             android:layout_height="match_parent"
             android:orientation="vertical">
+
 
             <TextView
                 android:layout_width="match_parent"
@@ -92,15 +98,17 @@
                     style="@style/ReisterDialogTextIntroduce"
                     android:text="@string/area" />
 
-                <Spinner android:id="@+id/tv_province"
-                    style="@style/CitySelTextViewStyle"
-                    />
+                <Spinner
+                    android:id="@+id/tv_province"
+                    style="@style/CitySelTextViewStyle" />
 
-                <Spinner android:id="@+id/tv_city"
-                    style="@style/CitySelTextViewStyle"/>
+                <Spinner
+                    android:id="@+id/tv_city"
+                    style="@style/CitySelTextViewStyle" />
 
-                <Spinner android:id="@+id/tv_district"
-                    style="@style/CitySelTextViewStyle"/>
+                <Spinner
+                    android:id="@+id/tv_district"
+                    style="@style/CitySelTextViewStyle" />
 
             </com.zhy.autolayout.AutoLinearLayout>
 
@@ -136,7 +144,6 @@
                     android:hint="@string/id_number" />
 
             </com.zhy.autolayout.AutoLinearLayout>
-
 
 
             <View style="@style/ViewLineStyleSecond" />
@@ -176,42 +183,32 @@
             <View style="@style/ViewLineStyleSecond" />
 
             <com.zhy.autolayout.AutoLinearLayout
-                android:layout_marginTop="@dimen/px30"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
+                android:layout_marginTop="@dimen/px30"
                 android:gravity="center"
                 android:orientation="horizontal">
 
-                <Button android:id="@+id/btn_register"
+                <Button
+                    android:id="@+id/btn_register"
                     android:layout_width="match_parent"
                     android:layout_height="@dimen/px100"
-                    android:layout_weight="1"
                     android:layout_marginLeft="@dimen/px50"
                     android:layout_marginRight="@dimen/px30"
+                    android:layout_weight="1"
                     android:background="@drawable/ucenter_button"
-                    android:text="@string/register"/>
+                    android:text="@string/register" />
 
-                <Button android:id="@+id/btn_cancle"
+                <Button
+                    android:id="@+id/btn_cancle"
                     android:layout_width="match_parent"
                     android:layout_height="@dimen/px100"
-                    android:layout_weight="1"
-                    android:layout_marginRight="@dimen/px50"
                     android:layout_marginLeft="@dimen/px30"
+                    android:layout_marginRight="@dimen/px50"
+                    android:layout_weight="1"
                     android:background="@drawable/ucenter_button_cancel"
-                    android:text="@string/cancel"/>
-
-
+                    android:text="@string/cancel" />
             </com.zhy.autolayout.AutoLinearLayout>
-
-
-
-
-
-
-
-
-
-
 
         </com.zhy.autolayout.AutoLinearLayout>
     </ScrollView>

@@ -39,7 +39,7 @@ public class UserListAdapter extends MyBaseAdapter<UserListBean.UserListDataBean
             viewHolder = (ViewHolder) convertView.getTag();
         }
         UserListBean.UserListDataBean bean = list.get(position);
-        viewHolder.btnItemLogin.setTag(bean.getName());
+        viewHolder.btnItemLogin.setTag(bean.getId());
 
         viewHolder.tvItemName.setText(bean.getName());
         String sex = "";
@@ -68,7 +68,7 @@ public class UserListAdapter extends MyBaseAdapter<UserListBean.UserListDataBean
 
 
     public static interface OnButtonClickListener {
-        void onButtonClick(View view,String name);
+        void onButtonClick(View view,String id);
     }
 
     public void setOnButtonClickListener(OnButtonClickListener listener) {

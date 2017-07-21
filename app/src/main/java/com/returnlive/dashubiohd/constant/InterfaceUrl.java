@@ -17,6 +17,10 @@ public class InterfaceUrl {
     public static final String USER_MESSAGE_URL= BASE_URL+"Ulogin/userlist/";//用户列表接口需要添加sesson和code
     public static final String USER_LOGIN_URL= BASE_URL+"Ulogin/userlogin/";//用户登录接口需要添加sesson和code
     public static final String MESSAGE_URL= BASE_URL+"Testing/tests/";//获取检测数据（首页）接口需要添加sesson和code
+    public static final String USER_REGISTER_URL= BASE_URL+"Ulogin/register/";//用户登录接口需要添加sesson和code
+    public static final String HISTORY_DATA_URL= BASE_URL+"Testing/history/";//历史数据接口需要添加sesson和code
+    public static final String HEALTH_REPORT_URL= BASE_URL+"Testing/reportlist/";//健康报告接口需要添加sesson和code
+    public static final String HEALTH_ARCHIVES_URL= BASE_URL+"Ulogin/perinfo/";//健康档案接口需要添加sesson和code
 
 
 

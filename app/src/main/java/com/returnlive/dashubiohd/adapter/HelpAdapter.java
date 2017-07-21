@@ -49,9 +49,11 @@ public class HelpAdapter extends MyBaseAdapter<HelpMessageBean> {
         HelpMessageBean helpMessageBean = list.get(position);
         beanList = helpMessageBean.getData();
         String title = "";
-        for (int i = 0; i < beanList.size(); i++) {
-            HelpMessageBean.HelpDataBean helpDataBean = beanList.get(i);
-            title = helpDataBean.getTitle();
+        if (beanList!=null){
+            for (int i = 0; i < beanList.size(); i++) {
+                HelpMessageBean.HelpDataBean helpDataBean = beanList.get(i);
+                title = helpDataBean.getTitle();
+            }
         }
         viewHolder.tvItemHelpContent.setText(title);
         return convertView;

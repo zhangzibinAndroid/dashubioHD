@@ -9,12 +9,15 @@ import android.support.v7.widget.RecyclerView;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.Toast;
 
 import com.andview.refreshview.XRefreshView;
 import com.returnlive.dashubiohd.R;
 import com.returnlive.dashubiohd.adapter.WarningAdapter;
 import com.returnlive.dashubiohd.base.BaseFragment;
+import com.returnlive.dashubiohd.bean.ErrorCodeBean;
 import com.returnlive.dashubiohd.bean.WarningBean;
+import com.returnlive.dashubiohd.constant.ErrorCode;
 import com.returnlive.dashubiohd.constant.InterfaceUrl;
 import com.returnlive.dashubiohd.gson.GsonParsing;
 import com.returnlive.dashubiohd.view.ViewHeader;
@@ -36,7 +39,6 @@ import okhttp3.Call;
  */
 public class WarningSettingFragment extends BaseFragment {
 
-    private static final String TAG = "WarningSettingFragment";
     @BindView(R.id.lv_warning)
     RecyclerView lvWarning;
     @BindView(R.id.xrefresh_warning)
@@ -44,7 +46,9 @@ public class WarningSettingFragment extends BaseFragment {
     Unbinder unbinder;
     private WarningAdapter warningAdapter;
     private List<WarningBean.WarningDataBean> dataList;
-
+    private int downIsRefresh = 1;
+    private Handler downHandler;
+    private Runnable downRunable;
     public WarningSettingFragment() {
         // Required empty public constructor
     }
@@ -60,6 +64,7 @@ public class WarningSettingFragment extends BaseFragment {
     }
 
     private void initView() {
+        downIsRefresh = 1;
         LinearLayoutManager linearLayoutManager = new LinearLayoutManager(getActivity());
         linearLayoutManager.setOrientation(LinearLayoutManager.VERTICAL);
         lvWarning.setLayoutManager(linearLayoutManager);
@@ -75,7 +80,7 @@ public class WarningSettingFragment extends BaseFragment {
     }
 
     private void warningInterface() {
-        OkHttpUtils.get().url(InterfaceUrl.WARNING_URL+sessonWithCode).build().execute(new StringCallback() {
+        OkHttpUtils.get().url(InterfaceUrl.WARNING_URL + sessonWithCode).build().execute(new StringCallback() {
             @Override
             public void onError(Call call, Exception e, int id) {
                 toastOnUi("获取预警列表异常，请检查网络");
@@ -103,7 +108,9 @@ public class WarningSettingFragment extends BaseFragment {
         xrefreshWarning.setXRefreshViewListener(new XRefreshView.XRefreshViewListener() {
             @Override
             public void onRefresh() {
-                new Handler().postDelayed(new Runnable() {
+                downIsRefresh = 2;
+                downHandler = new Handler();
+                downHandler.postDelayed(downRunable = new Runnable() {
                     @Override
                     public void run() {
                         xrefreshWarning.stopRefresh();
@@ -113,7 +120,9 @@ public class WarningSettingFragment extends BaseFragment {
 
             @Override
             public void onRefresh(boolean isPullDown) {
-
+                if (isPullDown){
+                    warningInterface();
+                }
             }
 
             @Override
@@ -144,19 +153,40 @@ public class WarningSettingFragment extends BaseFragment {
     public void onDestroyView() {
         super.onDestroyView();
         unbinder.unbind();
+        if (downIsRefresh==2){
+            downHandler.removeCallbacks(downRunable);
+        }
     }
 
 
-    private Handler warningHandler = new Handler(){
+    private Handler warningHandler = new Handler() {
         @Override
         public void handleMessage(Message msg) {
             super.handleMessage(msg);
             String result = (String) msg.obj;
-            WarningBean bean = GsonParsing.getWarningMessage(result);
-            dataList = bean.getData();
-            warningAdapter = new WarningAdapter(dataList);
-            lvWarning.setAdapter(warningAdapter);
-            warningAdapter.notifyDataSetChanged();
+            if (result.indexOf(ErrorCode.SUCCESS) > 0) {
+                WarningBean bean = null;
+                try {
+                    bean = GsonParsing.getWarningMessage(result);
+                    dataList = bean.getData();
+                    warningAdapter = new WarningAdapter(dataList);
+                    lvWarning.setAdapter(warningAdapter);
+                    warningAdapter.notifyDataSetChanged();
+                } catch (Exception e) {
+                    Toast.makeText(getActivity(), getResources().getString(R.string.connection_timeout_or_illegal_request), Toast.LENGTH_SHORT).show();
+                }
+            } else {
+                //解析
+                ErrorCodeBean errorCodeBean = null;
+                try {
+                    errorCodeBean = GsonParsing.sendCodeError(result);
+                    judge(errorCodeBean.getCode() + "");
+                } catch (Exception e) {
+                    Toast.makeText(getActivity(), getResources().getString(R.string.connection_timeout_or_illegal_request), Toast.LENGTH_SHORT).show();
+                }
+            }
+
+
         }
     };
 }

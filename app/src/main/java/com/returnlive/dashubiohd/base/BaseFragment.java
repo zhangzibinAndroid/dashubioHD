@@ -21,7 +21,9 @@ import static com.returnlive.dashubiohd.constant.InterfaceUrl.zSesson;
 
 public class BaseFragment extends Fragment {
     protected View view;
-    protected String sessonWithCode = zSesson+code+"/"+t_session_code+"/uid/"+code;
+    protected String sessonWithCode = zSesson + code + "/" + t_session_code + "/uid/" + code;
+    private static final String TAG = "BaseFragment";
+
 
     protected void toastOnUi(final String text) {
         getActivity().runOnUiThread(new Runnable() {
@@ -37,16 +39,10 @@ public class BaseFragment extends Fragment {
         startActivity(intent);
     }
 
-    protected void JumpActivityWithData(Class<?> cls,String title,String content) {
+    protected void JumpActivityWithUserData(Class<?> cls, String name,String mid) {
         Intent intent = new Intent(getActivity(), cls);
-        intent.putExtra("helpTitle",title);
-        intent.putExtra("helpContent",content);
-        startActivity(intent);
-    }
-
-    protected void JumpActivityWithData(Class<?> cls,String content) {
-        Intent intent = new Intent(getActivity(), cls);
-        intent.putExtra("userName",content);
+        intent.putExtra("userName", name);
+        intent.putExtra("mid", mid);
         startActivity(intent);
     }
 
@@ -152,9 +148,7 @@ public class BaseFragment extends Fragment {
             case ErrorCode.PHONE_CANNOT_EMPTY://电话不可为空
                 toastOnUi(getResources().getString(R.string.phone_cannot_empty));
                 return;
-
         }
     }
-
 
 }

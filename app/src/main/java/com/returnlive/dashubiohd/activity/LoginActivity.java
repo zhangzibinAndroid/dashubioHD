@@ -32,7 +32,7 @@ import butterknife.Unbinder;
  */
 public class LoginActivity extends BaseActivity {
     private Unbinder unbinder;
-    PopupWindow login_window = null, register_window = null;
+    private PopupWindow login_window = null, register_window = null;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {

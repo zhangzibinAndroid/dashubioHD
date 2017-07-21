@@ -20,6 +20,7 @@ import com.returnlive.dashubiohd.fragment.main.UserManageFragment;
 import com.returnlive.dashubiohd.fragment.main.UserRegisterFragment;
 import com.returnlive.dashubiohd.fragment.main.WarningSettingFragment;
 import com.returnlive.dashubiohd.fragment.other.CameraFragment;
+import com.returnlive.dashubiohd.fragment.other.HelpDetailFragment;
 import com.returnlive.dashubiohd.view.RoundImageView;
 import com.zhy.autolayout.AutoFrameLayout;
 
@@ -61,6 +62,7 @@ public class MainActivity extends BaseActivity {
     private WarningSettingFragment warningSettingFragment;
     private HelpFragment helpFragment;
     private CameraFragment cameraFragment;
+    private HelpDetailFragment helpDetailFragment;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -80,6 +82,7 @@ public class MainActivity extends BaseActivity {
         warningSettingFragment = new WarningSettingFragment();
         helpFragment = new HelpFragment();
         cameraFragment = new CameraFragment();
+        helpDetailFragment = new HelpDetailFragment();
         Intent intent = getIntent();
         String companyName = intent.getStringExtra("companyName");
         tvCompanyName.setText(companyName);
@@ -168,6 +171,21 @@ public class MainActivity extends BaseActivity {
     public void getCardMessage(EventLoginMessage event){
         if (event.message.equals("cardMessage")){
             setReplaceFragment(R.id.content,cameraFragment);
+        }
+    }
+
+    @Subscribe(threadMode = ThreadMode.MAIN)
+    public void getHelpMessage(EventLoginMessage event){
+        if (event.message.equals("HelpMessage")){
+            setReplaceFragment(R.id.content,helpDetailFragment);
+        }
+    }
+
+
+    @Subscribe(threadMode = ThreadMode.MAIN)
+    public void getHelpList(EventLoginMessage event){
+        if (event.message.equals("HelpList")){
+            setReplaceFragment(R.id.content,helpFragment);
         }
     }
 

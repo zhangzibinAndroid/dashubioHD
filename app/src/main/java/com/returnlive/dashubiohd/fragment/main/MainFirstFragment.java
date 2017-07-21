@@ -56,7 +56,6 @@ public class MainFirstFragment extends BaseFragment {
     private MainPageAdapter mainPageAdapter;
     private List<MainPageBean.MessageDataBean> data;
     private Unbinder unbinder;
-    private static final String TAG = "MainFirstFragment";
     private Handler downHandler;
     private Runnable downRunable;
     private boolean isdown = false;
@@ -153,8 +152,13 @@ public class MainFirstFragment extends BaseFragment {
 
             } else {
                 //解析
-                ErrorCodeBean errorCodeBean = GsonParsing.sendCodeError(result);
-                judge(errorCodeBean.getCode() + "");
+                ErrorCodeBean errorCodeBean = null;
+                try {
+                    errorCodeBean = GsonParsing.sendCodeError(result);
+                    judge(errorCodeBean.getCode() + "");
+                } catch (Exception e) {
+                    Toast.makeText(getActivity(), getResources().getString(R.string.connection_timeout_or_illegal_request), Toast.LENGTH_SHORT).show();
+                }
             }
 
         }

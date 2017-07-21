@@ -1,13 +1,16 @@
 package com.returnlive.dashubiohd.fragment.main;
 
 
+import android.content.DialogInterface;
+import android.graphics.Color;
 import android.hardware.Camera.Parameters;
 import android.os.Bundle;
 import android.os.Environment;
 import android.os.Handler;
 import android.os.Message;
 import android.support.v7.app.AlertDialog;
-import android.util.Log;
+import android.text.TextUtils;
+import android.view.Gravity;
 import android.view.LayoutInflater;
 import android.view.SurfaceHolder;
 import android.view.SurfaceHolder.Callback;
@@ -25,24 +28,37 @@ import android.widget.Spinner;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import com.bigkoo.pickerview.TimePickerView;
+import com.bigkoo.pickerview.lib.WheelView;
+import com.bigkoo.pickerview.listener.CustomListener;
 import com.returnlive.dashubiohd.R;
 import com.returnlive.dashubiohd.base.BaseFragment;
 import com.returnlive.dashubiohd.bean.CameraCardBean;
-import com.returnlive.dashubiohd.constant.CityArray;
+import com.returnlive.dashubiohd.bean.ErrorCodeBean;
+import com.returnlive.dashubiohd.constant.ErrorCode;
+import com.returnlive.dashubiohd.constant.InterfaceUrl;
 import com.returnlive.dashubiohd.gson.GsonParsing;
 import com.returnlive.dashubiohd.utils.CameraManager;
 import com.returnlive.dashubiohd.utils.FileUtil;
 import com.returnlive.dashubiohd.utils.HttpUtil;
 import com.returnlive.dashubiohd.utils.NetUtil;
+import com.returnlive.dashubiohd.view.ActionSheetDialog;
+import com.zhy.http.okhttp.OkHttpUtils;
+import com.zhy.http.okhttp.callback.StringCallback;
 
 import java.io.File;
 import java.io.IOException;
+import java.text.SimpleDateFormat;
+import java.util.Calendar;
+import java.util.Date;
 
 import butterknife.BindView;
 import butterknife.ButterKnife;
+import okhttp3.Call;
 
 import static com.returnlive.dashubiohd.constant.CityArray.city;
 import static com.returnlive.dashubiohd.constant.CityArray.county;
+import static com.returnlive.dashubiohd.constant.CityArray.province;
 
 /**
  * 作者： 张梓彬
@@ -51,7 +67,6 @@ import static com.returnlive.dashubiohd.constant.CityArray.county;
  * 描述： 用户注册
  */
 public class UserRegisterFragment extends BaseFragment implements Callback {
-    protected static final String TAG = "TAG";
     private CameraManager mCameraManager;
     private SurfaceView mSurfaceView;
     private ProgressBar pb;
@@ -60,11 +75,12 @@ public class UserRegisterFragment extends BaseFragment implements Callback {
     private String flashModel = Parameters.FLASH_MODE_OFF;
     private byte[] jpegData = null;
     private AlertDialog.Builder registerDialog;
-    private AlertDialog dialog;
+    private AlertDialog dialog, dialogFolk;
     private ArrayAdapter<String> provinceAdapter = null;  //省级适配器
     private ArrayAdapter<String> cityAdapter = null;    //地级适配器
     private ArrayAdapter<String> countyAdapter = null;    //县级适配器
     private static int provincePosition = 3;
+
     public UserRegisterFragment() {
 
     }
@@ -92,8 +108,6 @@ public class UserRegisterFragment extends BaseFragment implements Callback {
                                 boolean isavilable = NetUtil.isNetworkConnectionActive(getActivity());
                                 if (isavilable) {
                                     result = Scan(UserLoginFragment.action, jpegData, "jpg");
-                                    Log.d(TAG, "" + result);
-
                                     if (result.equals("-2")) {
                                         result = "连接超时！";
                                         mHandler.sendMessage(mHandler.obtainMessage(3, result));
@@ -120,13 +134,18 @@ public class UserRegisterFragment extends BaseFragment implements Callback {
                     mShutter.setEnabled(true);
                     pb.setVisibility(View.GONE);
                     String result = msg.obj + "";
-                    Log.e(TAG, "handleMessage: " + result);
                     CameraCardBean cameraCardBean = null;
                     try {
                         cameraCardBean = GsonParsing.getCardMessageJson(result);
                         CameraCardBean.DataBean dataBean = cameraCardBean.getData();
                         CameraCardBean.DataBean.ItemBean itemBean = dataBean.getItem();
-                        Log.e(TAG, "handleMessage: " + itemBean.getName());
+                        String name = itemBean.getName();
+                        String id_number = itemBean.getCardno();
+                        String sex = itemBean.getSex();
+                        String folk = itemBean.getFolk();
+                        String birth = itemBean.getBirthday();
+                        String address = itemBean.getAddress();
+                        showDialog(name,id_number,sex,folk,birth,address);
                         Toast.makeText(getActivity(), "操作成功", Toast.LENGTH_SHORT).show();
                     } catch (Exception e) {
                         Toast.makeText(getActivity(), "身份证识别失败", Toast.LENGTH_SHORT).show();
@@ -151,6 +170,8 @@ public class UserRegisterFragment extends BaseFragment implements Callback {
 
         ;
     };
+
+
 
 
     @Override
@@ -191,7 +212,7 @@ public class UserRegisterFragment extends BaseFragment implements Callback {
         btn_register.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                showDialog();
+                showDialog("","","","","","");
             }
         });
     }
@@ -237,16 +258,23 @@ public class UserRegisterFragment extends BaseFragment implements Callback {
     }
 
 
-    private void showDialog() {
+    private void showDialog(String name, String id_number, String sex, String folk, String birth, String address) {
         registerDialog = new AlertDialog.Builder(getActivity());
         View dialogView = View.inflate(getActivity(), R.layout.dialog_user_register, null);
         final ViewHolder viewHolder = new ViewHolder(dialogView);
+        viewHolder.dialogTvUserName.setText(name);
+        viewHolder.dialogTvUserIdNumber.setText(id_number);
+        viewHolder.dialogTvUserSex.setText(sex);
+        viewHolder.dialogTvUserFolk.setText(folk);
+        viewHolder.dialogTvUserBirth.setText(birth);
+        viewHolder.dialogTvUserAddress.setText(address);
+
         //绑定适配器和值
-        provinceAdapter = new ArrayAdapter<String>(getActivity(),R.layout.item_city_text_select, CityArray.province);
+        provinceAdapter = new ArrayAdapter<String>(getActivity(), R.layout.item_city_text_select, province);
         viewHolder.tvProvince.setAdapter(provinceAdapter);
         viewHolder.tvProvince.setSelection(0, true);  //设置默认选中项，此处为默认选中第1个值
 
-        cityAdapter = new ArrayAdapter<String>(getActivity(),R.layout.item_city_text_select, city[0]);
+        cityAdapter = new ArrayAdapter<String>(getActivity(), R.layout.item_city_text_select, city[0]);
         viewHolder.tvCity.setAdapter(cityAdapter);
         viewHolder.tvCity.setSelection(0, true);  //默认选中第0个
 
@@ -284,32 +312,53 @@ public class UserRegisterFragment extends BaseFragment implements Callback {
         viewHolder.btnRegister.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                String name = viewHolder.dialogTvUserName.getText().toString();
+                final String name = viewHolder.dialogTvUserName.getText().toString();
                 String sex = viewHolder.dialogTvUserSex.getText().toString();
-                String folk = viewHolder.dialogTvUserFolk.getText().toString();
+                String sexNo = "0";
+                if (sex.equals(getString(R.string.male))) {
+                    sexNo = "1";
+                } else if (sex.equals(getString(R.string.female))) {
+                    sexNo = "2";
+                }
+                final String finalSexNo = sexNo;
+                final String folk = viewHolder.dialogTvUserFolk.getText().toString();
                 String birth = viewHolder.dialogTvUserBirth.getText().toString();
-                String province = viewHolder.tvProvince.getSelectedItem().toString();
-                String city = viewHolder.tvCity.getSelectedItem().toString();
-                String district = viewHolder.tvDistrict.getSelectedItem().toString();
-                String address = viewHolder.dialogTvUserAddress.getText().toString();
-                String id_number = viewHolder.dialogTvUserIdNumber.getText().toString();
-                String phone_number = viewHolder.dialogTvUserPhoneNumber.getText().toString();
-                String user_Frequent_contacts = viewHolder.dialogTvUserFrequentContacts.getText().toString();
-                if (name.equals("")){
+                if (!TextUtils.isEmpty(birth)) {
+                    birth = birth.replace("年", "-");
+                    birth = birth.replace("月", "-");
+                    birth = birth.replace("日", "");
+                }
+                final String finalBirth = birth;
+                final String province = viewHolder.tvProvince.getSelectedItem().toString();
+                final String city = viewHolder.tvCity.getSelectedItem().toString();
+                final String district = viewHolder.tvDistrict.getSelectedItem().toString();
+                final String address = viewHolder.dialogTvUserAddress.getText().toString();
+                final String id_number = viewHolder.dialogTvUserIdNumber.getText().toString();
+                final String phone_number = viewHolder.dialogTvUserPhoneNumber.getText().toString();
+                final String user_Frequent_contacts = viewHolder.dialogTvUserFrequentContacts.getText().toString();
+                if (name.equals("")) {
                     Toast.makeText(getActivity(), getResources().getString(R.string.username_cannot_empty), Toast.LENGTH_SHORT).show();
                     return;
                 }
 
-                if (id_number.equals("")){
+                if (id_number.equals("")) {
                     Toast.makeText(getActivity(), getResources().getString(R.string.user_id_card_cannot_empty), Toast.LENGTH_SHORT).show();
                     return;
                 }
 
-                if (phone_number.equals("")){
+                if (phone_number.equals("")) {
                     Toast.makeText(getActivity(), getResources().getString(R.string.phone_cannot_empty), Toast.LENGTH_SHORT).show();
                     return;
                 }
 
+                new Thread(new Runnable() {
+                    @Override
+                    public void run() {
+                        userRegisterInterface(name, finalSexNo, folk, finalBirth,
+                                province, city, district, address, id_number,
+                                phone_number, user_Frequent_contacts);
+                    }
+                }).start();
 
 
             }
@@ -320,11 +369,166 @@ public class UserRegisterFragment extends BaseFragment implements Callback {
                 dialog.dismiss();
             }
         });
-
         registerDialog.setView(dialogView);
         dialog = registerDialog.show();
-        getActivity().getWindow().getAttributes().softInputMode = WindowManager.LayoutParams.SOFT_INPUT_STATE_HIDDEN;
+        viewHolder.dialogTvUserName.clearFocus();
+        viewHolder.dialogTvUserSex.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                new ActionSheetDialog(getActivity())
+                        .builder()
+                        .setCancelable(false)
+                        .setCanceledOnTouchOutside(true)
+                        .addSheetItem(getString(R.string.male), ActionSheetDialog.SheetItemColor.Blue,
+                                new ActionSheetDialog.OnSheetItemClickListener() {
+                                    @Override
+                                    public void onClick(int which) {
+                                        viewHolder.dialogTvUserSex.setText(R.string.male);
+                                    }
+                                })
+                        .addSheetItem(getString(R.string.female), ActionSheetDialog.SheetItemColor.Blue,
+                                new ActionSheetDialog.OnSheetItemClickListener() {
+                                    @Override
+                                    public void onClick(int which) {
+                                        viewHolder.dialogTvUserSex.setText(R.string.female);
+                                    }
+                                }).show();
+            }
+        });
 
+
+        viewHolder.dialogTvUserFolk.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                //选择名族
+                showFolkDialog(viewHolder.dialogTvUserFolk);
+            }
+        });
+
+        initCustomTimePicker(viewHolder.dialogTvUserBirth);
+        viewHolder.dialogTvUserBirth.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                timePickerView.show();
+            }
+        });
+
+        dialog.getWindow().setSoftInputMode(WindowManager.LayoutParams.SOFT_INPUT_ADJUST_RESIZE);
+    }
+
+    //新用户注册
+    private void userRegisterInterface(String name, String sex, String folk, String birth, String province,
+                                       String city, String district, String address, String id_number,
+                                       String phone_number, String user_frequent_contacts) {
+        OkHttpUtils.post().url(InterfaceUrl.USER_REGISTER_URL + sessonWithCode)
+                .addParams("card_id", id_number)
+                .addParams("phone", phone_number)
+                .addParams("name", name)
+                .addParams("sex", sex)
+                .addParams("birth", birth)
+                .addParams("nation", folk)
+                .addParams("province", province)
+                .addParams("city", city)
+                .addParams("district", district)
+                .addParams("phone_contacts", user_frequent_contacts)
+                .addParams("address", address)
+                .build().execute(new StringCallback() {
+            @Override
+            public void onError(Call call, Exception e, int id) {
+                toastOnUi("注册异常，请检查网络");
+            }
+
+            @Override
+            public void onResponse(String response, int id) {
+                Message msg = new Message();
+                msg.obj = response;
+                userRegisterHandler.sendMessage(msg);
+            }
+        });
+
+    }
+
+
+    int itemSelectedNum = 0;
+
+    private void showFolkDialog(final TextView textView) {
+        AlertDialog.Builder builder = new AlertDialog.Builder(getActivity());
+        builder.setTitle(R.string.choice_nation)
+                .setSingleChoiceItems(R.array.nationResArray, itemSelectedNum,
+                        new DialogInterface.OnClickListener() {
+
+                            @Override
+                            public void onClick(DialogInterface dialog, int which) {
+                                itemSelectedNum = which;
+                            }
+                        })
+                .setPositiveButton(R.string.ok,
+                        new DialogInterface.OnClickListener() {
+                            @Override
+                            public void onClick(DialogInterface dialog, int id) {
+                                String[] nationList = getResources().getStringArray(R.array.nationResArray);
+                                textView.setText(nationList[itemSelectedNum]);
+                            }
+                        })
+                .setNegativeButton(R.string.cancel,
+                        new DialogInterface.OnClickListener() {
+                            @Override
+                            public void onClick(DialogInterface dialog, int id) {
+                                dialogFolk.dismiss();
+                            }
+                        });
+        dialogFolk = builder.show();
+
+    }
+
+    private TimePickerView timePickerView;//时间选择器
+
+    private void initCustomTimePicker(final TextView textView) {
+        Calendar selectedDate = Calendar.getInstance();//系统当前时间
+        Calendar startDate = Calendar.getInstance();//开始时间
+        Calendar endDate = Calendar.getInstance();//结束时间
+        startDate.set(1850, 1, 1);
+        endDate.set(2200, 1, 28);
+        timePickerView = new TimePickerView.Builder(getActivity(), new TimePickerView.OnTimeSelectListener() {
+            @Override
+            public void onTimeSelect(Date date, View v) {//选中事件回调
+                //可根据需要自行截取数据显示在控件上  yyyy-MM-dd HH:mm:ss  或yyyy-MM-dd
+                SimpleDateFormat format = new SimpleDateFormat("yyyy年MM月dd日");
+                String time = format.format(date);
+                textView.setText(time);
+            }
+        })
+                .setType(TimePickerView.Type.YEAR_MONTH_DAY)
+                .setDate(selectedDate)
+                .setRangDate(startDate, endDate)
+                .setTextColorCenter(Color.parseColor("#FF4081"))//设置选中文字的颜色#64AE4A
+                .setTextColorOut(Color.parseColor("#717171"))//设置选中项以外的颜色#64AE4A
+                .setLineSpacingMultiplier(2.4f)//设置两横线之间的间隔倍数
+                .setDividerColor(Color.parseColor("#24E1E4"))//设置分割线的颜色
+                .setDividerType(WheelView.DividerType.WRAP)//设置分割线的类型
+                .setBgColor(Color.parseColor("#FFFFFF"))//背景颜色(必须是16进制) Night mode#2AA2BC
+                .gravity(Gravity.CENTER)//设置控件显示位置 default is center*/
+                .isDialog(true)//设置显示位置
+                .setLayoutRes(R.layout.pickerview_custom_time, new CustomListener() {
+                    @Override
+                    public void customLayout(View v) {
+                        TextView tvCancel = (TextView) v.findViewById(R.id.iv_cancel);
+                        final TextView tvSubmit = (TextView) v.findViewById(R.id.tv_finish);
+                        tvSubmit.setOnClickListener(new View.OnClickListener() {
+                            @Override
+                            public void onClick(View v) {
+                                timePickerView.returnData();
+                            }
+                        });
+                        tvCancel.setOnClickListener(new View.OnClickListener() {
+                            @Override
+                            public void onClick(View v) {
+                                timePickerView.dismiss();
+                            }
+                        });
+                    }
+                })
+                .build();
     }
 
 
@@ -360,4 +564,26 @@ public class UserRegisterFragment extends BaseFragment implements Callback {
             ButterKnife.bind(this, view);
         }
     }
+
+
+    private Handler userRegisterHandler = new Handler() {
+        @Override
+        public void handleMessage(Message msg) {
+            super.handleMessage(msg);
+            String result = (String) msg.obj;
+            if (result.indexOf(ErrorCode.SUCCESS) > 0) {
+                dialog.dismiss();
+                Toast.makeText(getActivity(), "用户注册成功", Toast.LENGTH_SHORT).show();
+            } else {
+                //解析
+                ErrorCodeBean errorCodeBean = null;
+                try {
+                    errorCodeBean = GsonParsing.sendCodeError(result);
+                    judge(errorCodeBean.getCode() + "");
+                } catch (Exception e) {
+                    Toast.makeText(getActivity(), getResources().getString(R.string.connection_timeout_or_illegal_request), Toast.LENGTH_SHORT).show();
+                }
+            }
+        }
+    };
 }
