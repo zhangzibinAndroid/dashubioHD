@@ -167,6 +167,7 @@ public class HealthArchivesFragment extends BaseFragment {
     private ArrayAdapter<String> spWcAdapter = null;
     private ArrayAdapter<String> spQclAdapter = null;
     private static int provincePosition = 3;
+    private boolean isSuccess = true;
 
     public HealthArchivesFragment() {
     }
@@ -199,13 +200,45 @@ public class HealthArchivesFragment extends BaseFragment {
         //三级联动
         for (int i = 0; i < province.length; i++) {
             if (province[i].equals(userMessageDataBean.getProvince())) {
-                spProvince.setSelection(i);
+                spProvince.setSelection(i, true);
                 for (int j = 0; j < city[i].length; j++) {
                     if (city[i][j].equals(userMessageDataBean.getCity())) {
-                        spCity.setSelection(j);
+                        cityAdapter = new ArrayAdapter<String>(getActivity(), R.layout.textview_healtarchves, city[i]);
+                        spCity.setAdapter(cityAdapter);
+                        spCity.setSelection(j, true);
                         for (int k = 0; k < county[i][j].length; k++) {
                             if (county[i][j][k].equals(userMessageDataBean.getDistrict())) {
-                                spDistrict.setSelection(k);
+                                countyAdapter = new ArrayAdapter<String>(getActivity(), R.layout.textview_healtarchves, county[i][j]);
+                                spDistrict.setAdapter(countyAdapter);
+                                spDistrict.setSelection(k, true);
+
+
+                                spProvince.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {
+                                    @Override
+                                    public void onItemSelected(AdapterView<?> parent, View view, int position, long id) {
+                                        cityAdapter = new ArrayAdapter<String>(getActivity(), R.layout.textview_healtarchves, city[position]);
+                                        spCity.setAdapter(cityAdapter);
+                                        provincePosition = position;    //记录当前省级序号，留给下面修改县级适配器时用
+                                    }
+
+                                    @Override
+                                    public void onNothingSelected(AdapterView<?> parent) {
+
+                                    }
+                                });
+
+                                spCity.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {
+                                    @Override
+                                    public void onItemSelected(AdapterView<?> parent, View view, int position, long id) {
+                                        countyAdapter = new ArrayAdapter<String>(getActivity(), R.layout.textview_healtarchves, county[provincePosition][position]);
+                                        spDistrict.setAdapter(countyAdapter);
+                                    }
+
+                                    @Override
+                                    public void onNothingSelected(AdapterView<?> parent) {
+
+                                    }
+                                });
                             }
                         }
                     }
@@ -288,40 +321,43 @@ public class HealthArchivesFragment extends BaseFragment {
         spProvince.setAdapter(provinceAdapter);
         spProvince.setSelection(0, true);  //设置默认选中项，此处为默认选中第1个值
 
-        cityAdapter = new ArrayAdapter<String>(getActivity(), R.layout.textview_healtarchves, city[0]);
-        spCity.setAdapter(cityAdapter);
-        spCity.setSelection(0, true);  //默认选中第0个
+       /* Log.e(TAG, "initView: "+!isSuccess );
+        if (!isSuccess){
+            cityAdapter = new ArrayAdapter<String>(getActivity(), R.layout.textview_healtarchves, city[0]);
+            spCity.setAdapter(cityAdapter);
+            spCity.setSelection(0, true);  //默认选中第0个
+            countyAdapter = new ArrayAdapter<String>(getActivity(), R.layout.textview_healtarchves, county[0][0]);
+            spDistrict.setAdapter(countyAdapter);
+            spDistrict.setSelection(0, true);
 
-        countyAdapter = new ArrayAdapter<String>(getActivity(), R.layout.textview_healtarchves, county[0][0]);
-        spDistrict.setAdapter(countyAdapter);
-        spDistrict.setSelection(0, true);
+            spProvince.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {
+                @Override
+                public void onItemSelected(AdapterView<?> parent, View view, int position, long id) {
+                    cityAdapter = new ArrayAdapter<String>(getActivity(), R.layout.textview_healtarchves, city[position]);
+                    spCity.setAdapter(cityAdapter);
+                    provincePosition = position;    //记录当前省级序号，留给下面修改县级适配器时用
+                }
 
-        spProvince.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {
-            @Override
-            public void onItemSelected(AdapterView<?> parent, View view, int position, long id) {
-                cityAdapter = new ArrayAdapter<String>(getActivity(), R.layout.textview_healtarchves, city[position]);
-                spCity.setAdapter(cityAdapter);
-                provincePosition = position;    //记录当前省级序号，留给下面修改县级适配器时用
-            }
+                @Override
+                public void onNothingSelected(AdapterView<?> parent) {
 
-            @Override
-            public void onNothingSelected(AdapterView<?> parent) {
+                }
+            });
 
-            }
-        });
+            spCity.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {
+                @Override
+                public void onItemSelected(AdapterView<?> parent, View view, int position, long id) {
+                    countyAdapter = new ArrayAdapter<String>(getActivity(), R.layout.textview_healtarchves, county[provincePosition][position]);
+                    spDistrict.setAdapter(countyAdapter);
+                }
 
-        spCity.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {
-            @Override
-            public void onItemSelected(AdapterView<?> parent, View view, int position, long id) {
-                countyAdapter = new ArrayAdapter<String>(getActivity(), R.layout.textview_healtarchves, county[provincePosition][position]);
-                spDistrict.setAdapter(countyAdapter);
-            }
+                @Override
+                public void onNothingSelected(AdapterView<?> parent) {
 
-            @Override
-            public void onNothingSelected(AdapterView<?> parent) {
+                }
+            });
+        }*/
 
-            }
-        });
 
         //血型
         spBloodTypeAdapter = new ArrayAdapter<String>(getActivity(), R.layout.textview_healtarchves, getResources().getStringArray(R.array.bloods));
@@ -397,6 +433,7 @@ public class HealthArchivesFragment extends BaseFragment {
             @Override
             public void onError(Call call, Exception e, int id) {
                 toastOnUi(getResources().getString(R.string.network_exception_please_try_again_later));
+                isSuccess = false;
             }
 
             @Override
@@ -472,9 +509,9 @@ public class HealthArchivesFragment extends BaseFragment {
                     HealthArchivesBean.UserMessageDataBean userMessageDataBean = healthArchivesBean.getData();
                     setUserMessage(userMessageDataBean);
 
-
                 } catch (Exception e) {
                     Toast.makeText(getActivity(), getResources().getString(R.string.connection_timeout_or_illegal_request), Toast.LENGTH_SHORT).show();
+                    isSuccess = false;
                 }
 
             } else {
@@ -485,6 +522,7 @@ public class HealthArchivesFragment extends BaseFragment {
                     judge(errorCodeBean.getCode() + "");
                 } catch (Exception e) {
                     Toast.makeText(getActivity(), getResources().getString(R.string.connection_timeout_or_illegal_request), Toast.LENGTH_SHORT).show();
+                    isSuccess = false;
                 }
             }
 

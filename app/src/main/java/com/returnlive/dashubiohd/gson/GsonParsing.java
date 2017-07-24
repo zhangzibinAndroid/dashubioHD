@@ -6,6 +6,8 @@ import com.returnlive.dashubiohd.bean.ErrorCodeBean;
 import com.returnlive.dashubiohd.bean.HealthArchivesBean;
 import com.returnlive.dashubiohd.bean.HealthReportBean;
 import com.returnlive.dashubiohd.bean.HelpMessageBean;
+import com.returnlive.dashubiohd.bean.HistoryDataBean;
+import com.returnlive.dashubiohd.bean.HistoryListDataBean;
 import com.returnlive.dashubiohd.bean.LoginBean;
 import com.returnlive.dashubiohd.bean.MainPageBean;
 import com.returnlive.dashubiohd.bean.UserListBean;
@@ -80,6 +82,16 @@ public class GsonParsing {
 
     public static HealthArchivesBean getHealthArchivesMessageJson(String json) throws Exception{
         HealthArchivesBean result = GsonUtils.parseJsonWithGson(json, HealthArchivesBean.class);
+        return result;
+    }
+
+    public static HistoryDataBean getHistoryDataMessageJson(String json) throws Exception{
+        HistoryDataBean result = GsonUtils.parseJsonWithGson(json, HistoryDataBean.class);
+        return result;
+    }
+
+    public static HistoryListDataBean getHistoryListDataMessageJson(String json) throws Exception{
+        HistoryListDataBean result = GsonUtils.parseJsonWithGson(json, HistoryListDataBean.class);
         return result;
     }
 
