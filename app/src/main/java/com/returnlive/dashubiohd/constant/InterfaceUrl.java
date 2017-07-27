@@ -9,6 +9,7 @@ public class InterfaceUrl {
     public static String code = "";
     public static String t_session_code = "";
     public static final String BASE_URL = "http://dashubio.cn/Mobile/";
+    public static final String WEBVIEW_BASE_URL = "http://dashubio.cn/";
     public static final String EQUIPMENT_REGISTER = BASE_URL+"Login/register";//设备注册
     public static final String VERIFICATION_CODE= BASE_URL+"Login/sendCode";//短信验证码
     public static final String LOGIN_URL= BASE_URL+"Login/login";//登录接口
@@ -21,9 +22,12 @@ public class InterfaceUrl {
     public static final String HISTORY_DATA_URL= BASE_URL+"Testing/history/";//历史数据列表接口需要添加sesson和code
     public static final String HISTORY_KIND_URL= BASE_URL+"Testing/index/";//历史数据接口需要添加sesson和code
     public static final String HEALTH_REPORT_URL= BASE_URL+"Testing/reportlist/";//健康报告接口需要添加sesson和code
+    public static final String HEALTH_REPORT_SECOND_LIST_URL= BASE_URL+"Testing/compiled/";//健康报告接口需要添加sesson和code
     public static final String HEALTH_ARCHIVES_URL= BASE_URL+"Ulogin/perinfo/";//健康档案接口需要添加sesson和code
     public static final String HEALTH_GUIDE_URL= BASE_URL+"Testing/warnitem/";//健康指导接口需要添加sesson和code
     public static final String HEALTH_GUIDE_LIST_URL= BASE_URL+"Testing/warninfo/";//健康指导接口需要添加sesson和code
+    public static final String SINGLE_WEBVIEW_URL= WEBVIEW_BASE_URL+"Manage/Equid/reportzer";//单项WEBVIEW接口
+    public static final String COMPREHENSIVE_WEBVIEW_URL= WEBVIEW_BASE_URL+"Manage/Equid/compiledzer";//单项WEBVIEW接口
 
 
 

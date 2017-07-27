@@ -24,7 +24,6 @@ public class BaseFragment extends Fragment {
     protected String sessonWithCode = zSesson + code + "/" + t_session_code + "/uid/" + code;
     private static final String TAG = "BaseFragment";
 
-
     protected void toastOnUi(final String text) {
         getActivity().runOnUiThread(new Runnable() {
             @Override
@@ -150,5 +149,6 @@ public class BaseFragment extends Fragment {
                 return;
         }
     }
+
 
 }

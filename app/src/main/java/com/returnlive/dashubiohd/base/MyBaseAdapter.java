@@ -47,6 +47,11 @@ public abstract class MyBaseAdapter<E> extends BaseAdapter{
 		list.clear();
 	}
 
+	public void delectData(int position){
+		list.remove(position);
+		notifyDataSetChanged();
+	}
+
 	/**
 	 * 返回集合
 	 * */

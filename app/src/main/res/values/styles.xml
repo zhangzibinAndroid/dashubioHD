@@ -24,6 +24,7 @@
         <item name="android:background">@color/line_color</item>
     </style>
 
+
     <style name="ViewLineStyleSecond">
         <item name="android:layout_width">match_parent</item>
         <item name="android:layout_height">@dimen/px02</item>
@@ -131,7 +132,7 @@
 
     <style name="healthArchivsImageButton">
         <item name="android:layout_width">wrap_content</item>
-        <item name="android:layout_height">@dimen/px70</item>
+        <item name="android:layout_height">@dimen/px80</item>
         <item name="android:layout_marginLeft">@dimen/px30</item>
         <item name="android:layout_marginRight">@dimen/px50</item>
         <item name="android:background">@color/lv_bg</item>

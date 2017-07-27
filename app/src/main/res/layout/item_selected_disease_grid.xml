@@ -7,11 +7,14 @@
 
     <TextView
         android:id="@+id/disease_name_tv"
-        android:layout_width="@dimen/px200"
+        android:layout_width="@dimen/px70"
         android:layout_height="wrap_content"
         android:singleLine="true"
         android:textColor="@color/black"
-        android:textSize="@dimen/px35"
+        android:textSize="@dimen/px30"
+        android:paddingLeft="@dimen/px05"
+        android:paddingTop="@dimen/px10"
+        android:paddingBottom="@dimen/px10"
         android:text="高血压"/>
 
     <ImageView
@@ -19,7 +22,7 @@
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_gravity="center_vertical"
-        android:layout_marginLeft="@dimen/px12"
+        android:layout_marginLeft="@dimen/px05"
         android:src="@drawable/ic_delect"
         android:visibility="visible" />
 

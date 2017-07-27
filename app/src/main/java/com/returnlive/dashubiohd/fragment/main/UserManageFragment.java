@@ -4,6 +4,7 @@ package com.returnlive.dashubiohd.fragment.main;
 import android.os.Bundle;
 import android.os.Handler;
 import android.os.Message;
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -61,7 +62,7 @@ public class UserManageFragment extends BaseFragment {
     private Runnable upRunable, downRunable;
     private int upIsRefresh = 1;
     private int downIsRefresh = 1;
-
+    private static final String TAG = "UserManageFragment";
     public UserManageFragment() {
     }
 
@@ -256,8 +257,7 @@ public class UserManageFragment extends BaseFragment {
                 userListAdapter.addAllDataToMyadapterWithoutClean(userList);
                 userListAdapter.notifyDataSetChanged();
             } catch (Exception e) {
-                Toast.makeText(getActivity(), getResources().getString(R.string.connection_timeout_or_illegal_request), Toast.LENGTH_SHORT).show();
-
+                Log.e(TAG, "userListHandlerException: "+e );
             }
 
         }

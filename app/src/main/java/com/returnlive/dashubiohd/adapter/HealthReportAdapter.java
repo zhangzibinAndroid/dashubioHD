@@ -1,7 +1,6 @@
 package com.returnlive.dashubiohd.adapter;
 
 import android.content.Context;
-import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -30,9 +29,8 @@ public class HealthReportAdapter extends BaseExpandableListAdapter {
     private Context context;
     private LayoutInflater inflater;
     private String[] parentList;
-    private static final String TAG = "HealthReportFragment";
-    private int doChildView = 1;
     private Map<String, ArrayList<String>> childernDataset;
+    private OnTagFlowLayoutItemClickListener listener;
 
     public HealthReportAdapter(Context context, String[] parentList, Map<String, ArrayList<String>> childernDataset) {
         this.context = context;
@@ -40,69 +38,56 @@ public class HealthReportAdapter extends BaseExpandableListAdapter {
         this.childernDataset = childernDataset;
         for (int i = 0; i < parentList.length; i++) {
             groupDataset.put(parentList[i], childernDataset.get("children" + i));
-            Log.e("ZZZ", "parentList[i]==: "+parentList[i] );
         }
-        doChildView = 1;
         inflater = (LayoutInflater) context.getSystemService(Context.LAYOUT_INFLATER_SERVICE);
-
     }
 
 
     //  获得父项的数量
     @Override
     public int getGroupCount() {
-        Log.d(TAG, "获得父项的数量: " + groupDataset.size());
-        doChildView = 1;
         return groupDataset.size();
     }
 
     //  获得某个父项的子项数目
     @Override
     public int getChildrenCount(int groupPosition) {
-        Log.d(TAG, "获得某个父项的子项数目: " + groupDataset.get(parentList[groupPosition]).size());
-        return groupDataset.get(parentList[groupPosition]).size();
+        return 1;
     }
 
     //  获得某个父项
     @Override
     public Object getGroup(int groupPosition) {
-        Log.d(TAG, "获得某个父项: " + groupDataset.get(parentList[groupPosition]));
         return groupDataset.get(parentList[groupPosition]);
     }
 
     //  获得某个子项
     @Override
     public Object getChild(int groupPosition, int childPosition) {
-        Log.d(TAG, "获得某个子项: " + groupDataset.get(parentList[groupPosition]).get(childPosition));
         return groupDataset.get(parentList[groupPosition]).get(childPosition);
     }
 
     //  获得某个父项的id
     @Override
     public long getGroupId(int groupPosition) {
-        Log.d(TAG, "获得某个父项的id: " + groupPosition);
-        doChildView = 1;
         return groupPosition;
     }
 
     //  获得某个父项的某个子项的id
     @Override
     public long getChildId(int groupPosition, int childPosition) {
-        Log.d(TAG, "获得某个父项的某个子项的id: " + childPosition);
         return childPosition;
     }
 
     //  按函数的名字来理解应该是是否具有稳定的id，这个方法目前一直都是返回false，没有去改动过
     @Override
     public boolean hasStableIds() {
-        Log.d(TAG, "hasStableIds: ");
         return false;
     }
 
     //  获得父项显示的view
     @Override
     public View getGroupView(int groupPosition, boolean isExpanded, View convertView, ViewGroup parent) {
-        Log.d(TAG, "getGroupView: ");
         if (convertView == null) {
             convertView = inflater.inflate(R.layout.item_group, null);
         }
@@ -117,18 +102,13 @@ public class HealthReportAdapter extends BaseExpandableListAdapter {
     //  获得子项显示的view
     @Override
     public View getChildView(final int groupPosition, final int childPosition, boolean isLastChild, View convertView, ViewGroup parent) {
-
         if (convertView != null) {
             convertView = null;
         }
         convertView = inflater.inflate(R.layout.item_children_flow, null);
         final ChildViewHolder childHolder = new ChildViewHolder();
-        convertView = inflater.inflate(R.layout.item_children_flow, null);
         childHolder.month_tagflowlayout = (TagFlowLayout) convertView.findViewById(R.id.month_tagflowlayout);
         convertView.setTag(childHolder);
-        if (doChildView==1){
-            Log.e("ZZZ", "groupPosition: "+groupPosition );
-            Log.e("ZZZ", "childPosition: "+childPosition );
             TagAdapter tagAdapter = new TagAdapter(groupDataset.get(parentList[groupPosition])) {
             @Override
             public View getView(FlowLayout parent, int position, Object o) {
@@ -137,20 +117,24 @@ public class HealthReportAdapter extends BaseExpandableListAdapter {
                 return propertySingleNameTv;
             }
         };
-
-
         childHolder.month_tagflowlayout.setAdapter(tagAdapter);
         childHolder.month_tagflowlayout.setOnTagClickListener(new TagFlowLayout.OnTagClickListener() {
             @Override
             public boolean onTagClick(View view, int position, FlowLayout parent) {
-                return false;
+                listener.onTagFlowLayoutItemClick(groupPosition,position);
+                return true;
             }
         });
-            doChildView = 2;
-        }
-
         return convertView;
 
+    }
+
+    public interface OnTagFlowLayoutItemClickListener{
+        void onTagFlowLayoutItemClick(int groupPosition,int position);
+    }
+
+    public void setOnTagFlowLayoutItemClickListener(OnTagFlowLayoutItemClickListener listener){
+        this.listener = listener;
     }
 
     //  子项是否可选中，如果需要设置子项的点击事件，需要返回true
@@ -161,7 +145,6 @@ public class HealthReportAdapter extends BaseExpandableListAdapter {
 
 
     public final class ChildViewHolder {
-        //private ToggleButton queToggle;
         private TagFlowLayout month_tagflowlayout;
     }
 

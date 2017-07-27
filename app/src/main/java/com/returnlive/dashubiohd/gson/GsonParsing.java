@@ -5,6 +5,9 @@ import com.returnlive.dashubiohd.bean.CameraCardBean;
 import com.returnlive.dashubiohd.bean.ErrorCodeBean;
 import com.returnlive.dashubiohd.bean.HealthArchivesBean;
 import com.returnlive.dashubiohd.bean.HealthReportBean;
+import com.returnlive.dashubiohd.bean.HealthReportSecondBean;
+import com.returnlive.dashubiohd.bean.HealthyGuideBean;
+import com.returnlive.dashubiohd.bean.HealthyGuideListBean;
 import com.returnlive.dashubiohd.bean.HelpMessageBean;
 import com.returnlive.dashubiohd.bean.HistoryDataBean;
 import com.returnlive.dashubiohd.bean.HistoryListDataBean;
@@ -95,6 +98,20 @@ public class GsonParsing {
         return result;
     }
 
+    public static HealthyGuideBean getHealthProjectMessageJson(String json) throws Exception{
+        HealthyGuideBean result = GsonUtils.parseJsonWithGson(json, HealthyGuideBean.class);
+        return result;
+    }
+
+    public static HealthyGuideListBean getHealthProjectListMessageJson(String json) throws Exception{
+        HealthyGuideListBean result = GsonUtils.parseJsonWithGson(json, HealthyGuideListBean.class);
+        return result;
+    }
+
+    public static HealthReportSecondBean getHealthReportSecondMessageJson(String json) throws Exception{
+        HealthReportSecondBean result = GsonUtils.parseJsonWithGson(json, HealthReportSecondBean.class);
+        return result;
+    }
 
 }
 

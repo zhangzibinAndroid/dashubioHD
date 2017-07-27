@@ -1,10 +1,13 @@
 package com.returnlive.dashubiohd.fragment.home;
 
 
+import android.content.DialogInterface;
 import android.graphics.Color;
 import android.os.Bundle;
 import android.os.Handler;
 import android.os.Message;
+import android.support.v7.app.AlertDialog;
+import android.support.v7.widget.GridLayoutManager;
 import android.support.v7.widget.RecyclerView;
 import android.util.Log;
 import android.view.Gravity;
@@ -16,6 +19,7 @@ import android.widget.ArrayAdapter;
 import android.widget.EditText;
 import android.widget.ImageButton;
 import android.widget.ImageView;
+import android.widget.ListView;
 import android.widget.Spinner;
 import android.widget.TextView;
 import android.widget.Toast;
@@ -25,18 +29,30 @@ import com.bigkoo.pickerview.lib.WheelView;
 import com.bigkoo.pickerview.listener.CustomListener;
 import com.returnlive.dashubiohd.R;
 import com.returnlive.dashubiohd.activity.HomeActivity;
+import com.returnlive.dashubiohd.adapter.viewadapter.BloodTransfusionAdapter;
+import com.returnlive.dashubiohd.adapter.viewadapter.ChildrenAdapter;
+import com.returnlive.dashubiohd.adapter.viewadapter.DiseaseAdapter;
+import com.returnlive.dashubiohd.adapter.viewadapter.FatherAdapter;
+import com.returnlive.dashubiohd.adapter.viewadapter.MotherAdapter;
+import com.returnlive.dashubiohd.adapter.viewadapter.SurgerListViewAdapter;
+import com.returnlive.dashubiohd.adapter.viewadapter.TraumaAdapter;
 import com.returnlive.dashubiohd.base.BaseFragment;
 import com.returnlive.dashubiohd.bean.ErrorCodeBean;
 import com.returnlive.dashubiohd.bean.HealthArchivesBean;
+import com.returnlive.dashubiohd.bean.viewbean.SurgeryBean;
 import com.returnlive.dashubiohd.constant.ErrorCode;
 import com.returnlive.dashubiohd.constant.InterfaceUrl;
 import com.returnlive.dashubiohd.gson.GsonParsing;
+import com.returnlive.dashubiohd.utils.ViewUtils;
+import com.zhy.autolayout.AutoLinearLayout;
 import com.zhy.http.okhttp.OkHttpUtils;
 import com.zhy.http.okhttp.callback.StringCallback;
 
 import java.text.SimpleDateFormat;
+import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.Date;
+import java.util.List;
 
 import butterknife.BindView;
 import butterknife.ButterKnife;
@@ -44,6 +60,7 @@ import butterknife.OnClick;
 import butterknife.Unbinder;
 import okhttp3.Call;
 
+import static com.returnlive.dashubiohd.R.array.diseaseResArray;
 import static com.returnlive.dashubiohd.constant.CityArray.city;
 import static com.returnlive.dashubiohd.constant.CityArray.county;
 import static com.returnlive.dashubiohd.constant.CityArray.province;
@@ -134,19 +151,21 @@ public class HealthArchivesFragment extends BaseFragment {
     @BindView(R.id.sp_qcl)
     Spinner spQcl;
     @BindView(R.id.recyView_disease)
-    RecyclerView recyViewDisease;
-    @BindView(R.id.recyView_surgery)
-    RecyclerView recyViewSurgery;
-    @BindView(R.id.recyView_trauma)
-    RecyclerView recyViewTrauma;
-    @BindView(R.id.recyView_blood_transfusion)
-    RecyclerView recyViewBloodTransfusion;
+    RecyclerView recyViewDisease;//疾病
+    @BindView(R.id.lv_surgery)
+    ListView lv_surgery;//手术
+    @BindView(R.id.lv_trauma)
+    ListView lv_trauma;//外伤
+    @BindView(R.id.lv_blood_transfusion)
+    ListView lv_blood_transfusion;//输血
     @BindView(R.id.recyView_father)
-    RecyclerView recyViewFather;
+    RecyclerView recyViewFather;//父亲
     @BindView(R.id.recyView_mother)
-    RecyclerView recyViewMother;
+    RecyclerView recyViewMother;//母亲
     @BindView(R.id.recyView_children)
-    RecyclerView recyViewChildren;
+    RecyclerView recyViewChildren;//子女
+    @BindView(R.id.lay_surgery)
+    AutoLinearLayout laySurgery;
     private Unbinder unbinder;
     private ArrayAdapter spFolkAdapter = null;
     private ArrayAdapter<String> provinceAdapter = null;  //省级适配器
@@ -167,7 +186,13 @@ public class HealthArchivesFragment extends BaseFragment {
     private ArrayAdapter<String> spWcAdapter = null;
     private ArrayAdapter<String> spQclAdapter = null;
     private static int provincePosition = 3;
-    private boolean isSuccess = true;
+    private DiseaseAdapter diseaseAdapter;
+    private FatherAdapter fatherAdapter;
+    private MotherAdapter motherAdapter;
+    private SurgerListViewAdapter surgeryAdapter;
+    private TraumaAdapter traumaAdapter;
+    private BloodTransfusionAdapter bloodTransfusionAdapter;
+    private ChildrenAdapter childrenAdapter;
 
     public HealthArchivesFragment() {
     }
@@ -211,8 +236,6 @@ public class HealthArchivesFragment extends BaseFragment {
                                 countyAdapter = new ArrayAdapter<String>(getActivity(), R.layout.textview_healtarchves, county[i][j]);
                                 spDistrict.setAdapter(countyAdapter);
                                 spDistrict.setSelection(k, true);
-
-
                                 spProvince.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {
                                     @Override
                                     public void onItemSelected(AdapterView<?> parent, View view, int position, long id) {
@@ -311,6 +334,111 @@ public class HealthArchivesFragment extends BaseFragment {
 
     //初始化各个控件
     private void initView() {
+        diseaseAdapter = new DiseaseAdapter(getActivity());
+        surgeryAdapter = new SurgerListViewAdapter(getActivity());
+        traumaAdapter = new TraumaAdapter(getActivity());
+        bloodTransfusionAdapter = new BloodTransfusionAdapter(getActivity());
+        fatherAdapter = new FatherAdapter(getActivity());
+        motherAdapter = new MotherAdapter(getActivity());
+        childrenAdapter = new ChildrenAdapter(getActivity());
+
+        GridLayoutManager mgr = new GridLayoutManager(getActivity(), 3);
+        GridLayoutManager mgrFather = new GridLayoutManager(getActivity(), 3);
+        GridLayoutManager mgrMother = new GridLayoutManager(getActivity(), 3);
+        GridLayoutManager mgrChildren = new GridLayoutManager(getActivity(), 3);
+        recyViewDisease.setLayoutManager(mgr);
+        recyViewFather.setLayoutManager(mgrFather);
+        recyViewMother.setLayoutManager(mgrMother);
+        recyViewChildren.setLayoutManager(mgrChildren);
+
+        lv_surgery.setAdapter(surgeryAdapter);
+        lv_trauma.setAdapter(traumaAdapter);
+        lv_blood_transfusion.setAdapter(bloodTransfusionAdapter);
+        SurgeryBean surgeryBean = new SurgeryBean();
+        SurgeryBean traumaBean = new SurgeryBean();
+        SurgeryBean bloodTransfusionBean = new SurgeryBean();
+        surgeryAdapter.addDATA(surgeryBean);
+        surgeryAdapter.notifyDataSetChanged();
+        ViewUtils viewUtils = new ViewUtils();
+        viewUtils.setListViewHeightBasedOnChildren(lv_surgery);
+        traumaAdapter.addDATA(traumaBean);
+        traumaAdapter.notifyDataSetChanged();
+        viewUtils.setListViewHeightBasedOnChildren(lv_trauma);
+        bloodTransfusionAdapter.addDATA(bloodTransfusionBean);
+        bloodTransfusionAdapter.notifyDataSetChanged();
+        viewUtils.setListViewHeightBasedOnChildren(lv_blood_transfusion);
+
+        bloodTransfusionAdapter.setOnDelectClickListener(new BloodTransfusionAdapter.OnDelectClickListener() {
+            @Override
+            public void OnDelectClick(View v, int position) {
+                if (bloodTransfusionAdapter.getList().size() > 1) {
+                    bloodTransfusionAdapter.delectData(position);
+                    ViewUtils viewUtils = new ViewUtils();
+                    viewUtils.setListViewHeightBasedOnChildren(lv_blood_transfusion);
+                }
+            }
+        });
+
+        traumaAdapter.setOnDelectClickListener(new TraumaAdapter.OnDelectClickListener() {
+            @Override
+            public void OnDelectClick(View v, int position) {
+                if (traumaAdapter.getList().size() > 1) {
+                    traumaAdapter.delectData(position);
+                    ViewUtils viewUtils = new ViewUtils();
+                    viewUtils.setListViewHeightBasedOnChildren(lv_trauma);
+                }
+            }
+        });
+
+        surgeryAdapter.setOnDelectClickListener(new SurgerListViewAdapter.OnDelectClickListener() {
+            @Override
+            public void OnDelectClick(View v, int position) {
+                if (surgeryAdapter.getList().size() > 1) {
+                    surgeryAdapter.delectData(position);
+                    ViewUtils viewUtils = new ViewUtils();
+                    viewUtils.setListViewHeightBasedOnChildren(lv_surgery);
+                }
+            }
+        });
+
+        bloodTransfusionAdapter.setOnWriteTimeClickListener(new BloodTransfusionAdapter.OnWriteTimeClickListener() {
+            @Override
+            public void OnWriteTimeClick(View v, TextView tvTime) {
+                initCustomTimePicker(tvTime);
+                timePickerView.show();
+                bloodTransfusionAdapter.notifyDataSetChanged();
+            }
+        });
+
+        traumaAdapter.setOnWriteTimeClickListener(new TraumaAdapter.OnWriteTimeClickListener() {
+            @Override
+            public void OnWriteTimeClick(View v, TextView tvTime) {
+                initCustomTimePicker(tvTime);
+                timePickerView.show();
+                bloodTransfusionAdapter.notifyDataSetChanged();
+
+            }
+        });
+
+        surgeryAdapter.setOnWriteTimeClickListener(new SurgerListViewAdapter.OnWriteTimeClickListener() {
+            @Override
+            public void OnWriteTimeClick(View v, TextView tvTime) {
+                initCustomTimePicker(tvTime);
+                timePickerView.show();
+                bloodTransfusionAdapter.notifyDataSetChanged();
+
+            }
+        });
+
+        diseaseAdapter.setOnDelectClickListener(new DiseaseAdapter.OnDelectClickListener() {
+            @Override
+            public void OnDelectClick(View view, int position) {
+                diseaseAdapter.delectListData(position);
+                int num = diseaseAdapter.getList().size();
+                num = num % 3 == 0 ? num / 3 : num / 3 + 1;//进一法
+                ViewUtils.setLayoutHeight(recyViewDisease, num * getActivity().getResources().getDimensionPixelSize(R.dimen.px38));
+            }
+        });
         initCustomTimePicker(tvDate);
         spFolkAdapter = new ArrayAdapter<String>(getActivity(), R.layout.textview_healtarchves, getResources().getStringArray(R.array.nationResArray));
         spFolk.setAdapter(spFolkAdapter);
@@ -320,44 +448,6 @@ public class HealthArchivesFragment extends BaseFragment {
         provinceAdapter = new ArrayAdapter<String>(getActivity(), R.layout.textview_healtarchves, province);
         spProvince.setAdapter(provinceAdapter);
         spProvince.setSelection(0, true);  //设置默认选中项，此处为默认选中第1个值
-
-       /* Log.e(TAG, "initView: "+!isSuccess );
-        if (!isSuccess){
-            cityAdapter = new ArrayAdapter<String>(getActivity(), R.layout.textview_healtarchves, city[0]);
-            spCity.setAdapter(cityAdapter);
-            spCity.setSelection(0, true);  //默认选中第0个
-            countyAdapter = new ArrayAdapter<String>(getActivity(), R.layout.textview_healtarchves, county[0][0]);
-            spDistrict.setAdapter(countyAdapter);
-            spDistrict.setSelection(0, true);
-
-            spProvince.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {
-                @Override
-                public void onItemSelected(AdapterView<?> parent, View view, int position, long id) {
-                    cityAdapter = new ArrayAdapter<String>(getActivity(), R.layout.textview_healtarchves, city[position]);
-                    spCity.setAdapter(cityAdapter);
-                    provincePosition = position;    //记录当前省级序号，留给下面修改县级适配器时用
-                }
-
-                @Override
-                public void onNothingSelected(AdapterView<?> parent) {
-
-                }
-            });
-
-            spCity.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {
-                @Override
-                public void onItemSelected(AdapterView<?> parent, View view, int position, long id) {
-                    countyAdapter = new ArrayAdapter<String>(getActivity(), R.layout.textview_healtarchves, county[provincePosition][position]);
-                    spDistrict.setAdapter(countyAdapter);
-                }
-
-                @Override
-                public void onNothingSelected(AdapterView<?> parent) {
-
-                }
-            });
-        }*/
-
 
         //血型
         spBloodTypeAdapter = new ArrayAdapter<String>(getActivity(), R.layout.textview_healtarchves, getResources().getStringArray(R.array.bloods));
@@ -433,7 +523,6 @@ public class HealthArchivesFragment extends BaseFragment {
             @Override
             public void onError(Call call, Exception e, int id) {
                 toastOnUi(getResources().getString(R.string.network_exception_please_try_again_later));
-                isSuccess = false;
             }
 
             @Override
@@ -479,22 +568,296 @@ public class HealthArchivesFragment extends BaseFragment {
                 tvUnhouseholdRegistration.setBackground(getResources().getDrawable(R.drawable.textbg_shape_border_right_all));
                 break;
             case R.id.imgBtn_add://增加疾病
+                showDiseaseDialog();
                 break;
             case R.id.imgBtn_add_surgery://手术
+                if (surgeryAdapter.getList().size() < 5) {
+                    SurgeryBean surgeryBean = new SurgeryBean();
+                    surgeryAdapter.addDATA(surgeryBean);
+                    ViewUtils viewUtils = new ViewUtils();
+                    viewUtils.setListViewHeightBasedOnChildren(lv_surgery);
+                    surgeryAdapter.notifyDataSetChanged();
+                }
                 break;
             case R.id.imgBtn_add_trauma://外伤
+                if (traumaAdapter.getList().size() < 5) {
+                    SurgeryBean surgeryBean = new SurgeryBean();
+                    traumaAdapter.addDATA(surgeryBean);
+                    ViewUtils viewUtils = new ViewUtils();
+                    viewUtils.setListViewHeightBasedOnChildren(lv_trauma);
+                    traumaAdapter.notifyDataSetChanged();
+                }
                 break;
             case R.id.imgBtn_add_blood_transfusion://输血
+                if (bloodTransfusionAdapter.getList().size() < 5) {
+                    SurgeryBean surgeryBean = new SurgeryBean();
+                    bloodTransfusionAdapter.addDATA(surgeryBean);
+                    ViewUtils viewUtils = new ViewUtils();
+                    viewUtils.setListViewHeightBasedOnChildren(lv_blood_transfusion);
+                    bloodTransfusionAdapter.notifyDataSetChanged();
+                }
                 break;
             case R.id.imgBtn_add_father://家族史：父亲
+                showFatherDialog();
                 break;
             case R.id.imgBtn_add_mother://母亲
+                showMotherDialog();
                 break;
             case R.id.imgBtn_add_children://子女
+                showChildrenDialog();
                 break;
             case R.id.btn_save://保存
+               restartRegister();
+
                 break;
         }
+    }
+
+    private void restartRegister() {
+        if (edtName.getText().toString().equals("")){
+            Toast.makeText(getActivity(), "姓名不能为空", Toast.LENGTH_SHORT).show();
+            return;
+        }else if (edtCardId.getText().toString().equals("")){
+            Toast.makeText(getActivity(), "身份证号码不能为空", Toast.LENGTH_SHORT).show();
+            return;
+        }else if (edtMyPhone.getText().toString().equals("")){
+            Toast.makeText(getActivity(), "电话号码不能为空", Toast.LENGTH_SHORT).show();
+            return;
+        }else {
+            new Thread(new Runnable() {
+                @Override
+                public void run() {
+                    restartRegisterInterface();
+                }
+            }).start();
+        }
+    }
+
+    //重新注册接口
+    private void restartRegisterInterface() {
+        OkHttpUtils.post().url(InterfaceUrl.USER_REGISTER_URL+sessonWithCode)
+                .addParams("name",edtName.getText().toString())
+                .addParams("sex","")
+                .addParams("birth","")
+                .addParams("nation","")
+                .addParams("card_id","")
+                .addParams("province","")
+                .addParams("city","")
+                .addParams("district","")
+                .addParams("resident","")
+                .addParams("address","")
+                .addParams("work","")
+                .addParams("phone","")
+                .addParams("phone_contacts","")
+                .addParams("blood","")
+                .addParams("blood_hr","")
+                .addParams("edu","")
+                .addParams("occ","")
+                .addParams("marr","")
+                .addParams("pay_type","")
+                .addParams("allergor","")
+                .addParams("expose","")
+                .addParams("p_dis","")
+                .addParams("p_opera","")
+                .addParams("p_trau","")
+                .addParams("p_trans","")
+                .addParams("f_p","")
+                .addParams("f_m","")
+                .addParams("f_chi","")
+                .addParams("inheri","")
+                .addParams("deformity","")
+                .addParams("exha","")
+                .addParams("fuel","")
+                .addParams("water","")
+                .addParams("wc","")
+                .addParams("poultry","")
+                .build().execute(new StringCallback() {
+            @Override
+            public void onError(Call call, Exception e, int id) {
+
+            }
+
+            @Override
+            public void onResponse(String response, int id) {
+
+            }
+        });
+
+
+    }
+
+    private boolean[] mDiseaseMulChoice;
+    private List<String> diseaseList = new ArrayList<>();
+    private List<String> fatherList = new ArrayList<>();
+    private List<String> motherList = new ArrayList<>();
+    private List<String> childrenList = new ArrayList<>();
+
+    private void showDiseaseDialog() {
+        mDiseaseMulChoice = new boolean[getResources().getStringArray(diseaseResArray).length];
+        AlertDialog.Builder diseaseDialog = new AlertDialog.Builder(getActivity());
+        diseaseDialog.setTitle("请选择");
+        diseaseDialog.setMultiChoiceItems(getResources().getStringArray(diseaseResArray), mDiseaseMulChoice, new DialogInterface.OnMultiChoiceClickListener() {
+            @Override
+            public void onClick(DialogInterface dialog, int which, boolean isChecked) {
+                mDiseaseMulChoice[which] = isChecked;
+            }
+        });
+
+        diseaseDialog.setPositiveButton(R.string.ok, new DialogInterface.OnClickListener() {
+            @Override
+            public void onClick(DialogInterface dialog, int which) {
+                diseaseList.clear();
+                for (int i = 0; i < mDiseaseMulChoice.length; i++) {
+                    if (mDiseaseMulChoice[i]) {
+                        diseaseList.add(getResources().getStringArray(diseaseResArray)[i]);
+                        diseaseAdapter.addData(diseaseList);
+                        recyViewDisease.setAdapter(diseaseAdapter);
+                    }
+                }
+                int num = diseaseList.size();
+                num = num % 3 == 0 ? num / 3 : num / 3 + 1;//进一法
+
+                ViewUtils.setLayoutHeight(recyViewDisease, num * getActivity().getResources().getDimensionPixelSize(R.dimen.px38));
+
+                diseaseAdapter.notifyDataSetChanged();
+            }
+        });
+        diseaseDialog.show();
+    }
+
+    private void showFatherDialog() {
+        mDiseaseMulChoice = new boolean[getResources().getStringArray(diseaseResArray).length];
+        AlertDialog.Builder diseaseDialog = new AlertDialog.Builder(getActivity());
+        diseaseDialog.setTitle("请选择");
+        diseaseDialog.setMultiChoiceItems(getResources().getStringArray(diseaseResArray), mDiseaseMulChoice, new DialogInterface.OnMultiChoiceClickListener() {
+            @Override
+            public void onClick(DialogInterface dialog, int which, boolean isChecked) {
+                mDiseaseMulChoice[which] = isChecked;
+            }
+        });
+
+        diseaseDialog.setPositiveButton(R.string.ok, new DialogInterface.OnClickListener() {
+            @Override
+            public void onClick(DialogInterface dialog, int which) {
+                fatherList.clear();
+                for (int i = 0; i < mDiseaseMulChoice.length; i++) {
+                    if (mDiseaseMulChoice[i]) {
+                        fatherList.add(getResources().getStringArray(diseaseResArray)[i]);
+                        fatherAdapter.addData(fatherList);
+                        recyViewFather.setAdapter(fatherAdapter);
+                    }
+                }
+                int num = fatherList.size();
+                num = num % 3 == 0 ? num / 3 : num / 3 + 1;//进一法
+                ViewUtils.setLayoutHeight(recyViewFather, num * getActivity().getResources().getDimensionPixelSize(R.dimen.px38));
+                fatherAdapter.notifyDataSetChanged();
+            }
+        });
+        diseaseDialog.show();
+    }
+
+    private void showMotherDialog(){
+        mDiseaseMulChoice = new boolean[getResources().getStringArray(diseaseResArray).length];
+        AlertDialog.Builder diseaseDialog = new AlertDialog.Builder(getActivity());
+        diseaseDialog.setTitle("请选择");
+        diseaseDialog.setMultiChoiceItems(getResources().getStringArray(diseaseResArray), mDiseaseMulChoice, new DialogInterface.OnMultiChoiceClickListener() {
+            @Override
+            public void onClick(DialogInterface dialog, int which, boolean isChecked) {
+                mDiseaseMulChoice[which] = isChecked;
+            }
+        });
+
+        diseaseDialog.setPositiveButton(R.string.ok, new DialogInterface.OnClickListener() {
+            @Override
+            public void onClick(DialogInterface dialog, int which) {
+                motherList.clear();
+                for (int i = 0; i < mDiseaseMulChoice.length; i++) {
+                    if (mDiseaseMulChoice[i]) {
+                        motherList.add(getResources().getStringArray(diseaseResArray)[i]);
+                        motherAdapter.addData(motherList);
+                        recyViewMother.setAdapter(motherAdapter);
+                    }
+                }
+                int num = motherList.size();
+                num = num % 3 == 0 ? num / 3 : num / 3 + 1;//进一法
+                ViewUtils.setLayoutHeight(recyViewMother, num * getActivity().getResources().getDimensionPixelSize(R.dimen.px38));
+                motherAdapter.notifyDataSetChanged();
+            }
+        });
+        diseaseDialog.show();
+    }
+
+    private void showChildrenDialog(){
+        mDiseaseMulChoice = new boolean[getResources().getStringArray(diseaseResArray).length];
+        AlertDialog.Builder diseaseDialog = new AlertDialog.Builder(getActivity());
+        diseaseDialog.setTitle("请选择");
+        diseaseDialog.setMultiChoiceItems(getResources().getStringArray(diseaseResArray), mDiseaseMulChoice, new DialogInterface.OnMultiChoiceClickListener() {
+            @Override
+            public void onClick(DialogInterface dialog, int which, boolean isChecked) {
+                mDiseaseMulChoice[which] = isChecked;
+            }
+        });
+
+        diseaseDialog.setPositiveButton(R.string.ok, new DialogInterface.OnClickListener() {
+            @Override
+            public void onClick(DialogInterface dialog, int which) {
+                childrenList.clear();
+                for (int i = 0; i < mDiseaseMulChoice.length; i++) {
+                    if (mDiseaseMulChoice[i]) {
+                        childrenList.add(getResources().getStringArray(diseaseResArray)[i]);
+                        childrenAdapter.addData(childrenList);
+                        recyViewChildren.setAdapter(childrenAdapter);
+                    }
+                }
+                int num = childrenList.size();
+                num = num % 3 == 0 ? num / 3 : num / 3 + 1;//进一法
+                ViewUtils.setLayoutHeight(recyViewChildren, num * getActivity().getResources().getDimensionPixelSize(R.dimen.px38));
+                childrenAdapter.notifyDataSetChanged();
+            }
+        });
+        diseaseDialog.show();
+
+    }
+
+    //出错模式下设置，目前有BUG
+    private void initCitySelect() {
+        provinceAdapter = new ArrayAdapter<String>(getActivity(), R.layout.textview_healtarchves, province);
+        spProvince.setAdapter(provinceAdapter);
+        spProvince.setSelection(0, true);  //设置默认选中项，此处为默认选中第1个值
+
+        cityAdapter = new ArrayAdapter<String>(getActivity(), R.layout.textview_healtarchves, city[0]);
+        spCity.setAdapter(cityAdapter);
+        spCity.setSelection(0, true);  //默认选中第0个
+        countyAdapter = new ArrayAdapter<String>(getActivity(), R.layout.textview_healtarchves, county[0][0]);
+        spDistrict.setAdapter(countyAdapter);
+        spDistrict.setSelection(0, true);
+        Log.e(TAG, "initCitySelect: ");
+        spProvince.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {
+            @Override
+            public void onItemSelected(AdapterView<?> parent, View view, int position, long id) {
+                cityAdapter = new ArrayAdapter<String>(getActivity(), R.layout.textview_healtarchves, city[position]);
+                spCity.setAdapter(cityAdapter);
+                provincePosition = position;    //记录当前省级序号，留给下面修改县级适配器时用
+            }
+
+            @Override
+            public void onNothingSelected(AdapterView<?> parent) {
+
+            }
+        });
+
+        spCity.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {
+            @Override
+            public void onItemSelected(AdapterView<?> parent, View view, int position, long id) {
+                countyAdapter = new ArrayAdapter<String>(getActivity(), R.layout.textview_healtarchves, county[provincePosition][position]);
+                spDistrict.setAdapter(countyAdapter);
+            }
+
+            @Override
+            public void onNothingSelected(AdapterView<?> parent) {
+
+            }
+        });
     }
 
 
@@ -508,10 +871,9 @@ public class HealthArchivesFragment extends BaseFragment {
                     HealthArchivesBean healthArchivesBean = GsonParsing.getHealthArchivesMessageJson(result);
                     HealthArchivesBean.UserMessageDataBean userMessageDataBean = healthArchivesBean.getData();
                     setUserMessage(userMessageDataBean);
-
                 } catch (Exception e) {
-                    Toast.makeText(getActivity(), getResources().getString(R.string.connection_timeout_or_illegal_request), Toast.LENGTH_SHORT).show();
-                    isSuccess = false;
+                    Log.e(TAG, "healthArchivesHandlerException: " + e);
+                    initCitySelect();
                 }
 
             } else {
@@ -522,7 +884,7 @@ public class HealthArchivesFragment extends BaseFragment {
                     judge(errorCodeBean.getCode() + "");
                 } catch (Exception e) {
                     Toast.makeText(getActivity(), getResources().getString(R.string.connection_timeout_or_illegal_request), Toast.LENGTH_SHORT).show();
-                    isSuccess = false;
+                    initCitySelect();
                 }
             }
 
@@ -578,6 +940,5 @@ public class HealthArchivesFragment extends BaseFragment {
                 })
                 .build();
     }
-
 
 }

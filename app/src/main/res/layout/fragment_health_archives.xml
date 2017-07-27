@@ -371,7 +371,8 @@
                     style="@style/healthArchivsEdtextStyle"/>
             </com.zhy.autolayout.AutoLinearLayout>
 
-            <com.zhy.autolayout.AutoLinearLayout style="@style/healthArchivsLayoutStyleAdd">
+            <com.zhy.autolayout.AutoLinearLayout
+                style="@style/healthArchivsLayoutStyleAdd">
 
                 <TextView
                     style="@style/healthArchivsTextIntroduceStyle"
@@ -399,7 +400,9 @@
                 </com.zhy.autolayout.AutoLinearLayout>
             </com.zhy.autolayout.AutoLinearLayout>
 
-            <com.zhy.autolayout.AutoLinearLayout style="@style/healthArchivsLayoutStyleAdd">
+            <com.zhy.autolayout.AutoLinearLayout
+                android:id="@+id/lay_surgery"
+                style="@style/healthArchivsLayoutStyleAdd">
 
                 <TextView
                     style="@style/healthArchivsTextIntroduceStyle"
@@ -412,12 +415,15 @@
                     android:gravity="center_vertical"
                     android:orientation="horizontal">
 
-                    <android.support.v7.widget.RecyclerView
-                        android:id="@+id/recyView_surgery"
+                    <ListView
+                        android:id="@+id/lv_surgery"
                         android:layout_width="match_parent"
                         android:layout_height="match_parent"
                         android:layout_weight="1"
-                        android:background="@drawable/gray_circle"/>
+                        android:cacheColorHint="#FFF4F4F4"
+                        android:dividerHeight="0.0dip"
+                        android:divider="@null"
+                        android:fadingEdge="none"/>
 
                     <ImageButton
                         android:id="@+id/imgBtn_add_surgery"
@@ -439,13 +445,15 @@
                     android:gravity="center_vertical"
                     android:orientation="horizontal">
 
-                    <android.support.v7.widget.RecyclerView
-                        android:id="@+id/recyView_trauma"
+                    <ListView
+                        android:id="@+id/lv_trauma"
                         android:layout_width="match_parent"
                         android:layout_height="match_parent"
                         android:layout_weight="1"
-                        android:background="@drawable/gray_circle"/>
-
+                        android:cacheColorHint="#FFF4F4F4"
+                        android:dividerHeight="0.0dip"
+                        android:divider="@null"
+                        android:fadingEdge="none"/>
 
                     <ImageButton
                         android:id="@+id/imgBtn_add_trauma"
@@ -467,13 +475,15 @@
                     android:gravity="center_vertical"
                     android:orientation="horizontal">
 
-                    <android.support.v7.widget.RecyclerView
-                        android:id="@+id/recyView_blood_transfusion"
+                    <ListView
+                        android:id="@+id/lv_blood_transfusion"
                         android:layout_width="match_parent"
                         android:layout_height="match_parent"
                         android:layout_weight="1"
-                        android:background="@drawable/gray_circle"/>
-
+                        android:cacheColorHint="#FFF4F4F4"
+                        android:dividerHeight="0.0dip"
+                        android:divider="@null"
+                        android:fadingEdge="none"/>
 
                     <ImageButton
                         android:id="@+id/imgBtn_add_blood_transfusion"
