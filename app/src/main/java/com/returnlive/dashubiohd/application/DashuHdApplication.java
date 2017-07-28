@@ -15,7 +15,7 @@ import java.util.List;
  * 描述： autolayout初始化
  */
 
-public class MyApplication extends Application {
+public class DashuHdApplication extends Application {
     private static List<Activity> lists = new ArrayList<>();
 
     @Override

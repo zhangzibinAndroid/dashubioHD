@@ -58,7 +58,7 @@ public class TraumaAdapter extends MyBaseAdapter<SurgeryBean> {
         viewHolder.tvTime.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                onWriteTimeClickListener.OnWriteTimeClick(v, (TextView) finalViewHolder.tvTime.getTag());
+                onWriteTimeClickListener.OnWriteTimeClick(v,position, (TextView) finalViewHolder.tvTime.getTag());
             }
         });
 
@@ -80,12 +80,10 @@ public class TraumaAdapter extends MyBaseAdapter<SurgeryBean> {
                     content.trim();
                 }
                 bean.setName(content);
-                notifyDataSetChanged();
             }
         });
 
         SurgeryBean bean = list.get(position);
-        bean.setTime(viewHolder.tvTime.getText().toString());
         viewHolder.edtName.setText(bean.getName());
         viewHolder.tvTime.setText(bean.getTime());
         return convertView;
@@ -96,7 +94,7 @@ public class TraumaAdapter extends MyBaseAdapter<SurgeryBean> {
         ImageView imgDelect;
         @BindView(R.id.edt_name)
         EditText edtName;
-        @BindView(R.id.tv_time)
+        @BindView(R.id.tv_time_surger)
         TextView tvTime;
 
         ViewHolder(View view) {
@@ -116,7 +114,7 @@ public class TraumaAdapter extends MyBaseAdapter<SurgeryBean> {
 
 
     public static interface OnWriteTimeClickListener{
-        void OnWriteTimeClick(View v,TextView tvTime);
+        void OnWriteTimeClick(View v,int position,TextView tvTime);
     }
 
     public void setOnWriteTimeClickListener(OnWriteTimeClickListener onWriteTimeClickListener){

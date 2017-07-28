@@ -27,6 +27,7 @@ import android.widget.Toast;
 import com.bigkoo.pickerview.TimePickerView;
 import com.bigkoo.pickerview.lib.WheelView;
 import com.bigkoo.pickerview.listener.CustomListener;
+import com.google.gson.Gson;
 import com.returnlive.dashubiohd.R;
 import com.returnlive.dashubiohd.activity.HomeActivity;
 import com.returnlive.dashubiohd.adapter.viewadapter.BloodTransfusionAdapter;
@@ -39,6 +40,7 @@ import com.returnlive.dashubiohd.adapter.viewadapter.TraumaAdapter;
 import com.returnlive.dashubiohd.base.BaseFragment;
 import com.returnlive.dashubiohd.bean.ErrorCodeBean;
 import com.returnlive.dashubiohd.bean.HealthArchivesBean;
+import com.returnlive.dashubiohd.bean.viewbean.DiseaseBean;
 import com.returnlive.dashubiohd.bean.viewbean.SurgeryBean;
 import com.returnlive.dashubiohd.constant.ErrorCode;
 import com.returnlive.dashubiohd.constant.InterfaceUrl;
@@ -61,6 +63,7 @@ import butterknife.Unbinder;
 import okhttp3.Call;
 
 import static com.returnlive.dashubiohd.R.array.diseaseResArray;
+import static com.returnlive.dashubiohd.R.id.tv_woman;
 import static com.returnlive.dashubiohd.constant.CityArray.city;
 import static com.returnlive.dashubiohd.constant.CityArray.county;
 import static com.returnlive.dashubiohd.constant.CityArray.province;
@@ -80,7 +83,7 @@ public class HealthArchivesFragment extends BaseFragment {
     EditText edtName;
     @BindView(R.id.tv_man)
     TextView tvMan;
-    @BindView(R.id.tv_woman)
+    @BindView(tv_woman)
     TextView tvWoman;
     @BindView(R.id.tv_date)
     TextView tvDate;
@@ -193,20 +196,29 @@ public class HealthArchivesFragment extends BaseFragment {
     private TraumaAdapter traumaAdapter;
     private BloodTransfusionAdapter bloodTransfusionAdapter;
     private ChildrenAdapter childrenAdapter;
+    private ViewUtils viewUtils;
 
     public HealthArchivesFragment() {
     }
 
     //网络获取各个控件的值
     private void setUserMessage(HealthArchivesBean.UserMessageDataBean userMessageDataBean) {
+        ViewUtils viewUtils = new ViewUtils();
+
         edtName.setText(userMessageDataBean.getName());
         if (userMessageDataBean.getSex().equals("1")) {
+            tvMan.setSelected(true);
+            tvWoman.setSelected(false);
             tvMan.setBackground(getResources().getDrawable(R.drawable.textbg_shape_border_left_all));
             tvWoman.setBackground(getResources().getDrawable(R.drawable.textbg_shape_border_right));
         } else if (userMessageDataBean.getSex().equals("2")) {
+            tvMan.setSelected(false);
+            tvWoman.setSelected(true);
             tvMan.setBackground(getResources().getDrawable(R.drawable.textbg_shape_border_left));
             tvWoman.setBackground(getResources().getDrawable(R.drawable.textbg_shape_border_right_all));
         } else {
+            tvMan.setSelected(false);
+            tvWoman.setSelected(false);
             tvMan.setBackground(getResources().getDrawable(R.drawable.textbg_shape_border_left));
             tvWoman.setBackground(getResources().getDrawable(R.drawable.textbg_shape_border_right));
         }
@@ -271,12 +283,18 @@ public class HealthArchivesFragment extends BaseFragment {
 
         //户籍
         if (userMessageDataBean.getResident().equals("0")) {
+            tvHouseholdRegistration.setSelected(true);
+            tvUnhouseholdRegistration.setSelected(false);
             tvHouseholdRegistration.setBackground(getResources().getDrawable(R.drawable.textbg_shape_border_left_all));
             tvUnhouseholdRegistration.setBackground(getResources().getDrawable(R.drawable.textbg_shape_border_right));
         } else if (userMessageDataBean.getResident().equals("1")) {
+            tvHouseholdRegistration.setSelected(false);
+            tvUnhouseholdRegistration.setSelected(true);
             tvHouseholdRegistration.setBackground(getResources().getDrawable(R.drawable.textbg_shape_border_left));
             tvUnhouseholdRegistration.setBackground(getResources().getDrawable(R.drawable.textbg_shape_border_right_all));
         } else {
+            tvHouseholdRegistration.setSelected(false);
+            tvUnhouseholdRegistration.setSelected(false);
             tvHouseholdRegistration.setBackground(getResources().getDrawable(R.drawable.textbg_shape_border_left));
             tvUnhouseholdRegistration.setBackground(getResources().getDrawable(R.drawable.textbg_shape_border_right));
         }
@@ -306,6 +324,101 @@ public class HealthArchivesFragment extends BaseFragment {
         etGeneticHistory.setText(userMessageDataBean.getInheri());
         //暴露史
         spExpose.setSelection(Integer.parseInt(userMessageDataBean.getExpose()) - 1);
+
+
+        List<HealthArchivesBean.UserMessageDataBean.PDisBean> disList = userMessageDataBean.getP_dis();
+        diseaseList.clear();
+        for (int i = 0; i < disList.size(); i++) {
+            HealthArchivesBean.UserMessageDataBean.PDisBean pdBean = disList.get(i);
+            DiseaseBean diseaseBean = new DiseaseBean(pdBean.getName(), pdBean.getId());
+            diseaseList.add(diseaseBean);
+        }
+        diseaseAdapter.addData(diseaseList);
+        recyViewDisease.setAdapter(diseaseAdapter);
+        diseaseAdapter.notifyDataSetChanged();
+        int num = diseaseList.size();
+        num = num % 3 == 0 ? num / 3 : num / 3 + 1;//进一法
+        ViewUtils.setLayoutHeight(recyViewDisease, num * getActivity().getResources().getDimensionPixelSize(R.dimen.px38));
+
+        List<HealthArchivesBean.UserMessageDataBean.POperaBean> poperaList = userMessageDataBean.getP_opera();
+
+        if (poperaList.size() > 0) {
+            for (int i = 0; i < poperaList.size(); i++) {
+                HealthArchivesBean.UserMessageDataBean.POperaBean poPeraBean = poperaList.get(i);
+                SurgeryBean surgeryBean = new SurgeryBean(poPeraBean.getName(), poPeraBean.getDateTime());
+                surgeryAdapter.addDATA(surgeryBean);
+            }
+        } else {
+            SurgeryBean surgeryBean = new SurgeryBean();
+            surgeryAdapter.addDATA(surgeryBean);
+        }
+        viewUtils.setListViewHeightBasedOnChildren(lv_surgery);
+
+        List<HealthArchivesBean.UserMessageDataBean.PTrauBean> trauList = userMessageDataBean.getP_trau();
+        if (trauList.size() > 0) {
+            for (int i = 0; i < trauList.size(); i++) {
+                HealthArchivesBean.UserMessageDataBean.PTrauBean ptrauBean = trauList.get(i);
+                SurgeryBean surgeryBean = new SurgeryBean(ptrauBean.getName(), ptrauBean.getDateTime());
+                traumaAdapter.addDATA(surgeryBean);
+            }
+        } else {
+            SurgeryBean surgeryBean = new SurgeryBean();
+            traumaAdapter.addDATA(surgeryBean);
+        }
+        viewUtils.setListViewHeightBasedOnChildren(lv_trauma);
+
+
+        List<HealthArchivesBean.UserMessageDataBean.PTransBean> transList = userMessageDataBean.getP_trans();
+        if (transList.size() > 0) {
+            for (int i = 0; i < transList.size(); i++) {
+                HealthArchivesBean.UserMessageDataBean.PTransBean ptTransBean = transList.get(i);
+                SurgeryBean surgeryBean = new SurgeryBean(ptTransBean.getName(), ptTransBean.getDateTime());
+                bloodTransfusionAdapter.addDATA(surgeryBean);
+            }
+        } else {
+            SurgeryBean surgeryBean = new SurgeryBean();
+            bloodTransfusionAdapter.addDATA(surgeryBean);
+        }
+        viewUtils.setListViewHeightBasedOnChildren(lv_blood_transfusion);
+
+
+        List<HealthArchivesBean.UserMessageDataBean.FPBean> f_pList = userMessageDataBean.getF_p();
+        fatherList.clear();
+        for (int i = 0; i < f_pList.size(); i++) {
+            HealthArchivesBean.UserMessageDataBean.FPBean fpBean = f_pList.get(i);
+            DiseaseBean diseaseBean = new DiseaseBean(fpBean.getName(), fpBean.getId());
+            fatherList.add(diseaseBean);
+        }
+        fatherAdapter.addData(fatherList);
+        recyViewFather.setAdapter(fatherAdapter);
+        fatherAdapter.notifyDataSetChanged();
+        int numfa = fatherList.size();
+        numfa = numfa % 3 == 0 ? numfa / 3 : numfa / 3 + 1;//进一法
+        ViewUtils.setLayoutHeight(recyViewFather, numfa * getActivity().getResources().getDimensionPixelSize(R.dimen.px38));
+
+        List<HealthArchivesBean.UserMessageDataBean.FMBean> f_mList = userMessageDataBean.getF_m();
+        motherList.clear();
+        for (int i = 0; i < f_mList.size(); i++) {
+            HealthArchivesBean.UserMessageDataBean.FMBean fmBean = f_mList.get(i);
+            DiseaseBean diseaseBean = new DiseaseBean(fmBean.getName(), fmBean.getId());
+            motherList.add(diseaseBean);
+        }
+        motherAdapter.addData(motherList);
+        recyViewMother.setAdapter(motherAdapter);
+        motherAdapter.notifyDataSetChanged();
+
+
+        List<HealthArchivesBean.UserMessageDataBean.FChiBean> f_chiList = userMessageDataBean.getF_chi();
+        childrenList.clear();
+        for (int i = 0; i < f_chiList.size(); i++) {
+            HealthArchivesBean.UserMessageDataBean.FChiBean fChiBean = f_chiList.get(i);
+            DiseaseBean diseaseBean = new DiseaseBean(fChiBean.getName(), fChiBean.getId());
+            childrenList.add(diseaseBean);
+        }
+        childrenAdapter.addData(childrenList);
+        recyViewChildren.setAdapter(childrenAdapter);
+        childrenAdapter.notifyDataSetChanged();
+
         //残疾情况
         spCanji.setSelection(Integer.parseInt(userMessageDataBean.getDeformity()) - 1);
         //厨房排风设施
@@ -331,7 +444,6 @@ public class HealthArchivesFragment extends BaseFragment {
         return view;
     }
 
-
     //初始化各个控件
     private void initView() {
         diseaseAdapter = new DiseaseAdapter(getActivity());
@@ -354,19 +466,6 @@ public class HealthArchivesFragment extends BaseFragment {
         lv_surgery.setAdapter(surgeryAdapter);
         lv_trauma.setAdapter(traumaAdapter);
         lv_blood_transfusion.setAdapter(bloodTransfusionAdapter);
-        SurgeryBean surgeryBean = new SurgeryBean();
-        SurgeryBean traumaBean = new SurgeryBean();
-        SurgeryBean bloodTransfusionBean = new SurgeryBean();
-        surgeryAdapter.addDATA(surgeryBean);
-        surgeryAdapter.notifyDataSetChanged();
-        ViewUtils viewUtils = new ViewUtils();
-        viewUtils.setListViewHeightBasedOnChildren(lv_surgery);
-        traumaAdapter.addDATA(traumaBean);
-        traumaAdapter.notifyDataSetChanged();
-        viewUtils.setListViewHeightBasedOnChildren(lv_trauma);
-        bloodTransfusionAdapter.addDATA(bloodTransfusionBean);
-        bloodTransfusionAdapter.notifyDataSetChanged();
-        viewUtils.setListViewHeightBasedOnChildren(lv_blood_transfusion);
 
         bloodTransfusionAdapter.setOnDelectClickListener(new BloodTransfusionAdapter.OnDelectClickListener() {
             @Override
@@ -403,29 +502,26 @@ public class HealthArchivesFragment extends BaseFragment {
 
         bloodTransfusionAdapter.setOnWriteTimeClickListener(new BloodTransfusionAdapter.OnWriteTimeClickListener() {
             @Override
-            public void OnWriteTimeClick(View v, TextView tvTime) {
-                initCustomTimePicker(tvTime);
+            public void OnWriteTimeClick(View v, int position, TextView tvTime) {
+                initBloodTransfusionCustomTimePicker(tvTime, position);
                 timePickerView.show();
-                bloodTransfusionAdapter.notifyDataSetChanged();
             }
         });
 
         traumaAdapter.setOnWriteTimeClickListener(new TraumaAdapter.OnWriteTimeClickListener() {
             @Override
-            public void OnWriteTimeClick(View v, TextView tvTime) {
-                initCustomTimePicker(tvTime);
+            public void OnWriteTimeClick(View v, int position, TextView tvTime) {
+                initTraumaCustomTimePicker(tvTime, position);
                 timePickerView.show();
-                bloodTransfusionAdapter.notifyDataSetChanged();
 
             }
         });
 
         surgeryAdapter.setOnWriteTimeClickListener(new SurgerListViewAdapter.OnWriteTimeClickListener() {
             @Override
-            public void OnWriteTimeClick(View v, TextView tvTime) {
-                initCustomTimePicker(tvTime);
+            public void OnWriteTimeClick(View v, int position, TextView tvTime) {
+                initSurgeryCustomTimePicker(tvTime, position);
                 timePickerView.show();
-                bloodTransfusionAdapter.notifyDataSetChanged();
 
             }
         });
@@ -516,7 +612,6 @@ public class HealthArchivesFragment extends BaseFragment {
     }
 
     private void getHealthArchivesInterface() {
-        Log.e(TAG, "getHealthArchivesInterface: " + InterfaceUrl.HEALTH_ARCHIVES_URL + sessonWithCode + "/m_id/" + HomeActivity.mid);
         OkHttpUtils.get().url(InterfaceUrl.HEALTH_ARCHIVES_URL + sessonWithCode)
                 .addParams("m_id", HomeActivity.mid)
                 .build().execute(new StringCallback() {
@@ -527,6 +622,7 @@ public class HealthArchivesFragment extends BaseFragment {
 
             @Override
             public void onResponse(String response, int id) {
+                Log.d(TAG, "onResponse: " + response);
                 Message msg = new Message();
                 msg.obj = response;
                 healthArchivesHandler.sendMessage(msg);
@@ -543,16 +639,20 @@ public class HealthArchivesFragment extends BaseFragment {
     }
 
 
-    @OnClick({R.id.btn_camera, R.id.tv_man, R.id.tv_woman, R.id.tv_date, R.id.tv_household_registration, R.id.tv_unhousehold_registration, R.id.imgBtn_add, R.id.imgBtn_add_surgery, R.id.imgBtn_add_trauma, R.id.imgBtn_add_blood_transfusion, R.id.imgBtn_add_father, R.id.imgBtn_add_mother, R.id.imgBtn_add_children, R.id.btn_save})
+    @OnClick({R.id.btn_camera, R.id.tv_man, tv_woman, R.id.tv_date, R.id.tv_household_registration, R.id.tv_unhousehold_registration, R.id.imgBtn_add, R.id.imgBtn_add_surgery, R.id.imgBtn_add_trauma, R.id.imgBtn_add_blood_transfusion, R.id.imgBtn_add_father, R.id.imgBtn_add_mother, R.id.imgBtn_add_children, R.id.btn_save})
     public void onViewClicked(View view) {
         switch (view.getId()) {
             case R.id.btn_camera://拍照
                 break;
             case R.id.tv_man://性别：男
+                tvMan.setSelected(true);
+                tvWoman.setSelected(false);
                 tvMan.setBackground(getResources().getDrawable(R.drawable.textbg_shape_border_left_all));
                 tvWoman.setBackground(getResources().getDrawable(R.drawable.textbg_shape_border_right));
                 break;
-            case R.id.tv_woman://性别：女
+            case tv_woman://性别：女
+                tvMan.setSelected(false);
+                tvWoman.setSelected(true);
                 tvMan.setBackground(getResources().getDrawable(R.drawable.textbg_shape_border_left));
                 tvWoman.setBackground(getResources().getDrawable(R.drawable.textbg_shape_border_right_all));
                 break;
@@ -607,23 +707,23 @@ public class HealthArchivesFragment extends BaseFragment {
                 showChildrenDialog();
                 break;
             case R.id.btn_save://保存
-               restartRegister();
+                restartRegister();
 
                 break;
         }
     }
 
     private void restartRegister() {
-        if (edtName.getText().toString().equals("")){
+        if (edtName.getText().toString().equals("")) {
             Toast.makeText(getActivity(), "姓名不能为空", Toast.LENGTH_SHORT).show();
             return;
-        }else if (edtCardId.getText().toString().equals("")){
+        } else if (edtCardId.getText().toString().equals("")) {
             Toast.makeText(getActivity(), "身份证号码不能为空", Toast.LENGTH_SHORT).show();
             return;
-        }else if (edtMyPhone.getText().toString().equals("")){
+        } else if (edtMyPhone.getText().toString().equals("")) {
             Toast.makeText(getActivity(), "电话号码不能为空", Toast.LENGTH_SHORT).show();
             return;
-        }else {
+        } else {
             new Thread(new Runnable() {
                 @Override
                 public void run() {
@@ -635,50 +735,80 @@ public class HealthArchivesFragment extends BaseFragment {
 
     //重新注册接口
     private void restartRegisterInterface() {
-        OkHttpUtils.post().url(InterfaceUrl.USER_REGISTER_URL+sessonWithCode)
-                .addParams("name",edtName.getText().toString())
-                .addParams("sex","")
-                .addParams("birth","")
-                .addParams("nation","")
-                .addParams("card_id","")
-                .addParams("province","")
-                .addParams("city","")
-                .addParams("district","")
-                .addParams("resident","")
-                .addParams("address","")
-                .addParams("work","")
-                .addParams("phone","")
-                .addParams("phone_contacts","")
-                .addParams("blood","")
-                .addParams("blood_hr","")
-                .addParams("edu","")
-                .addParams("occ","")
-                .addParams("marr","")
-                .addParams("pay_type","")
-                .addParams("allergor","")
-                .addParams("expose","")
-                .addParams("p_dis","")
-                .addParams("p_opera","")
-                .addParams("p_trau","")
-                .addParams("p_trans","")
-                .addParams("f_p","")
-                .addParams("f_m","")
-                .addParams("f_chi","")
-                .addParams("inheri","")
-                .addParams("deformity","")
-                .addParams("exha","")
-                .addParams("fuel","")
-                .addParams("water","")
-                .addParams("wc","")
-                .addParams("poultry","")
+        int sex = 0;
+        if (tvMan.isSelected() == true && tvWoman.isSelected() == false) {
+            sex = 1;
+        } else if (tvMan.isSelected() == false && tvWoman.isSelected() == true) {
+            sex = 2;
+        } else {
+            sex = 0;
+        }
+
+        int resident = 0;
+        if (tvHouseholdRegistration.isSelected() == true && tvUnhouseholdRegistration.isSelected() == false) {
+            resident = 0;
+        } else if (tvHouseholdRegistration.isSelected() == false && tvUnhouseholdRegistration.isSelected() == true) {
+            resident = 1;
+        }
+
+        Gson gson = new Gson();
+        String disJson = gson.toJson(diseaseAdapter.getList());
+        String operaJson = gson.toJson(surgeryAdapter.getList());
+        String trauJson = gson.toJson(traumaAdapter.getList());
+        String transJson = gson.toJson(bloodTransfusionAdapter.getList());
+        String fatherJson = gson.toJson(fatherAdapter.getList());
+        String motherJson = gson.toJson(motherAdapter.getList());
+        String childrenJson = gson.toJson(childrenAdapter.getList());
+
+        Log.d(TAG, "url: "+InterfaceUrl.USER_REGISTER_URL + sessonWithCode + "/m_id/" + HomeActivity.mid);
+        OkHttpUtils.post().url(InterfaceUrl.USER_REGISTER_URL + sessonWithCode + "/m_id/" + HomeActivity.mid)
+                .addParams("name", edtName.getText().toString())
+                .addParams("sex", String.valueOf(sex))
+                .addParams("birth", tvDate.getText().toString())
+                .addParams("nation", spFolk.getSelectedItem().toString())
+                .addParams("card_id", edtCardId.getText().toString())
+                .addParams("province", spProvince.getSelectedItem().toString())
+                .addParams("city", spCity.getSelectedItem().toString())
+                .addParams("district", spDistrict.getSelectedItem().toString())
+                .addParams("resident", String.valueOf(resident))
+                .addParams("address", edtAddress.getText().toString())
+                .addParams("work", edtCompany.getText().toString())
+                .addParams("phone", edtMyPhone.getText().toString())
+                .addParams("phone_contacts", edtFriendPhone.getText().toString())
+                .addParams("blood", spBloodType.getSelectedItem().toString())
+                .addParams("blood_hr", spRh.getSelectedItem().toString())
+                .addParams("edu", spEducationDegree.getSelectedItem().toString())
+                .addParams("occ", spProfession.getSelectedItem().toString())
+                .addParams("marr", spMarriage.getSelectedItem().toString())
+                .addParams("pay_type", spPayStyle.getSelectedItem().toString())
+                .addParams("allergor", spMedicine.getSelectedItem().toString())
+                .addParams("expose", spExpose.getSelectedItem().toString())
+                .addParams("p_dis", disJson)
+                .addParams("p_opera", operaJson)
+                .addParams("p_trau", trauJson)
+                .addParams("p_trans", transJson)
+                .addParams("f_p", fatherJson)
+                .addParams("f_m", motherJson)
+                .addParams("f_chi", childrenJson)
+                .addParams("inheri", etGeneticHistory.getText().toString())
+                .addParams("deformity", spCanji.getSelectedItem().toString())
+                .addParams("exha", spExhaust.getSelectedItem().toString())
+                .addParams("fuel", spFuel.getSelectedItem().toString())
+                .addParams("water", spWater.getSelectedItem().toString())
+                .addParams("wc", spWc.getSelectedItem().toString())
+                .addParams("poultry", spQcl.getSelectedItem().toString())
                 .build().execute(new StringCallback() {
             @Override
             public void onError(Call call, Exception e, int id) {
+                toastOnUi(getResources().getString(R.string.network_exception_please_try_again_later));
 
             }
 
             @Override
             public void onResponse(String response, int id) {
+                Message msg = new Message();
+                msg.obj = response;
+                restartRegisterHandler.sendMessage(msg);
 
             }
         });
@@ -687,10 +817,10 @@ public class HealthArchivesFragment extends BaseFragment {
     }
 
     private boolean[] mDiseaseMulChoice;
-    private List<String> diseaseList = new ArrayList<>();
-    private List<String> fatherList = new ArrayList<>();
-    private List<String> motherList = new ArrayList<>();
-    private List<String> childrenList = new ArrayList<>();
+    private List<DiseaseBean> diseaseList = new ArrayList<>();
+    private List<DiseaseBean> fatherList = new ArrayList<>();
+    private List<DiseaseBean> motherList = new ArrayList<>();
+    private List<DiseaseBean> childrenList = new ArrayList<>();
 
     private void showDiseaseDialog() {
         mDiseaseMulChoice = new boolean[getResources().getStringArray(diseaseResArray).length];
@@ -709,7 +839,8 @@ public class HealthArchivesFragment extends BaseFragment {
                 diseaseList.clear();
                 for (int i = 0; i < mDiseaseMulChoice.length; i++) {
                     if (mDiseaseMulChoice[i]) {
-                        diseaseList.add(getResources().getStringArray(diseaseResArray)[i]);
+                        DiseaseBean diseaseBean = new DiseaseBean(getResources().getStringArray(diseaseResArray)[i], String.valueOf(i + 1));
+                        diseaseList.add(diseaseBean);
                         diseaseAdapter.addData(diseaseList);
                         recyViewDisease.setAdapter(diseaseAdapter);
                     }
@@ -742,7 +873,8 @@ public class HealthArchivesFragment extends BaseFragment {
                 fatherList.clear();
                 for (int i = 0; i < mDiseaseMulChoice.length; i++) {
                     if (mDiseaseMulChoice[i]) {
-                        fatherList.add(getResources().getStringArray(diseaseResArray)[i]);
+                        DiseaseBean diseaseBean = new DiseaseBean(getResources().getStringArray(diseaseResArray)[i], String.valueOf(i + 1));
+                        fatherList.add(diseaseBean);
                         fatherAdapter.addData(fatherList);
                         recyViewFather.setAdapter(fatherAdapter);
                     }
@@ -756,7 +888,7 @@ public class HealthArchivesFragment extends BaseFragment {
         diseaseDialog.show();
     }
 
-    private void showMotherDialog(){
+    private void showMotherDialog() {
         mDiseaseMulChoice = new boolean[getResources().getStringArray(diseaseResArray).length];
         AlertDialog.Builder diseaseDialog = new AlertDialog.Builder(getActivity());
         diseaseDialog.setTitle("请选择");
@@ -773,7 +905,8 @@ public class HealthArchivesFragment extends BaseFragment {
                 motherList.clear();
                 for (int i = 0; i < mDiseaseMulChoice.length; i++) {
                     if (mDiseaseMulChoice[i]) {
-                        motherList.add(getResources().getStringArray(diseaseResArray)[i]);
+                        DiseaseBean diseaseBean = new DiseaseBean(getResources().getStringArray(diseaseResArray)[i], String.valueOf(i + 1));
+                        motherList.add(diseaseBean);
                         motherAdapter.addData(motherList);
                         recyViewMother.setAdapter(motherAdapter);
                     }
@@ -787,7 +920,7 @@ public class HealthArchivesFragment extends BaseFragment {
         diseaseDialog.show();
     }
 
-    private void showChildrenDialog(){
+    private void showChildrenDialog() {
         mDiseaseMulChoice = new boolean[getResources().getStringArray(diseaseResArray).length];
         AlertDialog.Builder diseaseDialog = new AlertDialog.Builder(getActivity());
         diseaseDialog.setTitle("请选择");
@@ -804,7 +937,8 @@ public class HealthArchivesFragment extends BaseFragment {
                 childrenList.clear();
                 for (int i = 0; i < mDiseaseMulChoice.length; i++) {
                     if (mDiseaseMulChoice[i]) {
-                        childrenList.add(getResources().getStringArray(diseaseResArray)[i]);
+                        DiseaseBean diseaseBean = new DiseaseBean(getResources().getStringArray(diseaseResArray)[i], String.valueOf(i + 1));
+                        childrenList.add(diseaseBean);
                         childrenAdapter.addData(childrenList);
                         recyViewChildren.setAdapter(childrenAdapter);
                     }
@@ -873,7 +1007,7 @@ public class HealthArchivesFragment extends BaseFragment {
                     setUserMessage(userMessageDataBean);
                 } catch (Exception e) {
                     Log.e(TAG, "healthArchivesHandlerException: " + e);
-                    initCitySelect();
+//                    initCitySelect();
                 }
 
             } else {
@@ -884,7 +1018,30 @@ public class HealthArchivesFragment extends BaseFragment {
                     judge(errorCodeBean.getCode() + "");
                 } catch (Exception e) {
                     Toast.makeText(getActivity(), getResources().getString(R.string.connection_timeout_or_illegal_request), Toast.LENGTH_SHORT).show();
-                    initCitySelect();
+//                    initCitySelect();
+                }
+            }
+
+        }
+    };
+
+
+    private Handler restartRegisterHandler = new Handler() {
+        @Override
+        public void handleMessage(Message msg) {
+            super.handleMessage(msg);
+            String result = (String) msg.obj;
+            if (result.indexOf(ErrorCode.SUCCESS) > 0) {
+                Toast.makeText(getActivity(), "保存成功", Toast.LENGTH_SHORT).show();
+            } else {
+                //解析
+                ErrorCodeBean errorCodeBean = null;
+                try {
+                    errorCodeBean = GsonParsing.sendCodeError(result);
+                    judge(errorCodeBean.getCode() + "");
+                } catch (Exception e) {
+                    Toast.makeText(getActivity(), getResources().getString(R.string.connection_timeout_or_illegal_request), Toast.LENGTH_SHORT).show();
+//                    initCitySelect();
                 }
             }
 
@@ -941,4 +1098,153 @@ public class HealthArchivesFragment extends BaseFragment {
                 .build();
     }
 
+    private void initSurgeryCustomTimePicker(final TextView textView, final int position) {
+        Calendar selectedDate = Calendar.getInstance();//系统当前时间
+        Calendar startDate = Calendar.getInstance();//开始时间
+        Calendar endDate = Calendar.getInstance();//结束时间
+        startDate.set(1850, 1, 1);
+        endDate.set(2200, 1, 28);
+        timePickerView = new TimePickerView.Builder(getActivity(), new TimePickerView.OnTimeSelectListener() {
+            @Override
+            public void onTimeSelect(Date date, View v) {//选中事件回调
+                //可根据需要自行截取数据显示在控件上  yyyy-MM-dd HH:mm:ss  或yyyy-MM-dd
+                SimpleDateFormat format = new SimpleDateFormat("yyyy-MM-dd");
+                String time = format.format(date);
+                textView.setText(time);
+            }
+        })
+                .setType(TimePickerView.Type.YEAR_MONTH_DAY)
+                .setDate(selectedDate)
+                .setRangDate(startDate, endDate)
+                .setTextColorCenter(Color.parseColor("#FF4081"))//设置选中文字的颜色#64AE4A
+                .setTextColorOut(Color.parseColor("#717171"))//设置选中项以外的颜色#64AE4A
+                .setLineSpacingMultiplier(2.4f)//设置两横线之间的间隔倍数
+                .setDividerColor(Color.parseColor("#24E1E4"))//设置分割线的颜色
+                .setDividerType(WheelView.DividerType.WRAP)//设置分割线的类型
+                .setBgColor(Color.parseColor("#FFFFFF"))//背景颜色(必须是16进制) Night mode#2AA2BC
+                .gravity(Gravity.CENTER)//设置控件显示位置 default is center*/
+                .isDialog(true)//设置显示位置
+                .setLayoutRes(R.layout.pickerview_custom_time, new CustomListener() {
+                    @Override
+                    public void customLayout(View v) {
+                        TextView tvCancel = (TextView) v.findViewById(R.id.iv_cancel);
+                        final TextView tvSubmit = (TextView) v.findViewById(R.id.tv_finish);
+                        tvSubmit.setOnClickListener(new View.OnClickListener() {
+                            @Override
+                            public void onClick(View v) {
+                                timePickerView.returnData();
+                                SurgeryBean bean = surgeryAdapter.getList().get(position);
+                                bean.setTime(textView.getText().toString());
+                            }
+                        });
+                        tvCancel.setOnClickListener(new View.OnClickListener() {
+                            @Override
+                            public void onClick(View v) {
+                                timePickerView.dismiss();
+                            }
+                        });
+                    }
+                })
+                .build();
+    }
+
+    private void initTraumaCustomTimePicker(final TextView textView, final int position) {
+        Calendar selectedDate = Calendar.getInstance();//系统当前时间
+        Calendar startDate = Calendar.getInstance();//开始时间
+        Calendar endDate = Calendar.getInstance();//结束时间
+        startDate.set(1850, 1, 1);
+        endDate.set(2200, 1, 28);
+        timePickerView = new TimePickerView.Builder(getActivity(), new TimePickerView.OnTimeSelectListener() {
+            @Override
+            public void onTimeSelect(Date date, View v) {//选中事件回调
+                //可根据需要自行截取数据显示在控件上  yyyy-MM-dd HH:mm:ss  或yyyy-MM-dd
+                SimpleDateFormat format = new SimpleDateFormat("yyyy-MM-dd");
+                String time = format.format(date);
+                textView.setText(time);
+            }
+        })
+                .setType(TimePickerView.Type.YEAR_MONTH_DAY)
+                .setDate(selectedDate)
+                .setRangDate(startDate, endDate)
+                .setTextColorCenter(Color.parseColor("#FF4081"))//设置选中文字的颜色#64AE4A
+                .setTextColorOut(Color.parseColor("#717171"))//设置选中项以外的颜色#64AE4A
+                .setLineSpacingMultiplier(2.4f)//设置两横线之间的间隔倍数
+                .setDividerColor(Color.parseColor("#24E1E4"))//设置分割线的颜色
+                .setDividerType(WheelView.DividerType.WRAP)//设置分割线的类型
+                .setBgColor(Color.parseColor("#FFFFFF"))//背景颜色(必须是16进制) Night mode#2AA2BC
+                .gravity(Gravity.CENTER)//设置控件显示位置 default is center*/
+                .isDialog(true)//设置显示位置
+                .setLayoutRes(R.layout.pickerview_custom_time, new CustomListener() {
+                    @Override
+                    public void customLayout(View v) {
+                        TextView tvCancel = (TextView) v.findViewById(R.id.iv_cancel);
+                        final TextView tvSubmit = (TextView) v.findViewById(R.id.tv_finish);
+                        tvSubmit.setOnClickListener(new View.OnClickListener() {
+                            @Override
+                            public void onClick(View v) {
+                                timePickerView.returnData();
+                                SurgeryBean bean = traumaAdapter.getList().get(position);
+                                bean.setTime(textView.getText().toString());
+                            }
+                        });
+                        tvCancel.setOnClickListener(new View.OnClickListener() {
+                            @Override
+                            public void onClick(View v) {
+                                timePickerView.dismiss();
+                            }
+                        });
+                    }
+                })
+                .build();
+    }
+
+    private void initBloodTransfusionCustomTimePicker(final TextView textView, final int position) {
+        Calendar selectedDate = Calendar.getInstance();//系统当前时间
+        Calendar startDate = Calendar.getInstance();//开始时间
+        Calendar endDate = Calendar.getInstance();//结束时间
+        startDate.set(1850, 1, 1);
+        endDate.set(2200, 1, 28);
+        timePickerView = new TimePickerView.Builder(getActivity(), new TimePickerView.OnTimeSelectListener() {
+            @Override
+            public void onTimeSelect(Date date, View v) {//选中事件回调
+                //可根据需要自行截取数据显示在控件上  yyyy-MM-dd HH:mm:ss  或yyyy-MM-dd
+                SimpleDateFormat format = new SimpleDateFormat("yyyy-MM-dd");
+                String time = format.format(date);
+                textView.setText(time);
+            }
+        })
+                .setType(TimePickerView.Type.YEAR_MONTH_DAY)
+                .setDate(selectedDate)
+                .setRangDate(startDate, endDate)
+                .setTextColorCenter(Color.parseColor("#FF4081"))//设置选中文字的颜色#64AE4A
+                .setTextColorOut(Color.parseColor("#717171"))//设置选中项以外的颜色#64AE4A
+                .setLineSpacingMultiplier(2.4f)//设置两横线之间的间隔倍数
+                .setDividerColor(Color.parseColor("#24E1E4"))//设置分割线的颜色
+                .setDividerType(WheelView.DividerType.WRAP)//设置分割线的类型
+                .setBgColor(Color.parseColor("#FFFFFF"))//背景颜色(必须是16进制) Night mode#2AA2BC
+                .gravity(Gravity.CENTER)//设置控件显示位置 default is center*/
+                .isDialog(true)//设置显示位置
+                .setLayoutRes(R.layout.pickerview_custom_time, new CustomListener() {
+                    @Override
+                    public void customLayout(View v) {
+                        TextView tvCancel = (TextView) v.findViewById(R.id.iv_cancel);
+                        final TextView tvSubmit = (TextView) v.findViewById(R.id.tv_finish);
+                        tvSubmit.setOnClickListener(new View.OnClickListener() {
+                            @Override
+                            public void onClick(View v) {
+                                timePickerView.returnData();
+                                SurgeryBean bean = bloodTransfusionAdapter.getList().get(position);
+                                bean.setTime(textView.getText().toString());
+                            }
+                        });
+                        tvCancel.setOnClickListener(new View.OnClickListener() {
+                            @Override
+                            public void onClick(View v) {
+                                timePickerView.dismiss();
+                            }
+                        });
+                    }
+                })
+                .build();
+    }
 }

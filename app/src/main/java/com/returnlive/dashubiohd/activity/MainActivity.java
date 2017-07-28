@@ -10,7 +10,7 @@ import android.widget.TextView;
 import android.widget.Toast;
 
 import com.returnlive.dashubiohd.R;
-import com.returnlive.dashubiohd.application.MyApplication;
+import com.returnlive.dashubiohd.application.DashuHdApplication;
 import com.returnlive.dashubiohd.base.BaseActivity;
 import com.returnlive.dashubiohd.bean.EventLoginMessage;
 import com.returnlive.dashubiohd.fragment.main.HelpFragment;
@@ -103,7 +103,7 @@ public class MainActivity extends BaseActivity {
                         Toast.LENGTH_SHORT).show();
                 exitTime = System.currentTimeMillis();
             } else {
-                MyApplication.clearActivity();
+                DashuHdApplication.clearActivity();
                 System.exit(0);
             }
             return true;

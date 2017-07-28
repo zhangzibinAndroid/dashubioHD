@@ -43,25 +43,29 @@ public class SurgerListViewAdapter extends MyBaseAdapter<SurgeryBean> {
             viewHolder = (ViewHolder) convertView.getTag();
         }
 
-        viewHolder.imgDelect.setTag(position);
-        viewHolder.tvTime.setTag(viewHolder.tvTime);
-        viewHolder.edtName.setTag(position);
-        viewHolder.imgDelect.setOnClickListener(new View.OnClickListener() {
+        final ViewHolder finalViewHolder = viewHolder;
+        SurgeryBean bean = list.get(position);
+        finalViewHolder.edtName.setText(bean.getName());
+        finalViewHolder.tvTime.setText(bean.getTime());
+
+        finalViewHolder.imgDelect.setTag(position);
+        finalViewHolder.tvTime.setTag(viewHolder.tvTime);
+        finalViewHolder.edtName.setTag(position);
+        finalViewHolder.imgDelect.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
                 onDelectClickListener.OnDelectClick(v,(int) v.getTag());
             }
         });
 
-        final ViewHolder finalViewHolder = viewHolder;
-        viewHolder.tvTime.setOnClickListener(new View.OnClickListener() {
+        finalViewHolder.tvTime.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                onWriteTimeClickListener.OnWriteTimeClick(v, (TextView) finalViewHolder.tvTime.getTag());
+                onWriteTimeClickListener.OnWriteTimeClick(v,position, (TextView) finalViewHolder.tvTime.getTag());
             }
         });
 
-        viewHolder.edtName.addTextChangedListener(new TextWatcher() {
+        finalViewHolder.edtName.addTextChangedListener(new TextWatcher() {
             @Override
             public void beforeTextChanged(CharSequence s, int start, int count, int after) {
             }
@@ -81,11 +85,6 @@ public class SurgerListViewAdapter extends MyBaseAdapter<SurgeryBean> {
                 bean.setName(content);
             }
         });
-
-        SurgeryBean bean = list.get(position);
-        bean.setTime(viewHolder.tvTime.getText().toString());
-        viewHolder.edtName.setText(bean.getName());
-        viewHolder.tvTime.setText(bean.getTime());
         return convertView;
     }
 
@@ -94,7 +93,7 @@ public class SurgerListViewAdapter extends MyBaseAdapter<SurgeryBean> {
         ImageView imgDelect;
         @BindView(R.id.edt_name)
         EditText edtName;
-        @BindView(R.id.tv_time)
+        @BindView(R.id.tv_time_surger)
         TextView tvTime;
 
         ViewHolder(View view) {
@@ -114,7 +113,7 @@ public class SurgerListViewAdapter extends MyBaseAdapter<SurgeryBean> {
 
 
     public static interface OnWriteTimeClickListener{
-        void OnWriteTimeClick(View v,TextView tvTime);
+        void OnWriteTimeClick(View v,int position,TextView tvTime);
     }
 
     public void setOnWriteTimeClickListener(OnWriteTimeClickListener onWriteTimeClickListener){

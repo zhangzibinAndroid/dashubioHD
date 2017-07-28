@@ -9,9 +9,13 @@ package com.returnlive.dashubiohd.bean.viewbean;
 
 public class SurgeryBean {
     private String name;
-    private String time;
-
+    private String dateTime;
     public SurgeryBean() {
+    }
+
+    public SurgeryBean(String name, String dateTime) {
+        this.name = name;
+        this.dateTime = dateTime;
     }
 
     public String getName() {
@@ -23,10 +27,10 @@ public class SurgeryBean {
     }
 
     public String getTime() {
-        return time;
+        return dateTime;
     }
 
     public void setTime(String time) {
-        this.time = time;
+        this.dateTime = time;
     }
 }

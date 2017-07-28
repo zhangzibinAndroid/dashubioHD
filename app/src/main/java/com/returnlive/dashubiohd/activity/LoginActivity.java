@@ -16,7 +16,7 @@ import android.widget.PopupWindow;
 import android.widget.Toast;
 
 import com.returnlive.dashubiohd.R;
-import com.returnlive.dashubiohd.application.MyApplication;
+import com.returnlive.dashubiohd.application.DashuHdApplication;
 import com.returnlive.dashubiohd.base.BaseActivity;
 import com.returnlive.dashubiohd.constant.InterfaceUrl;
 
@@ -39,7 +39,7 @@ public class LoginActivity extends BaseActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_login);
         unbinder = ButterKnife.bind(this);
-        MyApplication.addActivity(this);
+        DashuHdApplication.addActivity(this);
     }
 
     private void showLoginWindow() {

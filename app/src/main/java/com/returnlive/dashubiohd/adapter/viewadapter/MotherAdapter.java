@@ -9,6 +9,7 @@ import android.widget.ImageView;
 import android.widget.TextView;
 
 import com.returnlive.dashubiohd.R;
+import com.returnlive.dashubiohd.bean.viewbean.DiseaseBean;
 import com.zhy.autolayout.utils.AutoUtils;
 
 import java.util.ArrayList;
@@ -25,7 +26,7 @@ import butterknife.ButterKnife;
  */
 
 public class MotherAdapter extends RecyclerView.Adapter<MotherAdapter.ViewHolder> {
-    private List<String> list = new ArrayList<>();
+    private List<DiseaseBean> list = new ArrayList<>();
     private static final String TAG = "DiseaseAdapter";
     private Context context;
     private OnDelectClickListener onDelectClickListener;
@@ -34,7 +35,7 @@ public class MotherAdapter extends RecyclerView.Adapter<MotherAdapter.ViewHolder
         this.context = context;
     }
 
-    public void addData(List<String> strList){
+    public void addData(List<DiseaseBean> strList){
         list.clear();
         list.addAll(strList);
     }
@@ -58,8 +59,8 @@ public class MotherAdapter extends RecyclerView.Adapter<MotherAdapter.ViewHolder
 
     @Override
     public void onBindViewHolder(ViewHolder holder, int position) {
-        String diseaseName = list.get(position);
-        holder.diseaseNameTv.setText(diseaseName);
+        DiseaseBean diseaseBean = list.get(position);
+        holder.diseaseNameTv.setText(diseaseBean.getName());
         holder.imgDelete.setTag(position);
         holder.imgDelete.setOnClickListener(new View.OnClickListener() {
             @Override
