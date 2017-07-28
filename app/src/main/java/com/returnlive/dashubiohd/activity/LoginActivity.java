@@ -15,8 +15,8 @@ import android.widget.ImageView;
 import android.widget.PopupWindow;
 import android.widget.Toast;
 
+import com.klw.singleleadsdk.DashuHdApplication;
 import com.returnlive.dashubiohd.R;
-import com.returnlive.dashubiohd.application.DashuHdApplication;
 import com.returnlive.dashubiohd.base.BaseActivity;
 import com.returnlive.dashubiohd.constant.InterfaceUrl;
 

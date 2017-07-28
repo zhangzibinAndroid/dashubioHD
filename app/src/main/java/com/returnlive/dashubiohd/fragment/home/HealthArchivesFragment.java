@@ -406,7 +406,9 @@ public class HealthArchivesFragment extends BaseFragment {
         motherAdapter.addData(motherList);
         recyViewMother.setAdapter(motherAdapter);
         motherAdapter.notifyDataSetChanged();
-
+        int nummo = motherList.size();
+        nummo = nummo % 3 == 0 ? nummo / 3 : nummo / 3 + 1;//进一法
+        ViewUtils.setLayoutHeight(recyViewMother, nummo * getActivity().getResources().getDimensionPixelSize(R.dimen.px38));
 
         List<HealthArchivesBean.UserMessageDataBean.FChiBean> f_chiList = userMessageDataBean.getF_chi();
         childrenList.clear();
@@ -418,6 +420,9 @@ public class HealthArchivesFragment extends BaseFragment {
         childrenAdapter.addData(childrenList);
         recyViewChildren.setAdapter(childrenAdapter);
         childrenAdapter.notifyDataSetChanged();
+        int numchild = childrenList.size();
+        numchild = numchild % 3 == 0 ? numchild / 3 : numchild / 3 + 1;//进一法
+        ViewUtils.setLayoutHeight(recyViewChildren, numchild * getActivity().getResources().getDimensionPixelSize(R.dimen.px38));
 
         //残疾情况
         spCanji.setSelection(Integer.parseInt(userMessageDataBean.getDeformity()) - 1);
