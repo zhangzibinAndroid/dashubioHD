@@ -58,14 +58,13 @@ public class MotherAdapter extends RecyclerView.Adapter<MotherAdapter.ViewHolder
     }
 
     @Override
-    public void onBindViewHolder(ViewHolder holder, int position) {
+    public void onBindViewHolder(final ViewHolder holder, final int position) {
         DiseaseBean diseaseBean = list.get(position);
         holder.diseaseNameTv.setText(diseaseBean.getName());
-        holder.imgDelete.setTag(position);
         holder.imgDelete.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                onDelectClickListener.OnDelectClick(v, (Integer) v.getTag());
+                onDelectClickListener.OnDelectClick(v, position);
             }
         });
     }

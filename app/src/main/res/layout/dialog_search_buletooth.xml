@@ -1,0 +1,32 @@
+<?xml version="1.0" encoding="utf-8"?>
+<com.zhy.autolayout.AutoLinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:orientation="vertical"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent">
+
+    <TextView
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:gravity="center"
+        android:padding="@dimen/px35"
+        android:text="蓝牙设备"
+        android:textSize="@dimen/px30" />
+
+    <View style="@style/ViewLineStyle" />
+
+    <ListView android:id="@+id/lv_search_bluetooth"
+        android:layout_width="match_parent"
+        android:layout_height="@dimen/px500"
+        android:layout_weight="1"/>
+
+    <View style="@style/ViewLineStyle" />
+
+    <Button android:id="@+id/btn_search"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:background="@drawable/sel_btn_white"
+        android:text="@string/select_device"
+        android:textColor="@color/black"
+        android:textSize="@dimen/px25"/>
+
+</com.zhy.autolayout.AutoLinearLayout>

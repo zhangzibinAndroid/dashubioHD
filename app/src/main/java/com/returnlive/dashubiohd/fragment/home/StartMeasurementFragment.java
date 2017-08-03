@@ -3,12 +3,12 @@ package com.returnlive.dashubiohd.fragment.home;
 
 import android.bluetooth.BluetoothDevice;
 import android.os.Bundle;
+import android.support.v7.app.AlertDialog;
 import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.AdapterView;
-import android.widget.BaseAdapter;
 import android.widget.Button;
 import android.widget.ListView;
 import android.widget.TextView;
@@ -16,15 +16,22 @@ import android.widget.Toast;
 
 import com.klw.singleleadsdk.OnCallBack;
 import com.klw.singleleadsdk.SingleLeadUtil;
-import com.klw.singleleadsdk.ble.JPBlePressureData;
+import com.klw.singleleadsdk.ble.JPBleNormalData;
 import com.klw.singleleadsdk.entity.Data;
 import com.returnlive.dashubiohd.R;
+import com.returnlive.dashubiohd.adapter.blueadapter.BlueAdapter;
 import com.returnlive.dashubiohd.base.BaseFragment;
+import com.returnlive.dashubiohd.view.EcgPathOne;
+import com.returnlive.dashubiohd.view.EcgPathSecond;
+import com.zhy.autolayout.AutoLinearLayout;
 
-import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Locale;
+
+import butterknife.BindView;
+import butterknife.ButterKnife;
+import butterknife.OnClick;
+import butterknife.Unbinder;
 
 /**
  * 作者： 张梓彬
@@ -34,15 +41,22 @@ import java.util.Locale;
  */
 public class StartMeasurementFragment extends BaseFragment {
     private static final String TAG = "StartMeasurementFragment";
-    private TextView mTvData;
-    private ListView mDeviceList;
-    private Button mBtnScan;
+    @BindView(R.id.lay_multi_parameter_monitor)
+    AutoLinearLayout layMultiParameterMonitor;
+    @BindView(R.id.lay_urine_detector)
+    AutoLinearLayout layUrineDetector;
+    @BindView(R.id.lay_dry_biochemical_analyzer)
+    AutoLinearLayout layDryBiochemicalAnalyzer;
+    @BindView(R.id.lay_respiratory_monitor)
+    AutoLinearLayout layRespiratoryMonitor;
+    private Unbinder unbinder;
+    private AlertDialog dialog;
     private SingleLeadUtil singleLeadUtil;
     private List<BluetoothDevice> deviceList = new ArrayList<>();
-    private MyAdapter myAdapter;
+    private BlueAdapter blueAdapter;
+    private boolean isBuleConnect = false;
 
     public StartMeasurementFragment() {
-        // Required empty public constructor
     }
 
 
@@ -50,10 +64,163 @@ public class StartMeasurementFragment extends BaseFragment {
     public View onCreateView(LayoutInflater inflater, ViewGroup container,
                              Bundle savedInstanceState) {
         view = inflater.inflate(R.layout.fragment_start_measurement, container, false);
-        findView(view);
+        unbinder = ButterKnife.bind(this, view);
         initView();
-        setListener();
         return view;
+    }
+
+    private void initView() {
+        isBuleConnect = false;
+    }
+
+    @Override
+    public void onDestroyView() {
+        super.onDestroyView();
+        unbinder.unbind();
+    }
+
+    @OnClick({R.id.lay_multi_parameter_monitor, R.id.lay_urine_detector, R.id.lay_dry_biochemical_analyzer, R.id.lay_respiratory_monitor})
+    public void onViewClicked(View view) {
+        switch (view.getId()) {
+            case R.id.lay_multi_parameter_monitor:
+                showBlueToathDialog();
+                break;
+            case R.id.lay_urine_detector:
+                break;
+            case R.id.lay_dry_biochemical_analyzer:
+                break;
+            case R.id.lay_respiratory_monitor:
+                break;
+        }
+    }
+
+
+    private void showBlueToathDialog() {
+        AlertDialog.Builder blueToathDialog = new AlertDialog.Builder(getActivity());
+        View view = View.inflate(getActivity(), R.layout.dialog_search_buletooth, null);
+        ViewHolderBlueToath viewHolderBlueToath = new ViewHolderBlueToath(view);
+        blueToathDialog.setView(view);
+        blueAdapter = new BlueAdapter(getActivity());
+        viewHolderBlueToath.lvSearchBluetooth.setAdapter(blueAdapter);
+        viewHolderBlueToath.btnSearch.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                deviceList.clear();
+                singleLeadUtil.scanLeDevice(true);
+            }
+        });
+        viewHolderBlueToath.lvSearchBluetooth.setOnItemClickListener(new AdapterView.OnItemClickListener() {
+            @Override
+            public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
+                //匹配
+                singleLeadUtil.pairDevice(deviceList.get(position));
+                isBuleConnect = true;
+                dialog.dismiss();
+                showMultiParameterMonitorDialog();
+            }
+        });
+        dialog = blueToathDialog.show();
+    }
+
+    //多参数监测仪
+    private void showMultiParameterMonitorDialog() {
+        AlertDialog.Builder multiParameterMonitorDialog = new AlertDialog.Builder(getActivity());
+        View view = View.inflate(getActivity(), R.layout.dialog_multi_parameter_monitor, null);
+        final ViewHolderMultiParameterMonitor viewHolder = new ViewHolderMultiParameterMonitor(view);
+        viewHolder.btnCancel.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                singleLeadUtil.disconnect();//点击取消断开蓝夜连接
+                dialog.dismiss();
+            }
+        });
+        viewHolder.btnSave.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                //保存数据
+                singleLeadUtil.disconnect();//点击取消断开蓝夜连接
+                dialog.dismiss();
+
+            }
+        });
+        multiParameterMonitorDialog.setView(view);
+        dialog = multiParameterMonitorDialog.show();
+        setOnDataCallBackListener(new OnDataCallBackListener() {
+            @Override
+            public void OnDataCallBack(ArrayList<Float> ecg_list_one) {
+                viewHolder.ecg_path.addDATA(ecg_list_one);
+            }
+        });
+
+        setOnDataCallBackListenerSecond(new OnDataCallBackListenerSecond() {
+            @Override
+            public void OnDataCallBack(ArrayList<Float> ecg_list_two) {
+                viewHolder.ecg_path_second.addDATA(ecg_list_two);
+
+            }
+        });
+
+        setOnTextDataCallBackListener(new OnTextDataCallBackListener() {
+            @Override
+            public void OnTextDataCallBack(String rhythm, String pulse, String sysdif, String sys, String dias, String mean, String oxygen, String resp, String st) {
+                viewHolder.tvHeartRateColon.setText(rhythm);
+                viewHolder.tvPulse.setText(pulse);
+                viewHolder.tvSystolicBloodPressureDifference.setText(sysdif);
+                viewHolder.tvSystolicBloodPressure.setText(sys);
+                viewHolder.tvDiastolicBloodPressure.setText(dias);
+                viewHolder.tvTheAveragePressure.setText(mean);
+                viewHolder.tvOxygen.setText(oxygen);
+                viewHolder.tvBreathingRate.setText(resp);
+                viewHolder.tvStSegmentNumerical.setText(st);
+            }
+        });
+
+
+    }
+
+
+    static class ViewHolderMultiParameterMonitor {
+        @BindView(R.id.tv_heart_rate_colon)
+        TextView tvHeartRateColon;
+        @BindView(R.id.tv_pulse)
+        TextView tvPulse;
+        @BindView(R.id.tv_systolic_blood_pressure_difference)
+        TextView tvSystolicBloodPressureDifference;
+        @BindView(R.id.tv_systolic_blood_pressure)
+        TextView tvSystolicBloodPressure;
+        @BindView(R.id.tv_diastolic_blood_pressure)
+        TextView tvDiastolicBloodPressure;
+        @BindView(R.id.tv_the_average_pressure)
+        TextView tvTheAveragePressure;
+        @BindView(R.id.tv_oxygen)
+        TextView tvOxygen;
+        @BindView(R.id.tv_breathing_rate)
+        TextView tvBreathingRate;
+        @BindView(R.id.tv_st_segment_numerical)
+        TextView tvStSegmentNumerical;
+        @BindView(R.id.btn_cancel)
+        Button btnCancel;
+        @BindView(R.id.btn_save)
+        Button btnSave;
+        @BindView(R.id.ecg_path)
+        EcgPathOne ecg_path;
+        @BindView(R.id.ecg_path_second)
+        EcgPathSecond ecg_path_second;
+
+        ViewHolderMultiParameterMonitor(View view) {
+            ButterKnife.bind(this, view);
+        }
+    }
+
+    static class ViewHolderBlueToath {
+        @BindView(R.id.lv_search_bluetooth)
+        ListView lvSearchBluetooth;
+        @BindView(R.id.btn_search)
+        Button btnSearch;
+
+        ViewHolderBlueToath(View view) {
+            ButterKnife.bind(this, view);
+        }
     }
 
 
@@ -67,64 +234,169 @@ public class StartMeasurementFragment extends BaseFragment {
                 //蓝牙状态返回
                 switch (status) {
                     case OnCallBack.DEVICE_CONNECTED:
-                        msg = "DEVICE_CONNECTED";
+                        msg = "设备已连接";
                         break;
                     case OnCallBack.DEVICE_DISCONNECTED:
-                        msg = "DEVICE_DISCONNECTED";
+                        msg = "设备已断开";
                         break;
                     case OnCallBack.NO_BLE_ADAPTER:
-                        msg = "NO_BLE_ADAPTER";
+                        msg = "没有适配器";
                         break;
                     case OnCallBack.NOT_SUPPORT_BLE:
-                        msg = "NOT_SUPPORT_BLE";
+                        msg = "不支持蓝牙";
                         break;
                     case OnCallBack.SEARCH_DEVICES_FAILED:
-                        msg = "SEARCH_DEVICES_FAILED";
+                        msg = "搜索蓝牙失败";
                         break;
                 }
-                Toast.makeText(getActivity(), msg, Toast.LENGTH_SHORT).show();
-                Log.e("Tag", msg);
+
+                final String finalMsg = msg;
+                Toast.makeText(getActivity(), finalMsg, Toast.LENGTH_SHORT).show();
             }
 
             @Override
             public void onDataCallBack(Data data) {
                 //数据返回
-                mTvData.append(formatDate(System.currentTimeMillis()) + " /////" + data.getUuid() + "：\n" + bytesToHexString(data.getVal()) + "\n");
-                switch (data.getType()){
+                switch (data.getType()) {
                     case Data.TYPE_TEST_DATA:
-                        data.getData();//普通测量数据
+                        JPBleNormalData mdata = data.getData();//普通测量数据
+                        int rhythm = 0;
+                        try {
+                            rhythm = mdata.rhythm;
+                        } catch (Exception e) {
+                        }
+
+                        int pulse = 0;
+                        try {
+                            pulse = mdata.pulse;
+                        } catch (Exception e) {
+                        }
+
+                        int sysdif = 0;
+                        try {
+                            sysdif = mdata.sysdif;
+                        } catch (Exception e) {
+                        }
+
+                        int sys = 0;
+                        try {
+                            sys = mdata.sys;
+                        } catch (Exception e) {
+                        }
+
+                        int dias = 0;
+                        try {
+                            dias = mdata.dias;
+                        } catch (Exception e) {
+
+                        }
 
 
-                       /* Log.e(TAG, "心率: "+datazzb.rhythm );
-                        Log.e(TAG, "脉搏: "+datazzb.pulse );
-                        Log.e(TAG, "收缩压差: "+datazzb.sysdif );
-                        Log.e(TAG, "收缩压: "+datazzb.sys );
-                        Log.e(TAG, "舒张压: "+datazzb.dias );
-                        Log.e(TAG, "平均压: "+datazzb.mean );
-                        Log.e(TAG, "血氧: "+datazzb.oxygen );
-                        Log.e(TAG, "呼吸: "+datazzb.resp );
-                        Log.e(TAG, "ST段数值: "+datazzb.st );*/
+                        int mean = 0;
+                        try {
+                            mean = mdata.mean;
+                        } catch (Exception e) {
+                        }
+
+                        int oxygen = 0;
+                        try {
+                            oxygen = mdata.oxygen;
+                        } catch (Exception e) {
+                        }
+
+                        int resp = 0;
+                        try {
+                            resp = mdata.resp;
+                        } catch (Exception e) {
+                        }
+
+                        float st = 0;
+                        try {
+                            st = mdata.st;
+                        } catch (Exception e) {
+                        }
+
+                        onTextDataCallBackListener.OnTextDataCallBack(rhythm + "", pulse + "", sysdif + "", sys + "", dias + "", mean + "", oxygen + "", resp + "", st + "");
+
+
                         break;
                     case Data.TYPE_TEST_END:
-                        JPBlePressureData datazzb = data.getPressureData();//测量结束，JPBleNormalData中取得体征值
-                        Log.e(TAG, "心率: "+datazzb.rhythm );
-                        Log.e(TAG, "脉搏: "+datazzb.pulse );
-                        Log.e(TAG, "收缩压差: "+datazzb.sysdif );
-                        Log.e(TAG, "收缩压: "+datazzb.sys );
-                        Log.e(TAG, "舒张压: "+datazzb.dias );
-                        Log.e(TAG, "平均压: "+datazzb.mean );
-                        Log.e(TAG, "血氧: "+datazzb.oxygen );
-                        Log.e(TAG, "呼吸: "+datazzb.resp );
-                        Log.e(TAG, "ST段数值: "+datazzb.st );
+                        /*JPBlePressureData datazzb = data.getPressureData();//测量结束，JPBleNormalData中取得体征值
+                        Log.e("ZZZ", "心率: " + datazzb.rhythm);
+                        Log.e("ZZZ", "脉搏: " + datazzb.pulse);
+                        Log.e("ZZZ", "收缩压差: " + datazzb.sysdif);
+                        Log.e("ZZZ", "收缩压: " + datazzb.sys);
+                        Log.e("ZZZ", "舒张压: " + datazzb.dias);
+                        Log.e("ZZZ", "平均压: " + datazzb.mean);
+                        Log.e("ZZZ", "血氧: " + datazzb.oxygen);
+                        Log.e("ZZZ", "呼吸: " + datazzb.resp);
+                        Log.e("ZZZ", "ST段数值: " + datazzb.st);*/
+
+                        JPBleNormalData datazzb = data.getData();//普通测量数据
+
+                        try {
+                            Log.e(TAG, "心率: " + datazzb.rhythm);
+                        } catch (Exception e) {
+                            Log.e(TAG, "心率: " + 0);
+                        }
+
+
+                        try {
+                            Log.e(TAG, "脉搏: " + datazzb.pulse);
+                        } catch (Exception e) {
+                            Log.e(TAG, "脉搏: " + 0);
+                        }
+
+                        try {
+                            Log.e(TAG, "收缩压差: " + datazzb.sysdif);
+                        } catch (Exception e) {
+                            Log.e(TAG, "收缩压差: " + 0);
+                        }
+
+                        try {
+                            Log.e(TAG, "收缩压: " + datazzb.sys);
+                        } catch (Exception e) {
+                            Log.e(TAG, "收缩压: " + 0);
+                        }
+
+                        try {
+                            Log.e(TAG, "舒张压: " + datazzb.dias);
+                        } catch (Exception e) {
+                            Log.e(TAG, "舒张压: " + 0);
+
+                        }
+
+                        try {
+                            Log.e(TAG, "平均压: " + datazzb.mean);
+                        } catch (Exception e) {
+                            Log.e(TAG, "平均压: " + 0);
+                        }
+
+
+                        try {
+                            Log.e(TAG, "血氧: " + datazzb.oxygen);
+                        } catch (Exception e) {
+                            Log.e(TAG, "血氧: " + 0);
+                        }
+
+                        try {
+                            Log.e(TAG, "呼吸: " + datazzb.resp);
+                        } catch (Exception e) {
+                            Log.e(TAG, "呼吸: " + 0);
+                        }
+
+                        try {
+                            Log.e(TAG, "ST段数值: " + datazzb.st);
+                        } catch (Exception e) {
+                            Log.e(TAG, "ST段数值: " + 0);
+                        }
                         break;
                     case Data.TYPE_WAVE_1_DATA:
-                        data.getWaveData();//波形1数据
-                        Log.e(TAG, "波形1数据: "+data.getWaveData() );
+                        onDataCallBackListener.OnDataCallBack(data.getWaveData());
 
                         break;
                     case Data.TYPE_WAVE_2_DATA:
-                        data.getWaveData();//波形2数据
-                        Log.e(TAG, "波形2数据: "+data.getWaveData() );
+                        onDataCallBackListenerSecond.OnDataCallBack(data.getWaveData());
                         break;
                 }
             }
@@ -135,108 +407,49 @@ public class StartMeasurementFragment extends BaseFragment {
                 if (deviceList.contains(device))
                     return;
                 deviceList.add(device);
+                blueAdapter.addAllDataToMyadapter(deviceList);
                 getActivity().runOnUiThread(new Runnable() {
                     @Override
                     public void run() {
-                        myAdapter.notifyDataSetChanged();
+                        blueAdapter.notifyDataSetChanged();
                     }
                 });
             }
         });
     }
 
-    @Override
-    public void onDestroy() {
-        /**
-         * 断开连接
-         */
-        singleLeadUtil.disconnect();
-        super.onDestroy();
+
+
+    private OnDataCallBackListener onDataCallBackListener;
+    private OnDataCallBackListenerSecond onDataCallBackListenerSecond;
+    private OnTextDataCallBackListener onTextDataCallBackListener;
+
+    public static interface OnDataCallBackListener {
+        void OnDataCallBack(ArrayList<Float> ecg_list_one);
     }
 
-    private void initView() {
-        myAdapter = new MyAdapter();
-        mDeviceList.setAdapter(myAdapter);
+    public void setOnDataCallBackListener(OnDataCallBackListener onDataCallBackListener) {
+        this.onDataCallBackListener = onDataCallBackListener;
     }
 
-    private void setListener() {
-        //扫描
-        mBtnScan.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                deviceList.clear();
-                singleLeadUtil.scanLeDevice(true);
-            }
-        });
 
-        mDeviceList.setOnItemClickListener(new AdapterView.OnItemClickListener() {
-            @Override
-            public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
-                //匹配
-                singleLeadUtil.pairDevice(deviceList.get(position));
-            }
-        });
+    public static interface OnDataCallBackListenerSecond {
+        void OnDataCallBack(ArrayList<Float> ecg_list_two);
     }
 
-    private void findView(View view) {
-        mTvData = (TextView) view.findViewById(R.id.tv_data);
-        mDeviceList = (ListView) view.findViewById(R.id.device_list);
-        mBtnScan = (Button) view.findViewById(R.id.btn_scan);
+    public void setOnDataCallBackListenerSecond(OnDataCallBackListenerSecond onDataCallBackListenerSecond) {
+        this.onDataCallBackListenerSecond = onDataCallBackListenerSecond;
     }
 
-    class MyAdapter extends BaseAdapter {
 
-        @Override
-        public int getCount() {
-            return deviceList.size();
-        }
-
-        @Override
-        public Object getItem(int position) {
-            return deviceList.get(position);
-        }
-
-        @Override
-        public long getItemId(int position) {
-            return position;
-        }
-
-        @Override
-        public View getView(int position, View convertView, ViewGroup parent) {
-            BluetoothDevice bluetoothDevice = (BluetoothDevice) getItem(position);
-            TextView textView = new TextView(getActivity());
-            textView.setTextSize(14);
-            textView.setText(bluetoothDevice.getName() + " " + bluetoothDevice.getAddress());
-            return textView;
-        }
+    public static interface OnTextDataCallBackListener {
+        void OnTextDataCallBack(String rhythm, String pulse, String sysdif, String sys, String dias, String mean, String oxygen, String resp, String st);
     }
 
-    public String bytesToHexString(byte[] byteArray) {
-        StringBuffer re = new StringBuffer();
-        for (int i = 0; i < byteArray.length; i++) {
-            re.append(to16(byteArray[i]));
-        }
+    public void setOnTextDataCallBackListener(OnTextDataCallBackListener onTextDataCallBackListener) {
+        this.onTextDataCallBackListener = onTextDataCallBackListener;
 
-        return re.toString();
     }
 
-    public String to16(int b) {
-        String hexString = Integer.toHexString(b);
-        int lenth = hexString.length();
-        if (lenth == 1) {
-            hexString = "0" + hexString;
-        }
-        if (lenth > 2) {
-            hexString = hexString.substring(lenth - 2, lenth);
-        }
-        return hexString;
-    }
-
-    public String formatDate(long oldString) {
-        SimpleDateFormat dateFormat = new SimpleDateFormat(
-                "yyyy-MM-dd HH:mm:ss", Locale.getDefault());
-        String dateString = dateFormat.format(oldString);
-        return dateString;
-    }
 
 }

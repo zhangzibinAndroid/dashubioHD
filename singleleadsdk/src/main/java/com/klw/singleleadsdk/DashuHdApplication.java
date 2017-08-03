@@ -8,6 +8,7 @@ import android.content.Intent;
 import android.content.ServiceConnection;
 import android.os.IBinder;
 
+import com.breathhome_ble_sdk.utils.BreathHomeLog;
 import com.xtremeprog.sdk.ble.BleService;
 import com.xtremeprog.sdk.ble.IBle;
 import com.zhy.autolayout.config.AutoLayoutConifg;
@@ -20,6 +21,7 @@ import java.util.List;
  */
 
 public class DashuHdApplication extends Application {
+    public static DashuHdApplication dashuhdApplication;
     private static DashuHdApplication sInstance = null; // 单件对象
     private BleService mService = null;
     private IBle mBle = null;
@@ -50,7 +52,8 @@ public class DashuHdApplication extends Application {
         super.onCreate();
         AutoLayoutConifg.getInstance().useDeviceSize();
         sInstance = this;
-
+        dashuhdApplication=this;
+        BreathHomeLog.isDebug=true;
         Intent bindIntent = new Intent(this, BleService.class);
         bindService(bindIntent, mServiceConnection, Context.BIND_AUTO_CREATE);
     }

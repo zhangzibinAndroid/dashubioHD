@@ -49,6 +49,7 @@
 
     <color name="green_passed">#3eb31d</color>
     <color name="green">#3eb31e</color>
+    <color name="green_dark">#89C997</color>
 
     <color name="btn_blue_normal">#1e90ff</color>
     <color name="btn_blue_pressed">#0066FF</color>

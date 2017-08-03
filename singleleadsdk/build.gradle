@@ -30,5 +30,5 @@ dependencies {
     testCompile 'junit:junit:4.12'
     compile files('libs/blelibrary.jar')
     compile 'com.zhy:autolayout:1.4.5'
-
+    compile files('libs/BreathHome-BLE-1.03.jar')
 }

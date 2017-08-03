@@ -84,7 +84,6 @@ public class SingleLeadUtil {
                 callBackData.setVal(val);
 
                 parseRawData(uuid, val);
-                Log.e("ZZB", "callBackData: "+callBackData );
                 onCallBack.onDataCallBack(callBackData);//回传
             }
         }
@@ -251,7 +250,6 @@ public class SingleLeadUtil {
      * 处理获取到服务
      */
     private void processGetGattServices(List<BleGattService> gattServices) {
-        Log.e("TAG", "gattServices:" + gattServices);
         if (gattServices == null) {
             return;
         }
