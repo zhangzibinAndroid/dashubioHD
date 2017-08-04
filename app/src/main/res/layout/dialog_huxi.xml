@@ -1,0 +1,117 @@
+<?xml version="1.0" encoding="utf-8"?>
+<com.zhy.autolayout.AutoLinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:orientation="vertical"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent">
+
+    <TextView
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:gravity="center"
+        android:padding="@dimen/px35"
+        android:text="@string/respiratory_monitor"
+        android:textSize="@dimen/px30" />
+
+    <View style="@style/ViewLineStyle" />
+
+    <EditText android:id="@+id/edt_imei"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:hint="请输入IMEI编号"
+        android:background="@null"
+        android:padding="@dimen/px20"/>
+
+    <View style="@style/ViewLineStyle" />
+
+    <com.zhy.autolayout.AutoLinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="horizontal">
+
+        <Button
+            android:id="@+id/btn_bluetooth_isconnect"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:background="@drawable/sel_btn_white"
+            android:text="未连接"
+            android:textSize="@dimen/px30" />
+
+        <View
+            android:layout_width="@dimen/px01"
+            android:layout_height="match_parent"
+            android:background="@color/line_color" />
+
+        <Button
+            android:id="@+id/btn_bluetooth_del"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:background="@drawable/sel_btn_white"
+            android:text="断开连接"
+            android:textSize="@dimen/px30" />
+
+        <View
+            android:layout_width="@dimen/px01"
+            android:layout_height="match_parent"
+            android:background="@color/line_color" />
+
+        <Button
+            android:id="@+id/btn_bluetooth_connect"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:background="@drawable/sel_btn_white"
+            android:text="搜索蓝牙"
+            android:textSize="@dimen/px30" />
+
+    </com.zhy.autolayout.AutoLinearLayout>
+
+    <View style="@style/ViewLineStyle" />
+
+    <TextView
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="测量数据"
+        android:gravity="center"
+        android:padding="@dimen/px20"/>
+
+    <TextView android:id="@+id/tv_huxi_data"
+        android:layout_width="match_parent"
+        android:layout_height="@dimen/px500"
+        android:layout_weight="1"
+        android:text="数据未读取"/>
+
+    <View style="@style/ViewLineStyle" />
+
+    <com.zhy.autolayout.AutoLinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="horizontal">
+
+        <Button
+            android:id="@+id/btn_cancel"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:background="@drawable/sel_btn_white"
+            android:text="@string/cancel"
+            android:textSize="@dimen/px30" />
+
+        <View
+            android:layout_width="@dimen/px01"
+            android:layout_height="match_parent"
+            android:background="@color/line_color" />
+
+        <Button
+            android:id="@+id/btn_save"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:background="@drawable/sel_btn_white"
+            android:text="@string/save"
+            android:textSize="@dimen/px30" />
+
+    </com.zhy.autolayout.AutoLinearLayout>
+
+</com.zhy.autolayout.AutoLinearLayout>

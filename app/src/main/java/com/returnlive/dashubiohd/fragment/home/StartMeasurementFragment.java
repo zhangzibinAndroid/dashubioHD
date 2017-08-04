@@ -1,7 +1,13 @@
 package com.returnlive.dashubiohd.fragment.home;
 
 
+import android.bluetooth.BluetoothAdapter;
 import android.bluetooth.BluetoothDevice;
+import android.content.BroadcastReceiver;
+import android.content.Context;
+import android.content.Intent;
+import android.content.IntentFilter;
+import android.os.AsyncTask;
 import android.os.Bundle;
 import android.support.v7.app.AlertDialog;
 import android.util.Log;
@@ -10,10 +16,26 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.widget.AdapterView;
 import android.widget.Button;
+import android.widget.EditText;
 import android.widget.ListView;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import com.breathhome_ble_sdk.asynctask.AsyncResponse;
+import com.breathhome_ble_sdk.asynctask.GetBleCurrentVersionTask;
+import com.breathhome_ble_sdk.asynctask.SearchBleDeviceTask;
+import com.breathhome_ble_sdk.bean.BleVersionMsgBean;
+import com.breathhome_ble_sdk.bean.BluetoothDeviceBean;
+import com.breathhome_ble_sdk.bean.HolderBean;
+import com.breathhome_ble_sdk.bean.PefDataFromBleBean;
+import com.breathhome_ble_sdk.bean.ReturnBean;
+import com.breathhome_ble_sdk.broadreceiver.BroadcastResponse;
+import com.breathhome_ble_sdk.controller.BluetoothController;
+import com.breathhome_ble_sdk.message.MessageManager;
+import com.breathhome_ble_sdk.utils.BreathHomeLog;
+import com.breathhome_ble_sdk.utils.ConstantUtils;
+import com.breathhome_ble_sdk.utils.StringUtils;
+import com.klw.singleleadsdk.DashuHdApplication;
 import com.klw.singleleadsdk.OnCallBack;
 import com.klw.singleleadsdk.SingleLeadUtil;
 import com.klw.singleleadsdk.ble.JPBleNormalData;
@@ -21,6 +43,8 @@ import com.klw.singleleadsdk.entity.Data;
 import com.returnlive.dashubiohd.R;
 import com.returnlive.dashubiohd.adapter.blueadapter.BlueAdapter;
 import com.returnlive.dashubiohd.base.BaseFragment;
+import com.returnlive.dashubiohd.broadcast.MyBleStateBroadcast;
+import com.returnlive.dashubiohd.service.MyBLEService;
 import com.returnlive.dashubiohd.view.EcgPathOne;
 import com.returnlive.dashubiohd.view.EcgPathSecond;
 import com.zhy.autolayout.AutoLinearLayout;
@@ -55,6 +79,8 @@ public class StartMeasurementFragment extends BaseFragment {
     private List<BluetoothDevice> deviceList = new ArrayList<>();
     private BlueAdapter blueAdapter;
     private boolean isBuleConnect = false;
+    public DashuHdApplication myApplication;
+
 
     public StartMeasurementFragment() {
     }
@@ -71,6 +97,7 @@ public class StartMeasurementFragment extends BaseFragment {
 
     private void initView() {
         isBuleConnect = false;
+        myApplication = new DashuHdApplication();
     }
 
     @Override
@@ -90,6 +117,7 @@ public class StartMeasurementFragment extends BaseFragment {
             case R.id.lay_dry_biochemical_analyzer:
                 break;
             case R.id.lay_respiratory_monitor:
+                showHuXiDialog();
                 break;
         }
     }
@@ -419,7 +447,6 @@ public class StartMeasurementFragment extends BaseFragment {
     }
 
 
-
     private OnDataCallBackListener onDataCallBackListener;
     private OnDataCallBackListenerSecond onDataCallBackListenerSecond;
     private OnTextDataCallBackListener onTextDataCallBackListener;
@@ -450,6 +477,367 @@ public class StartMeasurementFragment extends BaseFragment {
         this.onTextDataCallBackListener = onTextDataCallBackListener;
 
     }
+    private List<BluetoothDeviceBean> devicelist;                            //存放搜索到的蓝牙设备
+    private String IMEI = "B652276134";                                        //IMEI号,用户绑定的设备IMEI号
+    private StringBuffer sb;                                                //用作存放蓝牙设备的指令
+    private HolderBean holder;
+    private GetBleCurrentVersionTask getBleCurrentVersionTask;
+    private SearchBleDeviceTask mySearchBleDeviceTask;
+    private MessageManager myMessageManager;            //蓝牙信息管理器
+    private BluetoothController mBluetoothController;
+    private BleVersionMsgBean bleVersionMsg;
+    private MyBleStateBroadcast myBleStateBroadcast;                        //自定义蓝牙状态监听
+    private SystemBleBroadcast systemBleBroadcast;
+    private void showHuXiDialog() {
+        AlertDialog.Builder huxiDialog = new AlertDialog.Builder(getActivity());
+        View view = View.inflate(getActivity(), R.layout.dialog_huxi, null);
+        final ViewHolderHuXiDialog viewHolderHuXiDialog = new ViewHolderHuXiDialog(view);
+        viewHolderHuXiDialog.btnBluetoothDel.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                mBluetoothController.stopConnectBLe();
+            }
+        });
+
+        viewHolderHuXiDialog.btnBluetoothConnect.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                if (0 != devicelist.size()) {
+                    for (int i = 0; i < devicelist.size(); i++) {
+                        if (devicelist.get(i).getName().equals(IMEI)) {
+                            mBluetoothController.connect(devicelist.get(i));
+                            break;
+                        }
+                    }
+                } else {
+                    startSearchBle();
+                }
+            }
+        });
+
+        viewHolderHuXiDialog.btnCancel.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                dialog.dismiss();
+                if (null != searchIntent) {
+                    getActivity().stopService(searchIntent);
+                }
+                if (mySearchBleDeviceTask != null && mySearchBleDeviceTask.getStatus() != AsyncTask.Status.FINISHED) {
+                    mySearchBleDeviceTask.cancel(true);
+
+                }
+                if (getBleCurrentVersionTask != null && getBleCurrentVersionTask.getStatus() != AsyncTask.Status.FINISHED) {
+                    getBleCurrentVersionTask.cancel(true);
+                }
+                if (myMessageManager != null) {
+                    myMessageManager.destroyMessageManager();
+                }
+                getActivity().unregisterReceiver(myBleStateBroadcast);
+//                getActivity().unregisterReceiver(systemBleBroadcast);
+            }
+        });
 
 
+        viewHolderHuXiDialog.btnSave.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                dialog.dismiss();
+            }
+        });
+
+        huxiDialog.setView(view);
+        dialog = huxiDialog.show();
+        initDatas(viewHolderHuXiDialog.edt_imei.getText().toString());
+
+        setGetDataListener(new GetDataListener() {
+            @Override
+            public void getData(String text) {
+                viewHolderHuXiDialog.tvHuxiData.setText(text);
+            }
+        });
+
+        setBuleToothIsConnect(new BuleToothIsConnect() {
+            @Override
+            public void getbuleToothIsConnect(String isConnect) {
+                viewHolderHuXiDialog.btnBluetoothIsconnect.setText(isConnect);
+            }
+        });
+    }
+
+
+    private void initDatas(String imei) {
+        getTheNewsVersion(imei);                                                //获取最新版本号
+        devicelist = new ArrayList<BluetoothDeviceBean>();
+        sb = new StringBuffer();
+        holder = new HolderBean();
+        holder.setDetectedNo(33);
+        holder.setSaleChannel(7200000);
+        holder.setBirthdate("1988-3-15");
+        holder.setPef(659);
+        holder.setFev1((float) 4.56);
+        holder.setFvc((float) 3.56);
+        holder.setGender(1);
+        holder.setHeight(183);
+        holder.setWeight(78);
+        holder.setDevieceNo("B652276134");
+
+    }
+
+    private void getTheNewsVersion(final String imei) {
+        getBleCurrentVersionTask = (GetBleCurrentVersionTask) new GetBleCurrentVersionTask(getActivity()).execute();
+        getBleCurrentVersionTask.setAsyncResponse(new AsyncResponse<ReturnBean<BleVersionMsgBean>>() {
+
+            @Override
+            public void onDataReceivedFailed() {
+                // TODO Auto-generated method stub
+                BreathHomeLog.e("Error");
+            }
+
+
+            @Override
+            public void onDataReceivedSuccess(ReturnBean<BleVersionMsgBean> returnBean) {
+                Log.e(TAG, "returnBean: " + returnBean.getMessage());
+
+                bleVersionMsg = returnBean.getObject();
+                initTools();                            //初始化工具
+                initBroadcast(imei);                        //定义广播接收
+            }
+
+            @Override
+            public void onDataReceivedAndDefaultData(
+                    ReturnBean<BleVersionMsgBean> returnBean) {
+
+
+                bleVersionMsg = returnBean.getObject();
+                initTools();                            //初始化工具
+                initBroadcast(imei);                        //定义广播接收
+
+            }
+        });
+    }
+
+
+    private void initBroadcast(final String imei) {
+        myBleStateBroadcast = new MyBleStateBroadcast();
+        IntentFilter intentFilter = new IntentFilter();
+        intentFilter.addAction(ConstantUtils.ACTION_UPDATE_DEVICE_LIST);
+        intentFilter.addAction(ConstantUtils.ACTION_CONNECTED_ONE_DEVICE);
+        intentFilter.addAction(ConstantUtils.ACTION_RECEIVE_MESSAGE_FROM_DEVICE);
+        intentFilter.addAction(ConstantUtils.ACTION_STOP_CONNECT);
+        getActivity().registerReceiver(myBleStateBroadcast, intentFilter);
+        myBleStateBroadcast.setMyBroadcastResponse(new BroadcastResponse() {
+
+            @Override
+            public void onSearchBleSuccess(BluetoothDeviceBean bleDevice) {
+                //搜索到蓝牙设备
+                boolean found = false;//记录该条记录是否在list中
+                for (BluetoothDeviceBean device : devicelist) {
+                    if (device.getAddress().equals(bleDevice.getAddress())) {
+                        found = true;
+                        break;
+                    }
+                }
+                if (!found) {
+                    devicelist.add(bleDevice);
+                    String tmp = imei;
+                    Log.e(TAG, "tmp: "+tmp );
+                    if (!StringUtils.isEmpty(tmp)) {
+                        IMEI = tmp;
+                    }else {
+                        Toast.makeText(getActivity(), R.string.hint_null_imei, Toast.LENGTH_SHORT).show();
+                        return;
+                    }
+
+
+                    if (bleDevice.getName().equals(IMEI)) {
+                        mBluetoothController.stopScanBLE();
+                        mBluetoothController.connect(bleDevice);
+                    }
+
+                } else {//断开后重新连接
+
+
+                }
+            }
+
+            @Override
+            public void onReceiveBleMsg(String str) {
+                //接收到蓝牙设备的指令
+                sb.append(str);
+                if (-1 != sb.lastIndexOf("\r\n")) {//判断结尾符
+                    StringBuffer tmp = new StringBuffer(sb.toString());
+                    myMessageManager.matchCommandCode(tmp);
+                    sb.setLength(0);            //StringBuffer清零
+                }
+            }
+
+            @Override
+            public void onBleDisconnect() {
+                //蓝牙设备断开连接
+                buleToothIsConnect.getbuleToothIsConnect(getActivity().getResources().getString(R.string.ble_state_disconnect));
+            }
+
+            @Override
+            public void onBleConnect() {
+                //蓝牙设备已匹配上
+                buleToothIsConnect.getbuleToothIsConnect(getActivity().getResources().getString(R.string.ble_state_match));
+            }
+        });
+        //系统蓝牙服务开启监听
+        IntentFilter systemBleListenerFilter = new IntentFilter();
+        systemBleListenerFilter.addAction(BluetoothAdapter.ACTION_STATE_CHANGED);
+        getActivity().registerReceiver(systemBleBroadcast, systemBleListenerFilter);
+
+
+    }
+
+
+
+
+    static class ViewHolderHuXiDialog {
+        @BindView(R.id.btn_bluetooth_isconnect)
+        Button btnBluetoothIsconnect;
+        @BindView(R.id.btn_bluetooth_del)
+        Button btnBluetoothDel;
+        @BindView(R.id.btn_bluetooth_connect)
+        Button btnBluetoothConnect;
+        @BindView(R.id.tv_huxi_data)
+        TextView tvHuxiData;
+        @BindView(R.id.btn_cancel)
+        Button btnCancel;
+        @BindView(R.id.btn_save)
+        Button btnSave;
+        @BindView(R.id.edt_imei)
+        EditText edt_imei;
+
+        ViewHolderHuXiDialog(View view) {
+            ButterKnife.bind(this, view);
+        }
+    }
+
+
+    private void initTools() {
+        myMessageManager = new MessageManager().getInstance(getActivity());
+        mBluetoothController = BluetoothController.getInstance(myApplication.dashuhdApplication);
+        mBluetoothController.setOnGattNoneListener(new BluetoothController.onGattNoneListener() {
+            @Override
+            public void onGattNone() {
+                if (devicelist.size() != 0) {
+                    for (BluetoothDeviceBean bleDevice : devicelist) {
+                        if (bleDevice.getName().equals(IMEI)) {
+                            mBluetoothController.stopScanBLE();
+                            mBluetoothController.connect(bleDevice);
+                            break;
+                        }
+                    }
+                }
+            }
+        });
+        myMessageManager.setmBluetoothController(mBluetoothController);
+        myMessageManager.setHolder(holder);                                            //MessageManager需要设置检测人信息
+        if (null == bleVersionMsg) {
+        } else {
+            myMessageManager.setBleVersionmsg(bleVersionMsg);
+        }
+
+
+        myMessageManager.setmListener(new MessageManager.ReceiveCommandCodeListener() {
+
+            @Override
+            public void matchSuccess() {
+                //成功连接
+                buleToothIsConnect.getbuleToothIsConnect(getActivity().getResources().getString(R.string.ble_state_connect));
+            }
+
+            @Override
+            public void needUpdateBleProgram(Boolean isNeedUpdate) {
+                Log.e(TAG, "需要进行更新设备的程序: " + isNeedUpdate);
+
+                if (isNeedUpdate) {//需要进行更新设备的程序
+                    Toast.makeText(getActivity(), R.string.hint_updateprogram, Toast.LENGTH_SHORT).show();
+                }
+            }
+
+            @Override
+            public void sendDataFromBleDevice(final PefDataFromBleBean pefdata) {
+                final PefDataFromBleBean mypefData = pefdata;
+                //获取到的数据上传到服务器中.略
+//				sendData();
+                getDataListener.getData("日期:" + mypefData.getDate() + "\r\n" + "Pef:" +
+                        mypefData.getPefValue() + "\r\n" + "FVC:" + mypefData.getFvcValue() + "\r\n"
+                        + "FEV1:" + mypefData.getFev1Value());
+
+            }
+        });
+        mySearchBleDeviceTask = new SearchBleDeviceTask(mBluetoothController);
+    }
+
+
+    private Intent searchIntent;
+
+    private void startSearchBle() {
+        searchIntent = new Intent(getActivity(), MyBLEService.class);
+        getActivity().startService(searchIntent);
+        if (!mBluetoothController.initBLE()) {//手机不支持蓝牙
+            Toast.makeText(getActivity(), R.string.ble_judgement_notsupport, Toast.LENGTH_SHORT).show();
+            return;//手机不支持蓝牙
+        }
+        if (!BluetoothController.getInstance().isBleOpen()) {// 如果蓝牙还没有打开
+            Toast.makeText(getActivity(), R.string.ble_state_ble_open, Toast.LENGTH_SHORT).show();
+            return;
+        }
+        try {
+            mySearchBleDeviceTask.execute();
+        } catch (Exception e) {
+            return;
+        }
+
+    }
+
+    public class SystemBleBroadcast extends BroadcastReceiver {
+
+        public void onReceive(Context context, Intent intent) {
+            switch (intent.getAction()) {
+                case BluetoothAdapter.ACTION_STATE_CHANGED:
+                    int blueState = intent.getIntExtra(BluetoothAdapter.EXTRA_STATE, 0);
+                    switch (blueState) {
+                        case BluetoothAdapter.STATE_TURNING_ON:
+                            break;
+                        case BluetoothAdapter.STATE_ON:
+                            break;
+                        case BluetoothAdapter.STATE_TURNING_OFF:
+                            break;
+                        case BluetoothAdapter.STATE_OFF:
+                            break;
+                        default:
+                            break;
+                    }
+                    break;
+
+                default:
+                    break;
+            }
+        }
+    }
+
+
+    private GetDataListener getDataListener;
+    private BuleToothIsConnect buleToothIsConnect;
+    public static interface GetDataListener{
+        void getData(String text);
+    }
+
+    public void setGetDataListener(GetDataListener getDataListener){
+        this.getDataListener = getDataListener;
+    }
+
+
+
+    public static interface BuleToothIsConnect{
+        void getbuleToothIsConnect(String isConnect);
+    }
+
+    public void setBuleToothIsConnect(BuleToothIsConnect buleToothIsConnect){
+        this.buleToothIsConnect =buleToothIsConnect;
+    }
 }

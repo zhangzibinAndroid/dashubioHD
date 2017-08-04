@@ -190,7 +190,23 @@
     <string name="diastolic_blood_pressure">舒张压：</string>
     <string name="the_average_pressure">平均压：</string>
     <string name="ST_segment_numerical">ST段数值：</string>
+    <string name="hint_tv_IMEI">IMEI号</string>
+    <string name="hint_input_IMEI">请输入IMEI号</string>
+    <string name="hint_null_imei">IMEI号为空,请填入IMEI号</string>
+    <string name="hint_updateprogram">当前的设备版本过旧,稍后需要更新程序...</string>
+    <string name="ble_hint_operation">请操作</string>
+    <string name="hint_data">数据显示如下:</string>
+    <string name="hint_data_null">数据未读取</string>
 
+    <string name="ble_search">搜索设备</string>
+    <string name="ble_connect">连接设备</string>
+    <string name="ble_state_match">已配对</string>
+    <string name="ble_state_disconnect">未连接</string>
+    <string name="ble_state_disconnect_operation">断开连接</string>
+    <string name="ble_state_connect">已连接</string>
+    <string name="ble_state_transmission">传输中</string>
+    <string name="ble_state_ble_open">请打开蓝牙</string>
+    <string name="ble_judgement_notsupport">手机不支持蓝牙</string>
 
 
     <!-- TODO: Remove or change this placeholder text -->
