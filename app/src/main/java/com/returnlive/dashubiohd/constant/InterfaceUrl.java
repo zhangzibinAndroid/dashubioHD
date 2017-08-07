@@ -28,6 +28,7 @@ public class InterfaceUrl {
     public static final String HEALTH_GUIDE_LIST_URL= BASE_URL+"Testing/warninfo/";//健康指导接口需要添加sesson和code
     public static final String SINGLE_WEBVIEW_URL= WEBVIEW_BASE_URL+"Manage/Equid/reportzer";//单项WEBVIEW接口
     public static final String COMPREHENSIVE_WEBVIEW_URL= WEBVIEW_BASE_URL+"Manage/Equid/compiledzer";//单项WEBVIEW接口
+    public static final String MULTIPARAMETERMONITORDATA_URL= BASE_URL+"Testing/multiple/";//单项WEBVIEW接口
 
 
 

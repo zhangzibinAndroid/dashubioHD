@@ -41,13 +41,17 @@ import com.klw.singleleadsdk.SingleLeadUtil;
 import com.klw.singleleadsdk.ble.JPBleNormalData;
 import com.klw.singleleadsdk.entity.Data;
 import com.returnlive.dashubiohd.R;
+import com.returnlive.dashubiohd.activity.HomeActivity;
 import com.returnlive.dashubiohd.adapter.blueadapter.BlueAdapter;
 import com.returnlive.dashubiohd.base.BaseFragment;
 import com.returnlive.dashubiohd.broadcast.MyBleStateBroadcast;
+import com.returnlive.dashubiohd.constant.InterfaceUrl;
 import com.returnlive.dashubiohd.service.MyBLEService;
 import com.returnlive.dashubiohd.view.EcgPathOne;
 import com.returnlive.dashubiohd.view.EcgPathSecond;
 import com.zhy.autolayout.AutoLinearLayout;
+import com.zhy.http.okhttp.OkHttpUtils;
+import com.zhy.http.okhttp.callback.StringCallback;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -56,6 +60,7 @@ import butterknife.BindView;
 import butterknife.ButterKnife;
 import butterknife.OnClick;
 import butterknife.Unbinder;
+import okhttp3.Call;
 
 /**
  * 作者： 张梓彬
@@ -115,6 +120,7 @@ public class StartMeasurementFragment extends BaseFragment {
             case R.id.lay_urine_detector:
                 break;
             case R.id.lay_dry_biochemical_analyzer:
+                showBlueToathDialogGanShi();
                 break;
             case R.id.lay_respiratory_monitor:
                 showHuXiDialog();
@@ -137,6 +143,8 @@ public class StartMeasurementFragment extends BaseFragment {
                 singleLeadUtil.scanLeDevice(true);
             }
         });
+
+
         viewHolderBlueToath.lvSearchBluetooth.setOnItemClickListener(new AdapterView.OnItemClickListener() {
             @Override
             public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
@@ -149,6 +157,36 @@ public class StartMeasurementFragment extends BaseFragment {
         });
         dialog = blueToathDialog.show();
     }
+
+    private void showBlueToathDialogGanShi() {
+        AlertDialog.Builder blueToathDialog = new AlertDialog.Builder(getActivity());
+        View view = View.inflate(getActivity(), R.layout.dialog_search_buletooth, null);
+        ViewHolderGanShi viewHolderGanShi = new ViewHolderGanShi(view);
+        viewHolderGanShi.btnSearch.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+
+            }
+        });
+
+
+        blueToathDialog.setView(view);
+        dialog = blueToathDialog.show();
+
+
+    }
+
+    static class ViewHolderGanShi {
+        @BindView(R.id.lv_search_bluetooth)
+        ListView lvSearchBluetooth;
+        @BindView(R.id.btn_search)
+        Button btnSearch;
+
+        ViewHolderGanShi(View view) {
+            ButterKnife.bind(this, view);
+        }
+    }
+
 
     //多参数监测仪
     private void showMultiParameterMonitorDialog() {
@@ -168,6 +206,21 @@ public class StartMeasurementFragment extends BaseFragment {
                 //保存数据
                 singleLeadUtil.disconnect();//点击取消断开蓝夜连接
                 dialog.dismiss();
+                new Thread(new Runnable() {
+                    @Override
+                    public void run() {
+                        saveMultiParameterMonitorData(viewHolder.tvHeartRateColon.getText().toString(),
+                                viewHolder.tvPulse.getText().toString(),
+                                viewHolder.tvSystolicBloodPressureDifference.getText().toString(),
+                                viewHolder.tvSystolicBloodPressure.getText().toString(),
+                                viewHolder.tvDiastolicBloodPressure.getText().toString(),
+                                viewHolder.tvTheAveragePressure.getText().toString(),
+                                viewHolder.tvOxygen.getText().toString(),
+                                viewHolder.tvBreathingRate.getText().toString(),
+                                viewHolder.tvStSegmentNumerical.getText().toString());
+                    }
+                }).start();
+
 
             }
         });
@@ -204,6 +257,34 @@ public class StartMeasurementFragment extends BaseFragment {
         });
 
 
+    }
+
+
+    //多参数检测仪数据保存接口
+    private void saveMultiParameterMonitorData(String rhythm, String pulse, String sysdif, String sys, String dias, String mean, String oxygen, String resp, String st) {
+        OkHttpUtils.post().url(InterfaceUrl.MULTIPARAMETERMONITORDATA_URL + sessonWithCode + "/mid/" + HomeActivity.mid)
+                .addParams("rhythm", rhythm)
+                .addParams("pulse", pulse)
+                .addParams("sysdif", sysdif)
+                .addParams("sys", sys)
+                .addParams("dias", dias)
+                .addParams("mean", mean)
+                .addParams("oxygen", oxygen)
+                .addParams("resp", resp)
+                .addParams("st", st)
+
+                .build().execute(new StringCallback() {
+            @Override
+            public void onError(Call call, Exception e, int id) {
+                Log.e(TAG, "onError: " + e.getMessage());
+            }
+
+            @Override
+            public void onResponse(String response, int id) {
+                Log.e(TAG, "response: ");
+
+            }
+        });
     }
 
 
@@ -477,6 +558,7 @@ public class StartMeasurementFragment extends BaseFragment {
         this.onTextDataCallBackListener = onTextDataCallBackListener;
 
     }
+
     private List<BluetoothDeviceBean> devicelist;                            //存放搜索到的蓝牙设备
     private String IMEI = "B652276134";                                        //IMEI号,用户绑定的设备IMEI号
     private StringBuffer sb;                                                //用作存放蓝牙设备的指令
@@ -488,6 +570,7 @@ public class StartMeasurementFragment extends BaseFragment {
     private BleVersionMsgBean bleVersionMsg;
     private MyBleStateBroadcast myBleStateBroadcast;                        //自定义蓝牙状态监听
     private SystemBleBroadcast systemBleBroadcast;
+
     private void showHuXiDialog() {
         AlertDialog.Builder huxiDialog = new AlertDialog.Builder(getActivity());
         View view = View.inflate(getActivity(), R.layout.dialog_huxi, null);
@@ -596,8 +679,6 @@ public class StartMeasurementFragment extends BaseFragment {
 
             @Override
             public void onDataReceivedSuccess(ReturnBean<BleVersionMsgBean> returnBean) {
-                Log.e(TAG, "returnBean: " + returnBean.getMessage());
-
                 bleVersionMsg = returnBean.getObject();
                 initTools();                            //初始化工具
                 initBroadcast(imei);                        //定义广播接收
@@ -606,8 +687,6 @@ public class StartMeasurementFragment extends BaseFragment {
             @Override
             public void onDataReceivedAndDefaultData(
                     ReturnBean<BleVersionMsgBean> returnBean) {
-
-
                 bleVersionMsg = returnBean.getObject();
                 initTools();                            //初始化工具
                 initBroadcast(imei);                        //定义广播接收
@@ -640,10 +719,10 @@ public class StartMeasurementFragment extends BaseFragment {
                 if (!found) {
                     devicelist.add(bleDevice);
                     String tmp = imei;
-                    Log.e(TAG, "tmp: "+tmp );
+                    Log.e(TAG, "tmp: " + tmp);
                     if (!StringUtils.isEmpty(tmp)) {
                         IMEI = tmp;
-                    }else {
+                    } else {
                         Toast.makeText(getActivity(), R.string.hint_null_imei, Toast.LENGTH_SHORT).show();
                         return;
                     }
@@ -690,8 +769,6 @@ public class StartMeasurementFragment extends BaseFragment {
 
 
     }
-
-
 
 
     static class ViewHolderHuXiDialog {
@@ -761,8 +838,6 @@ public class StartMeasurementFragment extends BaseFragment {
             @Override
             public void sendDataFromBleDevice(final PefDataFromBleBean pefdata) {
                 final PefDataFromBleBean mypefData = pefdata;
-                //获取到的数据上传到服务器中.略
-//				sendData();
                 getDataListener.getData("日期:" + mypefData.getDate() + "\r\n" + "Pef:" +
                         mypefData.getPefValue() + "\r\n" + "FVC:" + mypefData.getFvcValue() + "\r\n"
                         + "FEV1:" + mypefData.getFev1Value());
@@ -820,24 +895,28 @@ public class StartMeasurementFragment extends BaseFragment {
         }
     }
 
-
     private GetDataListener getDataListener;
     private BuleToothIsConnect buleToothIsConnect;
-    public static interface GetDataListener{
+
+    public static interface GetDataListener {
         void getData(String text);
     }
 
-    public void setGetDataListener(GetDataListener getDataListener){
+    public void setGetDataListener(GetDataListener getDataListener) {
         this.getDataListener = getDataListener;
     }
 
 
-
-    public static interface BuleToothIsConnect{
+    public static interface BuleToothIsConnect {
         void getbuleToothIsConnect(String isConnect);
     }
 
-    public void setBuleToothIsConnect(BuleToothIsConnect buleToothIsConnect){
-        this.buleToothIsConnect =buleToothIsConnect;
+    public void setBuleToothIsConnect(BuleToothIsConnect buleToothIsConnect) {
+        this.buleToothIsConnect = buleToothIsConnect;
     }
+
+
 }
+
+
+
