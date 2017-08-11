@@ -1,9 +1,8 @@
-package com.klw.singleleadsdk.ble;
+package com.returnlive.dashubiohd.ecg_single.ble;
 
-
-import java.util.ArrayList;
 
 public class JPWaveDecoder {
+    private JPBleWaveCallback mUiCallback;
     private JPWaveFrame mFrame1 = new JPWaveFrame(); // 最新的帧
     private JPWaveFrame mFrame2 = new JPWaveFrame(); // 第二新的帧
     private JPWaveFrame mFrame3 = new JPWaveFrame(); // 第三新的真
@@ -15,13 +14,19 @@ public class JPWaveDecoder {
     private int mCurrentID = 0;
 
     /**
+     * 构造函数
+     */
+    public JPWaveDecoder(JPBleWaveCallback callback) {
+        mUiCallback = callback;
+    }
+
+    /**
      * 解码帧
      */
-    public ArrayList<Float> decodeWaveFrame(final byte[] rawData) {
-        ArrayList<Float> result = new ArrayList<>();
-
+    public void decodeWaveFrame(final byte[] rawData) {
         if (null == rawData || 20 > rawData.length) {
-            return result;
+
+            return;
         }
 
         float[] decodePoints = new float[20];
@@ -45,10 +50,8 @@ public class JPWaveDecoder {
                 mFrame3.copy(mFrame2);
                 mFrame2.invalid();
 
-                float[] points = calcPoints(decodePoints);
-                for (int i = 0; i < points.length; i++) {
-                    result.add(points[i]);
-                }
+//				JPLog.ERROR("Loss>2 decode ==> " + Arrays.toString(decodePoints));
+                mUiCallback.uiDrawWavePoints(calcPoints(decodePoints));
             }
 
             // 祯间隔大于3
@@ -64,10 +67,8 @@ public class JPWaveDecoder {
                 mFrame3.copy(mFrame2);
                 mFrame2.invalid();
 
-                float[] points = calcPoints(decodePoints);
-                for (int i = 0; i < points.length; i++) {
-                    result.add(points[i]);
-                }
+//				JPLog.ERROR("Loss>3 decode ==> " + Arrays.toString(decodePoints));
+                mUiCallback.uiDrawWavePoints(calcPoints(decodePoints));
             }
 
             // 祯间隔大于4
@@ -83,10 +84,8 @@ public class JPWaveDecoder {
                 mFrame3.copy(mFrame2);
                 mFrame2.invalid();
 
-                float[] points = calcPoints(decodePoints);
-                for (int i = 0; i < points.length; i++) {
-                    result.add(points[i]);
-                }
+//				JPLog.ERROR("Loss>4 decode ==> " + Arrays.toString(decodePoints));
+                mUiCallback.uiDrawWavePoints(calcPoints(decodePoints));
             }
         }
 
@@ -111,14 +110,12 @@ public class JPWaveDecoder {
             mFrame3.copy(mFrame2);
             mFrame2.copy(mFrame1);
 
-            float[] points = calcPoints(decodePoints);
-            for (int i = 0; i < points.length; i++) {
-                result.add(points[i]);
-            }
+//			JPLog.ERROR("Normal decode ==> " + Arrays.toString(decodePoints));
+            mUiCallback.uiDrawWavePoints(calcPoints(decodePoints));
+//			JPLog.ERROR("Finish Normal decode draw......");
         }
 
         mPreviousID = mCurrentID;
-        return result;
     }
 
     public float[] calcPoints(final float[] points) {

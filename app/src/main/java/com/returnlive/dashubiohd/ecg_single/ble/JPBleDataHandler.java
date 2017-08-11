@@ -1,4 +1,4 @@
-package com.klw.singleleadsdk.ble;
+package com.returnlive.dashubiohd.ecg_single.ble;
 
 public class JPBleDataHandler {
 
@@ -11,7 +11,7 @@ public class JPBleDataHandler {
 		if (null == raw) {
 			return null;
 		}
-		
+
 		JPBleNormalData data = new JPBleNormalData();
 		data.rhythm = convertByteToInt(raw[3]);
 		data.pulse = convertByteToInt(raw[4]);
@@ -28,7 +28,7 @@ public class JPBleDataHandler {
 
 	/**
 	 * 转换流数据到血压数据
-	 * 
+	 *
 	 * @param data
 	 *            刘数据
 	 * @return 血压数据对象
@@ -37,7 +37,7 @@ public class JPBleDataHandler {
 		if (null == raw) {
 			return null;
 		}
-		
+
 		JPBlePressureData data = new JPBlePressureData();
 		data.rhythm = convertByteToInt(raw[3]);
 		data.pulse = convertByteToInt(raw[4]);

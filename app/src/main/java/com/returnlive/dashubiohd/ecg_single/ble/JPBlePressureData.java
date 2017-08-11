@@ -1,4 +1,4 @@
-package com.klw.singleleadsdk.ble;
+package com.returnlive.dashubiohd.ecg_single.ble;
 
 public class JPBlePressureData extends JPBleNormalData {
 	// 随机事件类型

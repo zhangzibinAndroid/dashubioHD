@@ -22,12 +22,12 @@ public class CardiographView  extends View {
     //折现的颜色
     protected int mLineColor = Color.parseColor("#ffffff");
     //网格颜色
-    protected int mGridColor = Color.parseColor("#1b4200");
+    protected int mGridColor = Color.parseColor("#0a1528");
 
     //小网格颜色
-    protected int mSGridColor = Color.parseColor("#092100");
+    protected int mSGridColor = Color.parseColor("#71788c");
     //背景颜色
-    protected int mBackgroundColor = Color.BLACK;
+    protected int mBackgroundColor = Color.parseColor("#32394d");
     //自身的大小
     protected int mWidth,mHeight;
 
@@ -77,7 +77,7 @@ public class CardiographView  extends View {
         //横线个数
         int hSNum = mHeight/mSGridWidth;
         mPaint.setColor(mSGridColor);
-        mPaint.setStrokeWidth(2);
+        mPaint.setStrokeWidth(1);
         //画竖线
         for(int i = 0;i<vSNum+1;i++){
             canvas.drawLine(i*mSGridWidth,0,i*mSGridWidth,mHeight,mPaint);
@@ -93,7 +93,7 @@ public class CardiographView  extends View {
         //横线个数
         int hNum = mHeight / mGridWidth;
         mPaint.setColor(mGridColor);
-        mPaint.setStrokeWidth(2);
+        mPaint.setStrokeWidth(1);
         //画竖线
         for(int i = 0;i<vNum+1;i++){
             canvas.drawLine(i*mGridWidth,0,i*mGridWidth,mHeight,mPaint);

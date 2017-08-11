@@ -4,7 +4,6 @@
     <modules>
       <module fileurl="file://$PROJECT_DIR$/DashubioHD.iml" filepath="$PROJECT_DIR$/DashubioHD.iml" />
       <module fileurl="file://$PROJECT_DIR$/app/app.iml" filepath="$PROJECT_DIR$/app/app.iml" />
-      <module fileurl="file://$PROJECT_DIR$/singleleadsdk/singleleadsdk.iml" filepath="$PROJECT_DIR$/singleleadsdk/singleleadsdk.iml" />
     </modules>
   </component>
 </project>

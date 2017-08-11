@@ -1,7 +1,8 @@
-package com.klw.singleleadsdk.entity;
+package com.returnlive.dashubiohd.ecg_single.entity;
 
-import com.klw.singleleadsdk.ble.JPBleNormalData;
-import com.klw.singleleadsdk.ble.JPBlePressureData;
+
+import com.returnlive.dashubiohd.ecg_single.ble.JPBleNormalData;
+import com.returnlive.dashubiohd.ecg_single.ble.JPBlePressureData;
 
 import java.util.ArrayList;
 

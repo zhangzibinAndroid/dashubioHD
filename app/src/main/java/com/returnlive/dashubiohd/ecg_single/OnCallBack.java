@@ -1,8 +1,9 @@
-package com.klw.singleleadsdk;
+package com.returnlive.dashubiohd.ecg_single;
 
 import android.bluetooth.BluetoothDevice;
 
-import com.klw.singleleadsdk.entity.Data;
+import com.returnlive.dashubiohd.ecg_single.entity.Data;
+
 
 /**
  * Created by altria on 17-7-7.

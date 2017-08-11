@@ -1,13 +1,10 @@
 package com.returnlive.dashubiohd.service;
 
-import android.content.Intent;
-import android.os.IBinder;
+/*import com.breathhome_ble_sdk.service.BLEService;
 
-import com.breathhome_ble_sdk.service.BLEService;
-
-/**
+*//**
  * 蓝牙服务类
- */
+ *//*
 public class MyBLEService extends BLEService {
 
 	@Override
@@ -21,4 +18,4 @@ public class MyBLEService extends BLEService {
 	}
 
 	
-}
+}*/

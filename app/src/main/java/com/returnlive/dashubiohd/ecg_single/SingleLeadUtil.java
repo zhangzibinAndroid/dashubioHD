@@ -1,4 +1,4 @@
-package com.klw.singleleadsdk;
+package com.returnlive.dashubiohd.ecg_single;
 
 import android.bluetooth.BluetoothAdapter;
 import android.bluetooth.BluetoothDevice;
@@ -7,21 +7,26 @@ import android.content.Context;
 import android.content.Intent;
 import android.os.Bundle;
 import android.os.Handler;
+import android.os.Message;
 import android.util.Log;
 
-import com.klw.singleleadsdk.ble.JPBleDataHandler;
-import com.klw.singleleadsdk.ble.JPBleUtils;
-import com.klw.singleleadsdk.ble.JPWaveDecoder;
-import com.klw.singleleadsdk.entity.Data;
+import com.returnlive.dashubiohd.application.DashuHdApplication;
+import com.returnlive.dashubiohd.ecg_single.ble.JPBleDataHandler;
+import com.returnlive.dashubiohd.ecg_single.ble.JPBleUtils;
+import com.returnlive.dashubiohd.ecg_single.ble.JPBleWaveCallback;
+import com.returnlive.dashubiohd.ecg_single.ble.JPWaveDecoder;
+import com.returnlive.dashubiohd.ecg_single.entity.Data;
 import com.xtremeprog.sdk.ble.BleGattCharacteristic;
 import com.xtremeprog.sdk.ble.BleGattService;
 import com.xtremeprog.sdk.ble.BleService;
 import com.xtremeprog.sdk.ble.IBle;
 
+import java.util.ArrayList;
 import java.util.List;
 
 public class SingleLeadUtil {
     private static final int DATA_MIN_LENGTH = 20;
+    private final Handler mRawHandler;
 
     private BleGattService mGetDataService = null;
     private BleGattService mPressureService = null;
@@ -30,10 +35,42 @@ public class SingleLeadUtil {
     private BleGattCharacteristic mCharacterWave1 = null;
     private BleGattCharacteristic mCharacterWave2 = null;
     private BleGattCharacteristic mCharacterPressure = null;
-    private BleService mService = null;
 
-    private JPWaveDecoder waveDecoder = new JPWaveDecoder();
-    private JPWaveDecoder wave2Decoder = new JPWaveDecoder();
+    private JPWaveDecoder waveDecoder = new JPWaveDecoder(new JPBleWaveCallback() {
+        @Override
+        public void uiDrawWavePoints(float[] points) {
+            ArrayList<Float> res = new ArrayList<>();
+
+            for (int i = 0; i < points.length; i++) {
+                res.add(points[i]);
+            }
+
+            callBackData = new Data();
+            callBackData.setWaveData(res);
+            callBackData.setType(Data.TYPE_WAVE_1_DATA);
+            callBackData.setUuid(uuid);
+            callBackData.setVal(val);
+            onCallBack.onDataCallBack(callBackData);
+        }
+    });
+
+    private JPWaveDecoder wave2Decoder = new JPWaveDecoder(new JPBleWaveCallback() {
+        @Override
+        public void uiDrawWavePoints(float[] points) {
+            ArrayList<Float> res = new ArrayList<>();
+
+            for (int i = 0; i < points.length; i++) {
+                res.add(points[i]);
+            }
+
+            callBackData = new Data();
+            callBackData.setWaveData(res);
+            callBackData.setType(Data.TYPE_WAVE_2_DATA);
+            callBackData.setUuid(uuid);
+            callBackData.setVal(val);
+            onCallBack.onDataCallBack(callBackData);
+        }
+    });
 
     private final Handler mHandler;
     private Context context;
@@ -45,19 +82,31 @@ public class SingleLeadUtil {
     private final int REQUESAT_PERMISSION_CODE = 1024;
     private static final long SCAN_PERIOD = 120000;
     private Data callBackData;//数据
+    private String uuid;
+    private byte[] val;
 
-    public SingleLeadUtil(Context context, OnCallBack onCallBack) {
+    public SingleLeadUtil(Context context, final OnCallBack onCallBack) {
         this.context = context;
         this.onCallBack = onCallBack;
         mHandler = new Handler();
         context.registerReceiver(mBleReceiver, BleService.getIntentFilter());
+
+        mRawHandler = new Handler() {
+            @Override
+            public void handleMessage(Message msg) {
+                Bundle bundle = msg.getData();
+                uuid = bundle.getString("uuid");
+                val = bundle.getByteArray("raw");
+
+                parseRawData(uuid, val);
+            }
+        };
     }
 
     private final BroadcastReceiver mBleReceiver = new BroadcastReceiver() {
         @Override
         public void onReceive(Context context, Intent intent) {
             String action = intent.getAction();
-            Log.e("TAG", "action:" + action);
             if (BleService.BLE_NOT_SUPPORTED.equals(action)) {
                 processNotSupportBle();
             } else if (BleService.BLE_DEVICE_FOUND.equals(action)) {
@@ -79,12 +128,12 @@ public class SingleLeadUtil {
                 String uuid = extras.getString(BleService.EXTRA_UUID);
                 byte[] val = extras.getByteArray(BleService.EXTRA_VALUE);
 
-                callBackData = new Data();
-                callBackData.setUuid(uuid);
-                callBackData.setVal(val);
-
-                parseRawData(uuid, val);
-                onCallBack.onDataCallBack(callBackData);//回传
+                Bundle bundle = new Bundle();
+                bundle.putString("uuid", uuid);
+                bundle.putByteArray("raw", val);
+                Message msg = new Message();
+                msg.setData(bundle);
+                mRawHandler.sendMessage(msg);
             }
         }
     };
@@ -95,34 +144,38 @@ public class SingleLeadUtil {
      * @param uuid
      * @param rawData
      */
-    private void parseRawData(String uuid, byte[] rawData) {
+    private synchronized void parseRawData(String uuid, byte[] rawData) {
         String chUuid = uuid.toUpperCase();
         if (0 == chUuid.compareTo("0000FFA3-0000-1000-8000-00805F9B34FB")) {
             if (DATA_MIN_LENGTH > rawData.length) {
                 return;
             }
+
+            callBackData = new Data();
+
             int flag0 = rawData[0] & 0xFF;
             int flag1 = rawData[1] & 0xFF;
-            int flag2 = rawData[2] & 0xFF;
 
             if (flag0 == 0xaa && flag1 == 0x52) {
                 //普通测量数据
                 callBackData.setData(JPBleDataHandler.rawDataToNormalData(rawData));
                 callBackData.setType(Data.TYPE_TEST_DATA);
+                callBackData.setUuid(uuid);
+                callBackData.setVal(val);
+                onCallBack.onDataCallBack(callBackData);
             } else if (flag0 == 0xaa && flag1 == 0x53) {
                 callBackData.setType(Data.TYPE_TEST_END);
                 callBackData.setPressureData(JPBleDataHandler.rawDataToPressureData(rawData));
-            } else {
-                return;
+                callBackData.setUuid(uuid);
+                callBackData.setVal(val);
+                onCallBack.onDataCallBack(callBackData);
             }
         } else if (0 == chUuid.compareTo("0000FFA4-0000-1000-8000-00805F9B34FB")) {
             //波形1数据
-            callBackData.setWaveData(waveDecoder.decodeWaveFrame(rawData));
-            callBackData.setType(Data.TYPE_WAVE_1_DATA);
+            waveDecoder.decodeWaveFrame(rawData);
         } else if (0 == chUuid.compareTo("0000FFA5-0000-1000-8000-00805F9B34FB")) {
             //波形2数据
-            callBackData.setWaveData(waveDecoder.decodeWaveFrame(rawData));
-            callBackData.setType(Data.TYPE_WAVE_2_DATA);
+            wave2Decoder.decodeWaveFrame(rawData);
         }
     }
 
@@ -250,6 +303,7 @@ public class SingleLeadUtil {
      * 处理获取到服务
      */
     private void processGetGattServices(List<BleGattService> gattServices) {
+        Log.e("TAG", "gattServices:" + gattServices);
         if (gattServices == null) {
             return;
         }

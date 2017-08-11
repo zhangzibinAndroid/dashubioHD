@@ -1,1 +1,1 @@
-include ':app', ':singleleadsdk'
+include ':app'

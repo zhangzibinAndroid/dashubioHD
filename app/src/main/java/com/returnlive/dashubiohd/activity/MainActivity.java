@@ -9,8 +9,8 @@ import android.widget.ImageView;
 import android.widget.TextView;
 import android.widget.Toast;
 
-import com.klw.singleleadsdk.DashuHdApplication;
 import com.returnlive.dashubiohd.R;
+import com.returnlive.dashubiohd.application.DashuHdApplication;
 import com.returnlive.dashubiohd.base.BaseActivity;
 import com.returnlive.dashubiohd.bean.EventLoginMessage;
 import com.returnlive.dashubiohd.fragment.main.HelpFragment;

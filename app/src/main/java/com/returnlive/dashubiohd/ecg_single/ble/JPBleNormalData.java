@@ -1,4 +1,4 @@
-package com.klw.singleleadsdk.ble;
+package com.returnlive.dashubiohd.ecg_single.ble;
 
 public class JPBleNormalData {
 	//时间戳

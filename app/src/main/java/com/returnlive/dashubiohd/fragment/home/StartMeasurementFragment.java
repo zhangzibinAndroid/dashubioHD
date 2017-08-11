@@ -1,13 +1,7 @@
 package com.returnlive.dashubiohd.fragment.home;
 
 
-import android.bluetooth.BluetoothAdapter;
 import android.bluetooth.BluetoothDevice;
-import android.content.BroadcastReceiver;
-import android.content.Context;
-import android.content.Intent;
-import android.content.IntentFilter;
-import android.os.AsyncTask;
 import android.os.Bundle;
 import android.support.v7.app.AlertDialog;
 import android.util.Log;
@@ -16,37 +10,20 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.widget.AdapterView;
 import android.widget.Button;
-import android.widget.EditText;
 import android.widget.ListView;
 import android.widget.TextView;
 import android.widget.Toast;
 
-import com.breathhome_ble_sdk.asynctask.AsyncResponse;
-import com.breathhome_ble_sdk.asynctask.GetBleCurrentVersionTask;
-import com.breathhome_ble_sdk.asynctask.SearchBleDeviceTask;
-import com.breathhome_ble_sdk.bean.BleVersionMsgBean;
-import com.breathhome_ble_sdk.bean.BluetoothDeviceBean;
-import com.breathhome_ble_sdk.bean.HolderBean;
-import com.breathhome_ble_sdk.bean.PefDataFromBleBean;
-import com.breathhome_ble_sdk.bean.ReturnBean;
-import com.breathhome_ble_sdk.broadreceiver.BroadcastResponse;
-import com.breathhome_ble_sdk.controller.BluetoothController;
-import com.breathhome_ble_sdk.message.MessageManager;
-import com.breathhome_ble_sdk.utils.BreathHomeLog;
-import com.breathhome_ble_sdk.utils.ConstantUtils;
-import com.breathhome_ble_sdk.utils.StringUtils;
-import com.klw.singleleadsdk.DashuHdApplication;
-import com.klw.singleleadsdk.OnCallBack;
-import com.klw.singleleadsdk.SingleLeadUtil;
-import com.klw.singleleadsdk.ble.JPBleNormalData;
-import com.klw.singleleadsdk.entity.Data;
 import com.returnlive.dashubiohd.R;
 import com.returnlive.dashubiohd.activity.HomeActivity;
 import com.returnlive.dashubiohd.adapter.blueadapter.BlueAdapter;
+import com.returnlive.dashubiohd.application.DashuHdApplication;
 import com.returnlive.dashubiohd.base.BaseFragment;
-import com.returnlive.dashubiohd.broadcast.MyBleStateBroadcast;
 import com.returnlive.dashubiohd.constant.InterfaceUrl;
-import com.returnlive.dashubiohd.service.MyBLEService;
+import com.returnlive.dashubiohd.ecg_single.OnCallBack;
+import com.returnlive.dashubiohd.ecg_single.SingleLeadUtil;
+import com.returnlive.dashubiohd.ecg_single.ble.JPBleNormalData;
+import com.returnlive.dashubiohd.ecg_single.entity.Data;
 import com.returnlive.dashubiohd.view.EcgPathOne;
 import com.returnlive.dashubiohd.view.EcgPathSecond;
 import com.zhy.autolayout.AutoLinearLayout;
@@ -123,7 +100,7 @@ public class StartMeasurementFragment extends BaseFragment {
                 showBlueToathDialogGanShi();
                 break;
             case R.id.lay_respiratory_monitor:
-                showHuXiDialog();
+//                showHuXiDialog();
                 break;
         }
     }
@@ -191,7 +168,7 @@ public class StartMeasurementFragment extends BaseFragment {
     //多参数监测仪
     private void showMultiParameterMonitorDialog() {
         AlertDialog.Builder multiParameterMonitorDialog = new AlertDialog.Builder(getActivity());
-        View view = View.inflate(getActivity(), R.layout.dialog_multi_parameter_monitor, null);
+        View view = View.inflate(getActivity(), R.layout.dialog_xindian, null);
         final ViewHolderMultiParameterMonitor viewHolder = new ViewHolderMultiParameterMonitor(view);
         viewHolder.btnCancel.setOnClickListener(new View.OnClickListener() {
             @Override
@@ -237,7 +214,6 @@ public class StartMeasurementFragment extends BaseFragment {
             @Override
             public void OnDataCallBack(ArrayList<Float> ecg_list_two) {
                 viewHolder.ecg_path_second.addDATA(ecg_list_two);
-
             }
         });
 
@@ -559,7 +535,7 @@ public class StartMeasurementFragment extends BaseFragment {
 
     }
 
-    private List<BluetoothDeviceBean> devicelist;                            //存放搜索到的蓝牙设备
+  /*  private List<BluetoothDeviceBean> devicelist;                            //存放搜索到的蓝牙设备
     private String IMEI = "B652276134";                                        //IMEI号,用户绑定的设备IMEI号
     private StringBuffer sb;                                                //用作存放蓝牙设备的指令
     private HolderBean holder;
@@ -913,7 +889,7 @@ public class StartMeasurementFragment extends BaseFragment {
 
     public void setBuleToothIsConnect(BuleToothIsConnect buleToothIsConnect) {
         this.buleToothIsConnect = buleToothIsConnect;
-    }
+    }*/
 
 
 }

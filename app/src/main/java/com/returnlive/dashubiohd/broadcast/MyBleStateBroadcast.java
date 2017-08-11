@@ -1,9 +1,6 @@
 package com.returnlive.dashubiohd.broadcast;
 
-import android.content.Context;
-import android.content.Intent;
-
-import com.breathhome_ble_sdk.broadreceiver.BleStateBroadcast;
+/*import com.breathhome_ble_sdk.broadreceiver.BleStateBroadcast;
 import com.breathhome_ble_sdk.broadreceiver.BroadcastResponse;
 
 public class MyBleStateBroadcast extends BleStateBroadcast {
@@ -19,4 +16,4 @@ public class MyBleStateBroadcast extends BleStateBroadcast {
 		super.onReceive(context, intent);
 
 	}
-}
+}*/

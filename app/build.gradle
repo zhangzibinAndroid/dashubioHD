@@ -19,6 +19,7 @@ android {
     }
 }
 
+
 dependencies {
     compile fileTree(include: ['*.jar'], dir: 'libs')
     androidTestCompile('com.android.support.test.espresso:espresso-core:2.2.2', {
@@ -40,5 +41,5 @@ dependencies {
     testCompile 'junit:junit:4.12'
     compile 'com.contrarywind:Android-PickerView:3.2.1'
     compile 'com.zhy:flowlayout-lib:1.0.3'
-    compile project(':singleleadsdk')
+    compile files('libs/blelibrary.jar')
 }

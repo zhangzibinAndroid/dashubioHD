@@ -45,8 +45,8 @@ public class EcgPathSecond extends CardiographView {
         mPaint.setStyle(Paint.Style.STROKE);
         mPaint.setColor(mLineColor);
         for (int i = 0; i < arrast.size(); i++) {
-            moveY =(128- arrast.get(i))/3;//按屏幕比例缩小Y轴比例
-            moveX = (float) (moveX + 5);
+            moveY =(128- arrast.get(i));//按屏幕比例缩小Y轴比例
+            moveX = (float) (moveX + 1);
             moveY = 0-moveY;
             mPath.lineTo(moveX, moveY);
             scrollTo((int) moveX,0);
