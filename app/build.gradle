@@ -1,12 +1,12 @@
 apply plugin: 'com.android.application'
 
 android {
-    compileSdkVersion 25
+    compileSdkVersion 26
     buildToolsVersion "25.0.3"
     defaultConfig {
         applicationId "com.returnlive.dashubiohd"
         minSdkVersion 19
-        targetSdkVersion 25
+        targetSdkVersion 22
         versionCode 1
         versionName "1.0.0"
         testInstrumentationRunner "android.support.test.runner.AndroidJUnitRunner"
@@ -26,20 +26,22 @@ dependencies {
         exclude group: 'com.android.support', module: 'support-annotations'
     })
     compile files('libs/commons-httpclient-3.1.jar')
-    compile 'com.android.support:appcompat-v7:25.3.1'
+    compile 'com.android.support:appcompat-v7:26.+'
     compile 'com.android.support.constraint:constraint-layout:1.0.2'
     compile 'com.jakewharton:butterknife:8.7.0'
     compile 'com.jakewharton:butterknife-compiler:8.7.0'
     compile 'com.zhy:autolayout:1.4.5'
     compile 'com.readystatesoftware.systembartint:systembartint:1.0.3'
-    compile 'com.android.support:support-v4:25.3.1'
-    compile 'com.google.code.gson:gson:2.8.0'
-    compile 'com.zhy:okhttputils:2.6.2'
+    compile 'com.android.support:support-v4:26.+'
+    compile ('com.zhy:okhttputils:2.6.2'){
+        exclude group:"com.squareup.okio"
+    }
     compile 'com.huxq17.xrefreshview:xrefreshview:3.6.9'
-    compile 'com.android.support:recyclerview-v7:25.3.1'
+    compile 'com.android.support:recyclerview-v7:26.+'
     compile 'org.greenrobot:eventbus:3.0.0'
     testCompile 'junit:junit:4.12'
     compile 'com.contrarywind:Android-PickerView:3.2.1'
     compile 'com.zhy:flowlayout-lib:1.0.3'
     compile files('libs/blelibrary.jar')
+    compile files('libs/BreathHome-BLE-1.03.jar')
 }

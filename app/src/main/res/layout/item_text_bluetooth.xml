@@ -6,8 +6,8 @@
 
     <TextView android:id="@+id/tv_bluetooth_name"
         android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:textSize="@dimen/px28"
+        android:layout_height="@dimen/px150"
+        android:textSize="@dimen/px30"
         android:gravity="center_vertical"
         android:padding="@dimen/px20"/>
 

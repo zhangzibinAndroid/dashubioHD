@@ -10,23 +10,15 @@
         android:gravity="center"
         android:padding="@dimen/px35"
         android:text="蓝牙设备"
-        android:textSize="@dimen/px30" />
+        android:textSize="@dimen/px35"
+        android:textColor="@color/black"/>
 
     <View style="@style/ViewLineStyle" />
 
     <ListView android:id="@+id/lv_search_bluetooth"
         android:layout_width="match_parent"
-        android:layout_height="@dimen/px500"
+        android:layout_height="@dimen/px700"
         android:layout_weight="1"/>
 
     <View style="@style/ViewLineStyle" />
-
-    <Button android:id="@+id/btn_search"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:background="@drawable/sel_btn_white"
-        android:text="@string/select_device"
-        android:textColor="@color/black"
-        android:textSize="@dimen/px25"/>
-
 </com.zhy.autolayout.AutoLinearLayout>

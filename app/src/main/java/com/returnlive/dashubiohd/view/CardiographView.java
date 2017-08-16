@@ -16,7 +16,6 @@ import android.view.View;
  */
 
 public class CardiographView  extends View {
-    private static final String DEFAULT_USER_NAME = "ECG Chart";
     //画笔
     protected Paint mPaint;
     //折现的颜色

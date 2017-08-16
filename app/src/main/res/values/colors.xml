@@ -65,4 +65,5 @@
 
     <color name="content_blue_background_normal">#21a9e2</color>
     <color name="content_blue_background_pressed">#2cace2</color>
+    <color name="green_bg">#2CBD5E</color>
 </resources>

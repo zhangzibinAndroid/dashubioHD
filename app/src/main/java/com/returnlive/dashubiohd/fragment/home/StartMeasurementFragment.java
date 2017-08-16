@@ -1,7 +1,12 @@
 package com.returnlive.dashubiohd.fragment.home;
 
 
+import android.bluetooth.BluetoothAdapter;
 import android.bluetooth.BluetoothDevice;
+import android.content.BroadcastReceiver;
+import android.content.Context;
+import android.content.Intent;
+import android.content.IntentFilter;
 import android.os.Bundle;
 import android.support.v7.app.AlertDialog;
 import android.util.Log;
@@ -14,16 +19,32 @@ import android.widget.ListView;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import com.breathhome_ble_sdk.asynctask.AsyncResponse;
+import com.breathhome_ble_sdk.asynctask.GetBleCurrentVersionTask;
+import com.breathhome_ble_sdk.asynctask.SearchBleDeviceTask;
+import com.breathhome_ble_sdk.bean.BleVersionMsgBean;
+import com.breathhome_ble_sdk.bean.BluetoothDeviceBean;
+import com.breathhome_ble_sdk.bean.HolderBean;
+import com.breathhome_ble_sdk.bean.PefDataFromBleBean;
+import com.breathhome_ble_sdk.bean.ReturnBean;
+import com.breathhome_ble_sdk.broadreceiver.BroadcastResponse;
+import com.breathhome_ble_sdk.controller.BluetoothController;
+import com.breathhome_ble_sdk.message.MessageManager;
+import com.breathhome_ble_sdk.utils.BreathHomeLog;
+import com.breathhome_ble_sdk.utils.ConstantUtils;
 import com.returnlive.dashubiohd.R;
 import com.returnlive.dashubiohd.activity.HomeActivity;
 import com.returnlive.dashubiohd.adapter.blueadapter.BlueAdapter;
+import com.returnlive.dashubiohd.adapter.blueadapter.BlueHuXiAdapter;
 import com.returnlive.dashubiohd.application.DashuHdApplication;
 import com.returnlive.dashubiohd.base.BaseFragment;
+import com.returnlive.dashubiohd.broadcast.MyBleStateBroadcast;
 import com.returnlive.dashubiohd.constant.InterfaceUrl;
 import com.returnlive.dashubiohd.ecg_single.OnCallBack;
 import com.returnlive.dashubiohd.ecg_single.SingleLeadUtil;
 import com.returnlive.dashubiohd.ecg_single.ble.JPBleNormalData;
 import com.returnlive.dashubiohd.ecg_single.entity.Data;
+import com.returnlive.dashubiohd.service.MyBLEService;
 import com.returnlive.dashubiohd.view.EcgPathOne;
 import com.returnlive.dashubiohd.view.EcgPathSecond;
 import com.zhy.autolayout.AutoLinearLayout;
@@ -60,6 +81,7 @@ public class StartMeasurementFragment extends BaseFragment {
     private SingleLeadUtil singleLeadUtil;
     private List<BluetoothDevice> deviceList = new ArrayList<>();
     private BlueAdapter blueAdapter;
+    private BlueHuXiAdapter blueHuXiAdapter;
     private boolean isBuleConnect = false;
     public DashuHdApplication myApplication;
 
@@ -97,10 +119,9 @@ public class StartMeasurementFragment extends BaseFragment {
             case R.id.lay_urine_detector:
                 break;
             case R.id.lay_dry_biochemical_analyzer:
-                showBlueToathDialogGanShi();
                 break;
             case R.id.lay_respiratory_monitor:
-//                showHuXiDialog();
+                showBlueToathHuXiDialog();
                 break;
         }
     }
@@ -113,15 +134,6 @@ public class StartMeasurementFragment extends BaseFragment {
         blueToathDialog.setView(view);
         blueAdapter = new BlueAdapter(getActivity());
         viewHolderBlueToath.lvSearchBluetooth.setAdapter(blueAdapter);
-        viewHolderBlueToath.btnSearch.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                deviceList.clear();
-                singleLeadUtil.scanLeDevice(true);
-            }
-        });
-
-
         viewHolderBlueToath.lvSearchBluetooth.setOnItemClickListener(new AdapterView.OnItemClickListener() {
             @Override
             public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
@@ -133,35 +145,8 @@ public class StartMeasurementFragment extends BaseFragment {
             }
         });
         dialog = blueToathDialog.show();
-    }
-
-    private void showBlueToathDialogGanShi() {
-        AlertDialog.Builder blueToathDialog = new AlertDialog.Builder(getActivity());
-        View view = View.inflate(getActivity(), R.layout.dialog_search_buletooth, null);
-        ViewHolderGanShi viewHolderGanShi = new ViewHolderGanShi(view);
-        viewHolderGanShi.btnSearch.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-
-            }
-        });
-
-
-        blueToathDialog.setView(view);
-        dialog = blueToathDialog.show();
-
-
-    }
-
-    static class ViewHolderGanShi {
-        @BindView(R.id.lv_search_bluetooth)
-        ListView lvSearchBluetooth;
-        @BindView(R.id.btn_search)
-        Button btnSearch;
-
-        ViewHolderGanShi(View view) {
-            ButterKnife.bind(this, view);
-        }
+        deviceList.clear();
+        singleLeadUtil.scanLeDevice(true);
     }
 
 
@@ -300,8 +285,6 @@ public class StartMeasurementFragment extends BaseFragment {
     static class ViewHolderBlueToath {
         @BindView(R.id.lv_search_bluetooth)
         ListView lvSearchBluetooth;
-        @BindView(R.id.btn_search)
-        Button btnSearch;
 
         ViewHolderBlueToath(View view) {
             ButterKnife.bind(this, view);
@@ -448,7 +431,6 @@ public class StartMeasurementFragment extends BaseFragment {
                             Log.e(TAG, "舒张压: " + datazzb.dias);
                         } catch (Exception e) {
                             Log.e(TAG, "舒张压: " + 0);
-
                         }
 
                         try {
@@ -535,7 +517,8 @@ public class StartMeasurementFragment extends BaseFragment {
 
     }
 
-  /*  private List<BluetoothDeviceBean> devicelist;                            //存放搜索到的蓝牙设备
+
+    private List<BluetoothDeviceBean> devicelist;                            //存放搜索到的蓝牙设备
     private String IMEI = "B652276134";                                        //IMEI号,用户绑定的设备IMEI号
     private StringBuffer sb;                                                //用作存放蓝牙设备的指令
     private HolderBean holder;
@@ -547,85 +530,108 @@ public class StartMeasurementFragment extends BaseFragment {
     private MyBleStateBroadcast myBleStateBroadcast;                        //自定义蓝牙状态监听
     private SystemBleBroadcast systemBleBroadcast;
 
-    private void showHuXiDialog() {
-        AlertDialog.Builder huxiDialog = new AlertDialog.Builder(getActivity());
-        View view = View.inflate(getActivity(), R.layout.dialog_huxi, null);
-        final ViewHolderHuXiDialog viewHolderHuXiDialog = new ViewHolderHuXiDialog(view);
-        viewHolderHuXiDialog.btnBluetoothDel.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                mBluetoothController.stopConnectBLe();
-            }
-        });
 
-        viewHolderHuXiDialog.btnBluetoothConnect.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                if (0 != devicelist.size()) {
-                    for (int i = 0; i < devicelist.size(); i++) {
-                        if (devicelist.get(i).getName().equals(IMEI)) {
-                            mBluetoothController.connect(devicelist.get(i));
-                            break;
-                        }
-                    }
-                } else {
-                    startSearchBle();
-                }
-            }
-        });
+    //删除
+//    private void showHuXiDialog() {
+//        AlertDialog.Builder huxiDialog = new AlertDialog.Builder(getActivity());
+//        View view = View.inflate(getActivity(), R.layout.dialog_huxi, null);
+//        final ViewHolderHuXiDialog viewHolderHuXiDialog = new ViewHolderHuXiDialog(view);
+//        viewHolderHuXiDialog.btnBluetoothDel.setOnClickListener(new View.OnClickListener() {
+//            @Override
+//            public void onClick(View v) {
+//                mBluetoothController.stopConnectBLe();
+//            }
+//        });
+//
+//        viewHolderHuXiDialog.btnBluetoothConnect.setOnClickListener(new View.OnClickListener() {
+//            @Override
+//            public void onClick(View v) {
+//                if (0 != devicelist.size()) {
+//                    for (int i = 0; i < devicelist.size(); i++) {
+//                        if (devicelist.get(i).getName().equals(IMEI)) {
+//                            mBluetoothController.connect(devicelist.get(i));
+//                            break;
+//                        }
+//                    }
+//                } else {
+//                    startSearchBle();
+//                }
+//            }
+//        });
+//
+//        viewHolderHuXiDialog.btnCancel.setOnClickListener(new View.OnClickListener() {
+//            @Override
+//            public void onClick(View v) {
+//                dialog.dismiss();
+//                if (null != searchIntent) {
+//                    getActivity().stopService(searchIntent);
+//                }
+//                if (mySearchBleDeviceTask != null && mySearchBleDeviceTask.getStatus() != AsyncTask.Status.FINISHED) {
+//                    mySearchBleDeviceTask.cancel(true);
+//
+//                }
+//                if (getBleCurrentVersionTask != null && getBleCurrentVersionTask.getStatus() != AsyncTask.Status.FINISHED) {
+//                    getBleCurrentVersionTask.cancel(true);
+//                }
+//                if (myMessageManager != null) {
+//                    myMessageManager.destroyMessageManager();
+//                }
+//                getActivity().unregisterReceiver(myBleStateBroadcast);
+//            }
+//        });
+//
+//
+//        viewHolderHuXiDialog.btnSave.setOnClickListener(new View.OnClickListener() {
+//            @Override
+//            public void onClick(View v) {
+//                dialog.dismiss();
+//            }
+//        });
+//
+//        huxiDialog.setView(view);
+//        dialog = huxiDialog.show();
+////        initDatas(viewHolderHuXiDialog.edt_imei.getText().toString());
+//
+//        setGetDataListener(new GetDataListener() {
+//            @Override
+//            public void getData(String text) {
+//                viewHolderHuXiDialog.tvHuxiData.setText(text);
+//            }
+//        });
+//
+//        setBuleToothIsConnect(new BuleToothIsConnect() {
+//            @Override
+//            public void getbuleToothIsConnect(String isConnect) {
+//                viewHolderHuXiDialog.btnBluetoothIsconnect.setText(isConnect);
+//            }
+//        });
+//    }
 
-        viewHolderHuXiDialog.btnCancel.setOnClickListener(new View.OnClickListener() {
+    private void showBlueToathHuXiDialog() {
+        AlertDialog.Builder blueToathDialog = new AlertDialog.Builder(getActivity());
+        View view = View.inflate(getActivity(), R.layout.dialog_search_buletooth, null);
+        ViewHolderBlueToath viewHolderBlueToath = new ViewHolderBlueToath(view);
+        blueToathDialog.setView(view);
+        blueHuXiAdapter = new BlueHuXiAdapter(getActivity());
+        viewHolderBlueToath.lvSearchBluetooth.setAdapter(blueHuXiAdapter);
+
+
+
+        viewHolderBlueToath.lvSearchBluetooth.setOnItemClickListener(new AdapterView.OnItemClickListener() {
             @Override
-            public void onClick(View v) {
+            public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
+                //匹配
                 dialog.dismiss();
-                if (null != searchIntent) {
-                    getActivity().stopService(searchIntent);
-                }
-                if (mySearchBleDeviceTask != null && mySearchBleDeviceTask.getStatus() != AsyncTask.Status.FINISHED) {
-                    mySearchBleDeviceTask.cancel(true);
-
-                }
-                if (getBleCurrentVersionTask != null && getBleCurrentVersionTask.getStatus() != AsyncTask.Status.FINISHED) {
-                    getBleCurrentVersionTask.cancel(true);
-                }
-                if (myMessageManager != null) {
-                    myMessageManager.destroyMessageManager();
-                }
-                getActivity().unregisterReceiver(myBleStateBroadcast);
-//                getActivity().unregisterReceiver(systemBleBroadcast);
             }
         });
+        dialog = blueToathDialog.show();
+        initDatas(viewHolderBlueToath.lvSearchBluetooth);
+        startSearchBle();
 
-
-        viewHolderHuXiDialog.btnSave.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                dialog.dismiss();
-            }
-        });
-
-        huxiDialog.setView(view);
-        dialog = huxiDialog.show();
-        initDatas(viewHolderHuXiDialog.edt_imei.getText().toString());
-
-        setGetDataListener(new GetDataListener() {
-            @Override
-            public void getData(String text) {
-                viewHolderHuXiDialog.tvHuxiData.setText(text);
-            }
-        });
-
-        setBuleToothIsConnect(new BuleToothIsConnect() {
-            @Override
-            public void getbuleToothIsConnect(String isConnect) {
-                viewHolderHuXiDialog.btnBluetoothIsconnect.setText(isConnect);
-            }
-        });
     }
 
-
-    private void initDatas(String imei) {
-        getTheNewsVersion(imei);                                                //获取最新版本号
+    private void initDatas(ListView listview) {
+        getTheNewsVersion(listview);                                                //获取最新版本号
         devicelist = new ArrayList<BluetoothDeviceBean>();
         sb = new StringBuffer();
         holder = new HolderBean();
@@ -639,10 +645,11 @@ public class StartMeasurementFragment extends BaseFragment {
         holder.setHeight(183);
         holder.setWeight(78);
         holder.setDevieceNo("B652276134");
+        initTools();
 
     }
 
-    private void getTheNewsVersion(final String imei) {
+    private void getTheNewsVersion(final ListView listview) {
         getBleCurrentVersionTask = (GetBleCurrentVersionTask) new GetBleCurrentVersionTask(getActivity()).execute();
         getBleCurrentVersionTask.setAsyncResponse(new AsyncResponse<ReturnBean<BleVersionMsgBean>>() {
 
@@ -657,7 +664,7 @@ public class StartMeasurementFragment extends BaseFragment {
             public void onDataReceivedSuccess(ReturnBean<BleVersionMsgBean> returnBean) {
                 bleVersionMsg = returnBean.getObject();
                 initTools();                            //初始化工具
-                initBroadcast(imei);                        //定义广播接收
+                initBroadcast(listview);                        //定义广播接收
             }
 
             @Override
@@ -665,14 +672,14 @@ public class StartMeasurementFragment extends BaseFragment {
                     ReturnBean<BleVersionMsgBean> returnBean) {
                 bleVersionMsg = returnBean.getObject();
                 initTools();                            //初始化工具
-                initBroadcast(imei);                        //定义广播接收
+                initBroadcast(listview);                        //定义广播接收
 
             }
         });
     }
 
 
-    private void initBroadcast(final String imei) {
+    private void initBroadcast(final ListView listview) {
         myBleStateBroadcast = new MyBleStateBroadcast();
         IntentFilter intentFilter = new IntentFilter();
         intentFilter.addAction(ConstantUtils.ACTION_UPDATE_DEVICE_LIST);
@@ -683,7 +690,7 @@ public class StartMeasurementFragment extends BaseFragment {
         myBleStateBroadcast.setMyBroadcastResponse(new BroadcastResponse() {
 
             @Override
-            public void onSearchBleSuccess(BluetoothDeviceBean bleDevice) {
+            public void onSearchBleSuccess(final BluetoothDeviceBean bleDevice) {
                 //搜索到蓝牙设备
                 boolean found = false;//记录该条记录是否在list中
                 for (BluetoothDeviceBean device : devicelist) {
@@ -693,26 +700,23 @@ public class StartMeasurementFragment extends BaseFragment {
                     }
                 }
                 if (!found) {
+                    blueHuXiAdapter.getList().clear();
                     devicelist.add(bleDevice);
-                    String tmp = imei;
-                    Log.e(TAG, "tmp: " + tmp);
-                    if (!StringUtils.isEmpty(tmp)) {
-                        IMEI = tmp;
-                    } else {
-                        Toast.makeText(getActivity(), R.string.hint_null_imei, Toast.LENGTH_SHORT).show();
-                        return;
+                    for (int i = 0; i < devicelist.size(); i++) {
+                        BluetoothDeviceBean bluetoothDeviceBean = devicelist.get(i);
+                        blueHuXiAdapter.addDATA(bluetoothDeviceBean);
                     }
+                    blueHuXiAdapter.notifyDataSetChanged();
+                }
 
-
-                    if (bleDevice.getName().equals(IMEI)) {
+                listview.setOnItemClickListener(new AdapterView.OnItemClickListener() {
+                    @Override
+                    public void onItemClick(AdapterView<?> adapterView, View view, int i, long l) {
                         mBluetoothController.stopScanBLE();
                         mBluetoothController.connect(bleDevice);
+                        dialog.dismiss();
                     }
-
-                } else {//断开后重新连接
-
-
-                }
+                });
             }
 
             @Override
@@ -729,13 +733,11 @@ public class StartMeasurementFragment extends BaseFragment {
             @Override
             public void onBleDisconnect() {
                 //蓝牙设备断开连接
-                buleToothIsConnect.getbuleToothIsConnect(getActivity().getResources().getString(R.string.ble_state_disconnect));
             }
 
             @Override
             public void onBleConnect() {
                 //蓝牙设备已匹配上
-                buleToothIsConnect.getbuleToothIsConnect(getActivity().getResources().getString(R.string.ble_state_match));
             }
         });
         //系统蓝牙服务开启监听
@@ -746,27 +748,6 @@ public class StartMeasurementFragment extends BaseFragment {
 
     }
 
-
-    static class ViewHolderHuXiDialog {
-        @BindView(R.id.btn_bluetooth_isconnect)
-        Button btnBluetoothIsconnect;
-        @BindView(R.id.btn_bluetooth_del)
-        Button btnBluetoothDel;
-        @BindView(R.id.btn_bluetooth_connect)
-        Button btnBluetoothConnect;
-        @BindView(R.id.tv_huxi_data)
-        TextView tvHuxiData;
-        @BindView(R.id.btn_cancel)
-        Button btnCancel;
-        @BindView(R.id.btn_save)
-        Button btnSave;
-        @BindView(R.id.edt_imei)
-        EditText edt_imei;
-
-        ViewHolderHuXiDialog(View view) {
-            ButterKnife.bind(this, view);
-        }
-    }
 
 
     private void initTools() {
@@ -799,7 +780,7 @@ public class StartMeasurementFragment extends BaseFragment {
             @Override
             public void matchSuccess() {
                 //成功连接
-                buleToothIsConnect.getbuleToothIsConnect(getActivity().getResources().getString(R.string.ble_state_connect));
+//                buleToothIsConnect.getbuleToothIsConnect(getActivity().getResources().getString(R.string.ble_state_connect));
             }
 
             @Override
@@ -814,10 +795,12 @@ public class StartMeasurementFragment extends BaseFragment {
             @Override
             public void sendDataFromBleDevice(final PefDataFromBleBean pefdata) {
                 final PefDataFromBleBean mypefData = pefdata;
-                getDataListener.getData("日期:" + mypefData.getDate() + "\r\n" + "Pef:" +
+                Log.e(TAG, "日期:" + mypefData.getDate() + "\r\n" + "Pef:" +
                         mypefData.getPefValue() + "\r\n" + "FVC:" + mypefData.getFvcValue() + "\r\n"
-                        + "FEV1:" + mypefData.getFev1Value());
-
+                        + "FEV1:" + mypefData.getFev1Value() );
+                /*getDataListener.getData("日期:" + mypefData.getDate() + "\r\n" + "Pef:" +
+                        mypefData.getPefValue() + "\r\n" + "FVC:" + mypefData.getFvcValue() + "\r\n"
+                        + "FEV1:" + mypefData.getFev1Value());*/
             }
         });
         mySearchBleDeviceTask = new SearchBleDeviceTask(mBluetoothController);
@@ -833,13 +816,16 @@ public class StartMeasurementFragment extends BaseFragment {
             Toast.makeText(getActivity(), R.string.ble_judgement_notsupport, Toast.LENGTH_SHORT).show();
             return;//手机不支持蓝牙
         }
-        if (!BluetoothController.getInstance().isBleOpen()) {// 如果蓝牙还没有打开
+
+        if (!mBluetoothController.isBleOpen()) {// 如果蓝牙还没有打开
             Toast.makeText(getActivity(), R.string.ble_state_ble_open, Toast.LENGTH_SHORT).show();
             return;
         }
+
         try {
             mySearchBleDeviceTask.execute();
         } catch (Exception e) {
+            Log.e(TAG, "startSearchBleException: " + e.getMessage());
             return;
         }
 
@@ -870,26 +856,6 @@ public class StartMeasurementFragment extends BaseFragment {
             }
         }
     }
-
-    private GetDataListener getDataListener;
-    private BuleToothIsConnect buleToothIsConnect;
-
-    public static interface GetDataListener {
-        void getData(String text);
-    }
-
-    public void setGetDataListener(GetDataListener getDataListener) {
-        this.getDataListener = getDataListener;
-    }
-
-
-    public static interface BuleToothIsConnect {
-        void getbuleToothIsConnect(String isConnect);
-    }
-
-    public void setBuleToothIsConnect(BuleToothIsConnect buleToothIsConnect) {
-        this.buleToothIsConnect = buleToothIsConnect;
-    }*/
 
 
 }

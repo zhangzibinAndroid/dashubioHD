@@ -192,7 +192,6 @@
     <string name="ST_segment_numerical">ST段数值：</string>
     <string name="hint_tv_IMEI">IMEI号</string>
     <string name="hint_input_IMEI">请输入IMEI号</string>
-    <string name="hint_null_imei">IMEI号为空,请填入IMEI号</string>
     <string name="hint_updateprogram">当前的设备版本过旧,稍后需要更新程序...</string>
     <string name="ble_hint_operation">请操作</string>
     <string name="hint_data">数据显示如下:</string>
@@ -207,8 +206,8 @@
     <string name="ble_state_transmission">传输中</string>
     <string name="ble_state_ble_open">请打开蓝牙</string>
     <string name="ble_judgement_notsupport">手机不支持蓝牙</string>
-
-
+    <string name="text_content">PEF(最大呼气流量)为个人预计值的_，属于_范围；FEV1(一秒用力呼气容积)和FVC(用力肺活量)反应气流受限程度为正常</string>
+    <string name="text_content_second">基于舒张压后的FEV1值判断，在FEV1/FVC&lt;70%的情况下</string>
     <!-- TODO: Remove or change this placeholder text -->
     <string name="hello_blank_fragment">Hello blank fragment</string>
 </resources>
