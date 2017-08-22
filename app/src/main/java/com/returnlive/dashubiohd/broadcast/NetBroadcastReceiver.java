@@ -6,9 +6,13 @@ import android.content.Intent;
 import android.util.Log;
 import android.widget.Toast;
 
+import com.contec.jar.BC401.BC401_Struct;
 import com.returnlive.dashubiohd.bean.LoginBean;
 import com.returnlive.dashubiohd.bean.UserListBean;
+import com.returnlive.dashubiohd.bean.dbmanagerbean.BiochemicalBean;
+import com.returnlive.dashubiohd.bean.dbmanagerbean.BreathingBean;
 import com.returnlive.dashubiohd.bean.dbmanagerbean.LoginUserBean;
+import com.returnlive.dashubiohd.bean.dbmanagerbean.MultiDataBean;
 import com.returnlive.dashubiohd.constant.ErrorCode;
 import com.returnlive.dashubiohd.constant.InterfaceUrl;
 import com.returnlive.dashubiohd.db.DBManager;
@@ -177,24 +181,27 @@ public class NetBroadcastReceiver extends BroadcastReceiver {
                             mResult = mResult + "\n" + "------------------------------------------" + "\n";
                         }
 
-                        for (int i = userList.size()-1; i >-1; i--) {
+                        for (int i = userList.size() - 1; i > -1; i--) {
                             UserListBean.UserListDataBean users = userList.get(i);
                             String userName = users.getName();
                             String sex = users.getSex();
                             String userid = users.getId();
                             String card_id = users.getCard_id();
                             String phone = users.getPhone();
-                            if (mResult.indexOf(card_id)!=-1){
+                            if (mResult.indexOf(card_id) != -1) {
                                 //数据库有数据
-                            }else {
-                                dbManager.addUserData(userid,userName,sex,card_id,phone);
+                            } else {
+                                dbManager.addUserData(userid, userName, sex, card_id, phone);
                             }
                         }
 
 
                     } catch (Exception e) {
-                        Log.e(TAG, "获取用户列表接口解析失败: "+e.getMessage() );
+                        Log.e(TAG, "获取用户列表接口解析失败: " + e.getMessage());
                     }
+
+                    pushData();
+                    Toast.makeText(context, "离线数据上传中...", Toast.LENGTH_SHORT).show();
 
                 }
 
@@ -202,4 +209,197 @@ public class NetBroadcastReceiver extends BroadcastReceiver {
         });
     }
 
+    //上传数据
+    private void pushData() {
+        ArrayList<MultiDataBean> multiList = dbManager.searchMultiDataList();
+        for (MultiDataBean multiDataBean : multiList) {
+            String id = multiDataBean.getId();
+            String date = multiDataBean.getDate();
+            String rhythm = multiDataBean.getRhythm();
+            String pulse = multiDataBean.getPulse();
+            String sysdif = multiDataBean.getSysdif();
+            String sys = multiDataBean.getSys();
+            String dias = multiDataBean.getDias();
+            String mean = multiDataBean.getMean();
+            String oxygen = multiDataBean.getOxygen();
+            String resp = multiDataBean.getResp();
+            String st = multiDataBean.getSt();
+
+            ArrayList<UserListBean.UserListDataBean> userList = dbManager.searchDataWithId(id);
+            for (UserListBean.UserListDataBean userListDataBean : userList) {
+                String mid = userListDataBean.getId();
+                pushMultiData(mid, date, rhythm, pulse, sysdif, sys, dias, mean, oxygen, resp, st);
+            }
+
+        }
+        //清空多功能参数检测仪数据表
+        dbManager.clearMultiDataTable();
+
+        ArrayList<BC401_Struct> bcList = dbManager.searchBCData();
+        for (BC401_Struct bcBean : bcList) {
+            String ID = bcBean.ID + "";
+            String URO = bcBean.URO + "";
+            String BIL = bcBean.BIL + "";
+            String GLU = bcBean.GLU + "";
+            String PH = bcBean.PH + "";
+            String LEU = bcBean.LEU + "";
+            String BLD = bcBean.BLD + "";
+            String KET = bcBean.KET + "";
+            String PRO = bcBean.PRO + "";
+            String NIT = bcBean.NIT + "";
+            String SG = bcBean.SG + "";
+            String VC = bcBean.VC + "";
+            ArrayList<UserListBean.UserListDataBean> userList = dbManager.searchDataWithId(ID);
+            for (UserListBean.UserListDataBean userListDataBean : userList) {
+                String mid = userListDataBean.getId();
+                pushBCData(mid, URO, BIL, GLU, PH, LEU, BLD, KET, PRO, NIT, SG, VC);
+            }
+        }
+        //清空尿液检测仪数据表
+        dbManager.clearBCDataTable();
+
+        ArrayList<BiochemicalBean> bioList = dbManager.searchBiochemicalData();
+        for (BiochemicalBean biochemicalBean : bioList) {
+            String id = biochemicalBean.getId();
+            String message = biochemicalBean.getMessage();
+            ArrayList<UserListBean.UserListDataBean> userList = dbManager.searchDataWithId(id);
+            for (UserListBean.UserListDataBean userListDataBean : userList) {
+                String mid = userListDataBean.getId();
+                pushBiochemicalData(mid, message);
+            }
+        }
+
+        //清空干式生化仪数据表
+        dbManager.clearBiochemicalTable();
+
+        ArrayList<BreathingBean> breathList = dbManager.searchBreathingData();
+        for (BreathingBean breathingBean : breathList) {
+            String id = breathingBean.getId();
+            String date = breathingBean.getDate();
+            String tvPef = breathingBean.getTvPef();
+            String tvFvc = breathingBean.getTvFvc();
+            String tvFev1 = breathingBean.getTvFev1();
+            ArrayList<UserListBean.UserListDataBean> userList = dbManager.searchDataWithId(id);
+            for (UserListBean.UserListDataBean userListDataBean : userList) {
+                String mid = userListDataBean.getId();
+                pushBreathData(mid, date, tvPef, tvFvc, tvFev1);
+            }
+        }
+        //清空呼吸机数据表
+        dbManager.clearBreathingTable();
+
+    }
+
+
+    //上传多功能参数检测仪的数据
+    private void pushMultiData(String mid, String date, String rhythm, String pulse, String sysdif, String sys, String dias, String mean, String oxygen, String resp, String st) {
+        OkHttpUtils.post().url(InterfaceUrl.MULTIPARAMETERMONITORDATA_URL + sessonWithCode + "/mid/" + mid)
+                .addParams("date", date)
+                .addParams("rhythm", rhythm)
+                .addParams("pulse", pulse)
+                .addParams("sysdif", sysdif)
+                .addParams("sys", sys)
+                .addParams("dias", dias)
+                .addParams("mean", mean)
+                .addParams("oxygen", oxygen)
+                .addParams("resp", resp)
+                .addParams("st", st)
+                .build().execute(new StringCallback() {
+            @Override
+            public void onError(Call call, Exception e, int id) {
+                Log.e(TAG, "多功能参数检测仪离线上传数据失败: " + e.getMessage());
+            }
+
+            @Override
+            public void onResponse(String response, int id) {
+                if (response.indexOf(ErrorCode.SUCCESS) > 0) {
+                    Log.e(TAG, "多功能参数检测仪离线上传数据成功: " + response);
+                } else {
+                    Log.e(TAG, "多功能参数检测仪离线上传数据异常: " + response);
+                }
+            }
+        });
+    }
+
+    //上传尿液检测仪数据表中数据
+    private void pushBCData(String mid, String uro, String bil, String glu, String ph, String leu, String bld, String ket, String pro, String nit, String sg, String vc) {
+
+        OkHttpUtils.post().url(InterfaceUrl.BCDATA_URL + sessonWithCode + "/m_id/" + mid)
+//                .addParams("addtime", uro)
+                .addParams("URO", uro)
+                .addParams("BIL", bil)
+                .addParams("GLU", glu)
+                .addParams("PH", ph)
+                .addParams("LEU", leu)
+                .addParams("BLD", bld)
+                .addParams("KET", ket)
+                .addParams("PRO", pro)
+                .addParams("NIT", nit)
+                .addParams("SG", sg)
+                .addParams("VC", vc)
+                .build().execute(new StringCallback() {
+            @Override
+            public void onError(Call call, Exception e, int id) {
+                Log.e(TAG, "上传尿液检测仪数据失败: " + e.getMessage());
+            }
+
+            @Override
+            public void onResponse(String response, int id) {
+                if (response.indexOf(ErrorCode.SUCCESS) > 0) {
+                    Log.e(TAG, "上传尿液检测仪数据成功: " + response);
+                } else {
+                    Log.e(TAG, "上传尿液检测仪数据异常: " + response);
+                }
+            }
+        });
+    }
+
+    //上传干式生化仪数据表中数据
+    private void pushBiochemicalData(String mid, String message) {
+        OkHttpUtils.post().url(InterfaceUrl.GANSHIDATA_URL + sessonWithCode + "/m_id/" + mid)
+                .addParams("val", message)
+                .build().execute(new StringCallback() {
+            @Override
+            public void onError(Call call, Exception e, int id) {
+                Log.e(TAG, "干式生化仪上传数据失败: " + e.getMessage());
+            }
+
+            @Override
+            public void onResponse(String response, int id) {
+                if (response.indexOf(ErrorCode.SUCCESS) > 0) {
+                    Log.e(TAG, "干式生化仪上传数据成功: " + response);
+                } else {
+                    Log.e(TAG, "干式生化仪上传数据异常: " + response);
+                }
+            }
+        });
+    }
+
+
+    //上传呼吸数据表中的数据
+    private void pushBreathData(String mid, String date, String tvPef, String tvFvc, String tvFev1) {
+        OkHttpUtils.post().url(InterfaceUrl.BREATHDATA_URL + sessonWithCode + "/mid/" + mid)
+                .addParams("date", date)
+                .addParams("pef", tvPef)
+                .addParams("fvc", tvFvc)
+                .addParams("fev1", tvFev1)
+                .build().execute(new StringCallback() {
+            @Override
+            public void onError(Call call, Exception e, int id) {
+                Log.e(TAG, "上传呼吸数据表中的数据失败: " + e.getMessage());
+
+            }
+
+            @Override
+            public void onResponse(String response, int id) {
+                if (response.indexOf(ErrorCode.SUCCESS) > 0) {
+                    Log.e(TAG, "上传呼吸数据表中的数据成功: " + response);
+
+                }else {
+                    Log.e(TAG, "上传呼吸数据表中的数据异常: " + response);
+
+                }
+            }
+        });
+    }
 }

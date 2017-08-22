@@ -68,6 +68,7 @@ import com.returnlive.dashubiohd.broadcast.MyBleStateBroadcast;
 import com.returnlive.dashubiohd.constant.Constants;
 import com.returnlive.dashubiohd.constant.ErrorCode;
 import com.returnlive.dashubiohd.constant.InterfaceUrl;
+import com.returnlive.dashubiohd.db.DBManager;
 import com.returnlive.dashubiohd.ecg_single.OnCallBack;
 import com.returnlive.dashubiohd.ecg_single.SingleLeadUtil;
 import com.returnlive.dashubiohd.ecg_single.ble.JPBleNormalData;
@@ -75,6 +76,7 @@ import com.returnlive.dashubiohd.ecg_single.entity.Data;
 import com.returnlive.dashubiohd.gson.GsonParsing;
 import com.returnlive.dashubiohd.service.MyBLEService;
 import com.returnlive.dashubiohd.utils.DryDetectResult;
+import com.returnlive.dashubiohd.utils.NetUtil;
 import com.returnlive.dashubiohd.utils.Utils;
 import com.returnlive.dashubiohd.view.EcgPathOne;
 import com.returnlive.dashubiohd.view.EcgPathSecond;
@@ -85,9 +87,7 @@ import com.zhy.http.okhttp.callback.StringCallback;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Date;
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
 
 import app.akexorcist.bluetotohspp.library.BluetoothConnection;
 import app.akexorcist.bluetotohspp.library.BluetoothSPP;
@@ -138,6 +138,7 @@ public class StartMeasurementFragment extends BaseFragment {
     }
 
     private void initView() {
+        dbManager = new DBManager(getActivity());
         isBuleConnect = false;
         myApplication = new DashuHdApplication();
         mGson = new Gson();
@@ -220,20 +221,34 @@ public class StartMeasurementFragment extends BaseFragment {
                 //保存数据
                 singleLeadUtil.disconnect();//点击取消断开蓝夜连接
                 dialog.dismiss();
-                new Thread(new Runnable() {
-                    @Override
-                    public void run() {
-                        saveMultiParameterMonitorData(time + "", viewHolder.tvHeartRateColon.getText().toString(),
-                                viewHolder.tvPulse.getText().toString(),
-                                viewHolder.tvSystolicBloodPressureDifference.getText().toString(),
-                                viewHolder.tvSystolicBloodPressure.getText().toString(),
-                                viewHolder.tvDiastolicBloodPressure.getText().toString(),
-                                viewHolder.tvTheAveragePressure.getText().toString(),
-                                viewHolder.tvOxygen.getText().toString(),
-                                viewHolder.tvBreathingRate.getText().toString(),
-                                viewHolder.tvStSegmentNumerical.getText().toString());
-                    }
-                }).start();
+
+                if (NetUtil.isNetworkConnectionActive(getActivity())) {
+                    new Thread(new Runnable() {
+                        @Override
+                        public void run() {
+                            saveMultiParameterMonitorData(time + "", viewHolder.tvHeartRateColon.getText().toString(),
+                                    viewHolder.tvPulse.getText().toString(),
+                                    viewHolder.tvSystolicBloodPressureDifference.getText().toString(),
+                                    viewHolder.tvSystolicBloodPressure.getText().toString(),
+                                    viewHolder.tvDiastolicBloodPressure.getText().toString(),
+                                    viewHolder.tvTheAveragePressure.getText().toString(),
+                                    viewHolder.tvOxygen.getText().toString(),
+                                    viewHolder.tvBreathingRate.getText().toString(),
+                                    viewHolder.tvStSegmentNumerical.getText().toString());
+                        }
+                    }).start();
+                } else {
+                    dbManager.addMultiData(Constants.id, time + "", viewHolder.tvHeartRateColon.getText().toString(),
+                            viewHolder.tvPulse.getText().toString(),
+                            viewHolder.tvSystolicBloodPressureDifference.getText().toString(),
+                            viewHolder.tvSystolicBloodPressure.getText().toString(),
+                            viewHolder.tvDiastolicBloodPressure.getText().toString(),
+                            viewHolder.tvTheAveragePressure.getText().toString(),
+                            viewHolder.tvOxygen.getText().toString(),
+                            viewHolder.tvBreathingRate.getText().toString(),
+                            viewHolder.tvStSegmentNumerical.getText().toString());
+                    Toast.makeText(getActivity(), "本地保存成功", Toast.LENGTH_SHORT).show();
+                }
 
 
             }
@@ -286,7 +301,6 @@ public class StartMeasurementFragment extends BaseFragment {
                 .addParams("oxygen", oxygen)
                 .addParams("resp", resp)
                 .addParams("st", st)
-
                 .build().execute(new StringCallback() {
             @Override
             public void onError(Call call, Exception e, int id) {
@@ -740,12 +754,19 @@ public class StartMeasurementFragment extends BaseFragment {
                 final String tvFvc = viewHolderHuXiMessage.tvFvc.getText().toString();
                 final String tvFev1 = viewHolderHuXiMessage.tvFev1.getText().toString();
                 //保存数据接口
-                new Thread(new Runnable() {
-                    @Override
-                    public void run() {
-                        huxiInterface(date, tvPef, tvFvc, tvFev1);
-                    }
-                }).start();
+                if (NetUtil.isNetworkConnectionActive(getActivity())) {
+                    new Thread(new Runnable() {
+                        @Override
+                        public void run() {
+                            huxiInterface(date, tvPef, tvFvc, tvFev1);
+                        }
+                    }).start();
+                } else {
+                    mBluetoothController.stopConnectBLe();//保存失败或成功后断开蓝牙
+                    dbManager.addBreathingData(Constants.id, date, tvPef, tvFvc, tvFev1);
+                    Toast.makeText(getActivity(), "本地数据保存成功", Toast.LENGTH_SHORT).show();
+                }
+
             }
         });
 
@@ -822,6 +843,7 @@ public class StartMeasurementFragment extends BaseFragment {
             @Override
             public void onError(Call call, Exception e, int id) {
                 toastOnUi("保存失败，请检查网络");
+                dialog.dismiss();
                 mBluetoothController.stopConnectBLe();//保存失败或成功后断开蓝牙
 
             }
@@ -829,6 +851,7 @@ public class StartMeasurementFragment extends BaseFragment {
             @Override
             public void onResponse(String response, int id) {
                 Log.e(TAG, "保存成功: " + response);
+                dialog.dismiss();
                 toastOnUi("保存成功");
                 mBluetoothController.stopConnectBLe();//保存失败或成功后断开蓝牙
             }
@@ -1197,6 +1220,7 @@ public class StartMeasurementFragment extends BaseFragment {
                         //用户代码
                         if (mUrineData != null && mUrineData.Structs != null) {
                             String jsonData = mGson.toJson(mUrineData.Structs);
+                            Log.e(TAG, "jsonData: "+jsonData );
                             dialog.dismiss();
                             showNiaoJiDataDialog(mUrineData.Structs);
                         }
@@ -1222,8 +1246,9 @@ public class StartMeasurementFragment extends BaseFragment {
     };
 
     private NiaoJiAdapter niaoJiAdapter;
+
     //尿液分析仪显示数据
-    private void showNiaoJiDataDialog(final ArrayList<BC401_Struct> list){
+    private void showNiaoJiDataDialog(final ArrayList<BC401_Struct> list) {
         AlertDialog.Builder ganshiDataDialog = new AlertDialog.Builder(getActivity());
         View view = View.inflate(getActivity(), R.layout.dialog_dry_analyzer_data, null);
         ViewHolderNiaoJi viewHolderNiaoJi = new ViewHolderNiaoJi(view);
@@ -1249,75 +1274,101 @@ public class StartMeasurementFragment extends BaseFragment {
         viewHolderNiaoJi.saveBtn.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
-                new Thread(new Runnable() {
-                    @Override
-                    public void run() {
-//                        bcInterface(list);
+                if (NetUtil.isNetworkConnectionActive(getActivity())) {
+                    new Thread(new Runnable() {
+                        @Override
+                        public void run() {
+                            bcInterface(list);
+                        }
+                    }).start();
+                } else {
+                    dialog.dismiss();
+                    for (BC401_Struct bcBean : list) {
+                        String URO = bcBean.URO + "";
+                        String BIL = bcBean.BIL + "";
+                        String GLU = bcBean.GLU + "";
+                        String PH = bcBean.PH + "";
+                        String LEU = bcBean.LEU + "";
+                        String BLD = bcBean.BLD + "";
+                        String KET = bcBean.KET + "";
+                        String PRO = bcBean.PRO + "";
+                        String NIT = bcBean.NIT + "";
+                        String SG = bcBean.SG + "";
+                        String VC = bcBean.VC + "";
+                        dbManager.addBCData(Constants.id, URO, BLD, BIL, KET, GLU, PRO, PH, NIT, LEU, SG, VC);
                     }
-                }).start();
+                    Toast.makeText(getActivity(), "本地保存数据成功", Toast.LENGTH_SHORT).show();
+                }
+
+
             }
         });
-
-
-
-
-
         dialog = ganshiDataDialog.show();
-
-
-
     }
 
     //尿液检测仪上传数据接口
     private void bcInterface(ArrayList<BC401_Struct> list) {
-        String l_danyuan = "";
-        String d_hongsu = "";
-        String tongti = "";
-        String d_baizhi = "";
-        String b_xibao = "";
-        String p_taotang = "";
-        String l_bizhong = "";
-        String ph = "";
-        String l_yingxue = "";
-        String yx_suanyan = "";
-        String kh_xuesuan = "";
-        String vc = "";
+        String URO = "";
+        String BLD = "";
+        String BIL = "";
+        String KET = "";
+        String GLU = "";
+        String PRO = "";
+        String NIT = "";
+        String LEU = "";
+        String SG = "";
+        String PH = "";
+        String VC = "";
+        final long time = System.currentTimeMillis();
+
         for (int i = 0; i < list.size(); i++) {
             BC401_Struct mBC401Struct = list.get(i);
-            l_danyuan = mBC401Struct.URO+"";
-            d_hongsu = mBC401Struct.BIL+"";
-            p_taotang = mBC401Struct.GLU+"";
-            ph = mBC401Struct.PH+"";
-            b_xibao = mBC401Struct.LEU+"";
-            l_yingxue = mBC401Struct.BLD+"";
-            tongti = mBC401Struct.KET+"";
-            d_baizhi = mBC401Struct.PRO+"";
-            yx_suanyan = mBC401Struct.NIT+"";
-            l_bizhong = mBC401Struct.SG+"";
-            vc = mBC401Struct.VC+"";
+            URO = mBC401Struct.URO + "";
+            BIL = mBC401Struct.BIL + "";
+            GLU = mBC401Struct.GLU + "";
+            PH = mBC401Struct.PH + "";
+            LEU = mBC401Struct.LEU + "";
+            BLD = mBC401Struct.BLD + "";
+            KET = mBC401Struct.KET + "";
+            PRO = mBC401Struct.PRO + "";
+            NIT = mBC401Struct.NIT + "";
+            SG = mBC401Struct.SG + "";
+            VC = mBC401Struct.VC + "";
+
+
+            Log.e(TAG, "bcInterfaceUrl: "+InterfaceUrl.BCDATA_URL + sessonWithCode + "/m_id/" + HomeActivity.mid );
+            OkHttpUtils.post().url(InterfaceUrl.BCDATA_URL + sessonWithCode + "/m_id/" + HomeActivity.mid)
+                    .addParams("addtime", String.valueOf(time))
+                    .addParams("URO", URO)
+                    .addParams("BIL", BIL)
+                    .addParams("GLU", GLU)
+                    .addParams("PH", PH)
+                    .addParams("LEU", LEU)
+                    .addParams("BLD", BLD)
+                    .addParams("KET", KET)
+                    .addParams("PRO", PRO)
+                    .addParams("NIT", NIT)
+                    .addParams("SG", SG)
+                    .addParams("VC", VC)
+                    .build().execute(new StringCallback() {
+                @Override
+                public void onError(Call call, Exception e, int id) {
+                    dialog.dismiss();
+                    disconectAllDevices();
+                    toastOnUi("保存数据失败，请检查网络");
+                }
+
+                @Override
+                public void onResponse(String response, int id) {
+                    dialog.dismiss();
+                    disconectAllDevices();
+                    Message msg = new Message();
+                    msg.obj = response;
+                    bcHandler.sendMessage(msg);
+                }
+            });
         }
-        Map<String,ArrayList> map = new HashMap<>();
-        map.put("val",list);
 
-        OkHttpUtils.post().url(InterfaceUrl.BCDATA_URL+sessonWithCode+"/m_id/"+HomeActivity.mid)
-
-                .build().execute(new StringCallback() {
-            @Override
-            public void onError(Call call, Exception e, int id) {
-                dialog.dismiss();
-                disconectAllDevices();
-                toastOnUi("保存数据失败，请检查网络");
-            }
-
-            @Override
-            public void onResponse(String response, int id) {
-                dialog.dismiss();
-                disconectAllDevices();
-                Message msg = new Message();
-                msg.obj = response;
-                bcHandler.sendMessage(msg);
-            }
-        });
     }
 
     static class ViewHolderNiaoJi {
@@ -1454,12 +1505,19 @@ public class StartMeasurementFragment extends BaseFragment {
         viewHolderGanshiData.saveBtn.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
-                new Thread(new Runnable() {
-                    @Override
-                    public void run() {
-                        upGanShiDataInterface(mDryReceivedData);
-                    }
-                }).start();
+                if (NetUtil.isNetworkConnectionActive(getActivity())) {
+                    new Thread(new Runnable() {
+                        @Override
+                        public void run() {
+                            upGanShiDataInterface(mDryReceivedData);
+                        }
+                    }).start();
+                } else {
+                    dbManager.addBiochemicalData(Constants.id, mDryReceivedData);
+                    Toast.makeText(getActivity(), "本地数据保存成功", Toast.LENGTH_SHORT).show();
+                }
+
+
             }
         });
 
@@ -1563,7 +1621,7 @@ public class StartMeasurementFragment extends BaseFragment {
     };
 
 
-    private Handler bcHandler = new Handler(){
+    private Handler bcHandler = new Handler() {
         @Override
         public void handleMessage(Message msg) {
             super.handleMessage(msg);

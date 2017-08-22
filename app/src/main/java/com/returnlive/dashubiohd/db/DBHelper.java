@@ -29,9 +29,10 @@ public class DBHelper extends SQLiteOpenHelper {
     public void onCreate(SQLiteDatabase db) {
         db.execSQL("CREATE TABLE IF NOT EXISTS " + LOGIN_TABLE_NAME + "(_id INTEGER PRIMARY KEY AUTOINCREMENT, name STRING,pwds STRING)");
         db.execSQL("CREATE TABLE IF NOT EXISTS " + USER_TABLE_NAME + "(_id INTEGER PRIMARY KEY AUTOINCREMENT, mid,name STRING,sex STRING,card_no STRING,phone STRING)");
-        db.execSQL("CREATE TABLE IF NOT EXISTS " + MULTI_TABLE_NAME + "(_id INTEGER PRIMARY KEY AUTOINCREMENT, rhythm STRING,pulse STRING,sysdif STRING,sys STRING,dias STRING,mean STRING,oxygen STRING,resp STRING,st STRING)");
-
-
+        db.execSQL("CREATE TABLE IF NOT EXISTS " + MULTI_TABLE_NAME + "(_id STRING, date STRING, rhythm STRING,pulse STRING,sysdif STRING,sys STRING,dias STRING,mean STRING,oxygen STRING,resp STRING,st STRING)");
+        db.execSQL("CREATE TABLE IF NOT EXISTS " + BC_TABLE_NAME + "(_id,URO STRING,BLD STRING,BIL STRING,KET STRING,GLU STRING,PRO STRING,PH STRING,NIT STRING,LEU STRING,SG STRING,VC STRING)");
+        db.execSQL("CREATE TABLE IF NOT EXISTS " + BIOCHEMICAL_TABLE_NAME + "(_id,message STRING)");
+        db.execSQL("CREATE TABLE IF NOT EXISTS " + BREATHING_TABLE_NAME + "(_id,date STRING,tvPef STRING,tvFvc STRING,tvFev1 STRING)");
     }
 
     //数据库第一次创建时onCreate方法会被调用，我们可以执行创建表的语句，当系统发现版本变化之后，会调用onUpgrade方法，我们可以执行修改表结构等语句

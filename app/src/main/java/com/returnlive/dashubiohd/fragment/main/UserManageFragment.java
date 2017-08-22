@@ -22,6 +22,7 @@ import com.returnlive.dashubiohd.base.BaseFragment;
 import com.returnlive.dashubiohd.bean.ErrorCodeBean;
 import com.returnlive.dashubiohd.bean.UserListBean;
 import com.returnlive.dashubiohd.bean.UserLoginBean;
+import com.returnlive.dashubiohd.constant.Constants;
 import com.returnlive.dashubiohd.constant.ErrorCode;
 import com.returnlive.dashubiohd.constant.InterfaceUrl;
 import com.returnlive.dashubiohd.db.DBManager;
@@ -97,7 +98,6 @@ public class UserManageFragment extends BaseFragment {
             }).start();
         }else {
             ArrayList<UserListBean.UserListDataBean> userList = dbManager.searchUserList();
-//            userListAdapter.addAllDataToMyadapter(userList);
             for (int i = userList.size()-1; i >-1; i--) {
                 UserListBean.UserListDataBean bean = userList.get(i);
                 userListAdapter.addDATA(bean);
@@ -120,6 +120,7 @@ public class UserManageFragment extends BaseFragment {
                     ArrayList<UserListBean.UserListDataBean> userList = dbManager.searchUserList();
                     UserListBean.UserListDataBean bean = userList.get(userList.size()-1-position);
                     JumpActivityWithUserData(HomeActivity.class, bean.getName(), bean.getId());
+                    Constants.id = (userList.size()-position)+"";
                 }
 
 
