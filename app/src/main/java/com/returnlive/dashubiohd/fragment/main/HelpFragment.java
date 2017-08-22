@@ -86,7 +86,7 @@ public class HelpFragment extends BaseFragment {
         OkHttpUtils.get().url(InterfaceUrl.HELP_URL + sessonWithCode).build().execute(new StringCallback() {
             @Override
             public void onError(Call call, Exception e, int id) {
-                toastOnUi("获取信息失败，请检查网络");
+//                toastOnUi("获取信息失败，请检查网络");
             }
 
             @Override

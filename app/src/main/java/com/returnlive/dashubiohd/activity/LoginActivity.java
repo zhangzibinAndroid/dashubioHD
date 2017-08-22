@@ -18,7 +18,11 @@ import android.widget.Toast;
 import com.returnlive.dashubiohd.R;
 import com.returnlive.dashubiohd.application.DashuHdApplication;
 import com.returnlive.dashubiohd.base.BaseActivity;
+import com.returnlive.dashubiohd.bean.dbmanagerbean.LoginUserBean;
 import com.returnlive.dashubiohd.constant.InterfaceUrl;
+import com.returnlive.dashubiohd.utils.NetUtil;
+
+import java.util.ArrayList;
 
 import butterknife.ButterKnife;
 import butterknife.OnClick;
@@ -62,7 +66,7 @@ public class LoginActivity extends BaseActivity {
         Button btn_reg = (Button) loginView.findViewById(R.id.btn_reg);
         ImageView cancle = (ImageView) loginView.findViewById(R.id.cancle);
         sharedPreferences = getPreferences(Context.MODE_PRIVATE);
-        String phone =  sharedPreferences.getString("phone", "");
+        String phone = sharedPreferences.getString("phone", "");
         String password = sharedPreferences.getString("password", "");
         et_account.setText(phone);
         et_password.setText(password);
@@ -88,13 +92,33 @@ public class LoginActivity extends BaseActivity {
                     return;
                 }
 
-                new Thread(new Runnable() {
-                    @Override
-                    public void run() {
-                        equipmentLoginInterface(InterfaceUrl.LOGIN_URL,name,mPassword);
-
+                //如果网络可用，则调用登录接口
+                if (NetUtil.isNetworkConnectionActive(LoginActivity.this)) {
+                    new Thread(new Runnable() {
+                        @Override
+                        public void run() {
+                            equipmentLoginInterface(InterfaceUrl.LOGIN_URL, name, mPassword);
+                        }
+                    }).start();
+                } else {
+                    //如果网络不可用，则查询数据库，设备有数据则登录，无则不予通过
+                    ArrayList<LoginUserBean> loginUserBeanList = new ArrayList<>();
+                    loginUserBeanList = dbManager.searchLoginData(name,mPassword);
+                    String result = "";
+                    for (LoginUserBean loginUserBean : loginUserBeanList) {
+                        result = result + String.valueOf(loginUserBean._id) + "|" + loginUserBean.name
+                                + "|" + loginUserBean.pwds ;
+                        result = result + "\n" + "------------------------------------------" + "\n";
                     }
-                }).start();
+
+                    if (result.indexOf(name)!=-1&&result.indexOf(mPassword)!=-1) {
+                        //数据库有数据
+                        JumpActivity(MainActivity.class);
+                    }else {
+                        toastOnUi("数据库无此设备，请先在线登录一次");
+                    }
+                    progressDialog.dismiss();
+                }
 
 
             }
@@ -206,7 +230,6 @@ public class LoginActivity extends BaseActivity {
                     Toast.makeText(LoginActivity.this, getResources().getString(R.string.please_input_verification_code), Toast.LENGTH_SHORT).show();
                     return;
                 }
-
 
                 new Thread(new Runnable() {
                     @Override

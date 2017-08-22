@@ -2,6 +2,7 @@ package com.returnlive.dashubiohd.activity;
 
 import android.content.Intent;
 import android.os.Bundle;
+import android.os.Message;
 import android.view.KeyEvent;
 import android.view.View;
 import android.view.WindowManager;
@@ -13,6 +14,7 @@ import com.returnlive.dashubiohd.R;
 import com.returnlive.dashubiohd.application.DashuHdApplication;
 import com.returnlive.dashubiohd.base.BaseActivity;
 import com.returnlive.dashubiohd.bean.EventLoginMessage;
+import com.returnlive.dashubiohd.constant.InterfaceUrl;
 import com.returnlive.dashubiohd.fragment.main.HelpFragment;
 import com.returnlive.dashubiohd.fragment.main.MainFirstFragment;
 import com.returnlive.dashubiohd.fragment.main.UserLoginFragment;
@@ -23,6 +25,8 @@ import com.returnlive.dashubiohd.fragment.other.CameraFragment;
 import com.returnlive.dashubiohd.fragment.other.HelpDetailFragment;
 import com.returnlive.dashubiohd.view.RoundImageView;
 import com.zhy.autolayout.AutoFrameLayout;
+import com.zhy.http.okhttp.OkHttpUtils;
+import com.zhy.http.okhttp.callback.StringCallback;
 
 import org.greenrobot.eventbus.EventBus;
 import org.greenrobot.eventbus.Subscribe;
@@ -33,6 +37,7 @@ import butterknife.BindViews;
 import butterknife.ButterKnife;
 import butterknife.OnClick;
 import butterknife.Unbinder;
+import okhttp3.Call;
 
 
 /**
@@ -42,8 +47,6 @@ import butterknife.Unbinder;
  * 描述： 主页面
  */
 public class MainActivity extends BaseActivity {
-
-
     @BindView(R.id.logo)
     ImageView logo;
     @BindView(R.id.img_user)
@@ -101,9 +104,11 @@ public class MainActivity extends BaseActivity {
             if ((System.currentTimeMillis() - exitTime) > 2000) {//两秒内再次点击返回则退出
                 Toast.makeText(getApplicationContext(), "再按一次退出程序",
                         Toast.LENGTH_SHORT).show();
+                dbManager.closeDB();//退出程序关闭数据库
                 exitTime = System.currentTimeMillis();
             } else {
                 DashuHdApplication.clearActivity();
+                dbManager.closeDB();//退出程序关闭数据库
                 System.exit(0);
             }
             return true;
@@ -195,4 +200,7 @@ public class MainActivity extends BaseActivity {
         unbinder.unbind();
         EventBus.getDefault().unregister(this);
     }
+
+
+
 }

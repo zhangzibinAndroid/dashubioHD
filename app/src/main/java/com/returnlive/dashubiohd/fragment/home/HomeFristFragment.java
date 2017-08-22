@@ -6,6 +6,7 @@ import android.os.Handler;
 import android.os.Message;
 import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -45,7 +46,7 @@ import static com.returnlive.dashubiohd.activity.HomeActivity.mid;
  */
 public class HomeFristFragment extends BaseFragment {
 
-
+    private static final String TAG = "HomeFristFragment";
     @BindView(R.id.tv_time)
     TextView tvTime;
     @BindView(R.id.lv_message_home)
@@ -97,7 +98,7 @@ public class HomeFristFragment extends BaseFragment {
                 .addParams("m_id", mid).build().execute(new StringCallback() {
             @Override
             public void onError(Call call, Exception e, int id) {
-                toastOnUi("获取列表异常，请检查网络");
+//                toastOnUi("获取列表异常，请检查网络");
 
             }
 
@@ -146,7 +147,7 @@ public class HomeFristFragment extends BaseFragment {
                     });
                     mainPageAdapter.notifyDataSetChanged();
                 } catch (Exception e) {
-                    Toast.makeText(getActivity(), getResources().getString(R.string.connection_timeout_or_illegal_request), Toast.LENGTH_SHORT).show();
+                    Log.e(TAG, "mainPageMessageHandlerException: "+e.getMessage() );
                 }
 
             } else {

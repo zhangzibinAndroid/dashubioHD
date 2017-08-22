@@ -83,7 +83,7 @@ public class WarningSettingFragment extends BaseFragment {
         OkHttpUtils.get().url(InterfaceUrl.WARNING_URL + sessonWithCode).build().execute(new StringCallback() {
             @Override
             public void onError(Call call, Exception e, int id) {
-                toastOnUi("获取预警列表异常，请检查网络");
+//                toastOnUi("获取预警列表异常，请检查网络");
             }
 
             @Override

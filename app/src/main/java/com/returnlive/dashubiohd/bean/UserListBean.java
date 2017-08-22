@@ -54,11 +54,11 @@ public class UserListBean {
          * sex : 0
          */
 
-        private String id;
-        private String card_id;
-        private String phone;
-        private String name;
-        private String sex;
+        public String id;
+        public String card_id;
+        public String phone;
+        public String name;
+        public String sex;
 
         public String getId() {
             return id;

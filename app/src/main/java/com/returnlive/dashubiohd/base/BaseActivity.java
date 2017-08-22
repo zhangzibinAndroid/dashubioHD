@@ -23,13 +23,17 @@ import com.returnlive.dashubiohd.R;
 import com.returnlive.dashubiohd.activity.MainActivity;
 import com.returnlive.dashubiohd.bean.ErrorCodeBean;
 import com.returnlive.dashubiohd.bean.LoginBean;
+import com.returnlive.dashubiohd.bean.dbmanagerbean.LoginUserBean;
 import com.returnlive.dashubiohd.constant.ErrorCode;
 import com.returnlive.dashubiohd.constant.InterfaceUrl;
+import com.returnlive.dashubiohd.db.DBManager;
 import com.returnlive.dashubiohd.gson.GsonParsing;
 import com.zhy.http.okhttp.OkHttpUtils;
 import com.zhy.http.okhttp.callback.StringCallback;
 
 import org.json.JSONException;
+
+import java.util.ArrayList;
 
 import okhttp3.Call;
 
@@ -49,11 +53,15 @@ public class BaseActivity extends AppCompatActivity {
     protected SharedPreferences sharedPreferences;
     protected ProgressDialog progressDialog;
     protected CountDownTimer mCountDownTimer;
+    protected DBManager dbManager;
+    protected static String mPhone;
+    protected static String mPwds;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         Log.i(TAG, "onCreate: ");
+        dbManager = new DBManager(this);
         initSystemBar(this);
     }
 
@@ -228,6 +236,8 @@ public class BaseActivity extends AppCompatActivity {
                 edit.putString("phone", phone);
                 edit.putString("password", password);
                 edit.commit();
+                mPhone = phone;
+                mPwds = password;
 
                 Message msg = new Message();
                 msg.obj = response;
@@ -293,6 +303,26 @@ public class BaseActivity extends AppCompatActivity {
                 toastOnUi("登录成功");
                 LoginBean loginBean = null;
                 String companyName = "";
+                //如果数据库中有该用户，那么不用在将该用户添加到数据库中
+                ArrayList<LoginUserBean> loginUserBeanList = new ArrayList<>();
+                loginUserBeanList = dbManager.searchLoginData(mPhone,mPwds);
+                String mResult = "";
+                for (LoginUserBean loginUserBean : loginUserBeanList) {
+                    mResult = mResult + String.valueOf(loginUserBean._id) + "|" + loginUserBean.name
+                            + "|" + loginUserBean.pwds ;
+                    mResult = mResult + "\n" + "------------------------------------------" + "\n";
+                }
+
+                if (mResult.indexOf(mPhone)!=-1&&mResult.indexOf(mPwds)!=-1) {
+                    //数据库有数据
+                }else {
+                    dbManager.clearLoginTable();//清空设备登录表
+                    dbManager.clearUserTable();//清空小用户列表
+                    dbManager.addLoginUser(mPhone, mPwds);
+                    Toast.makeText(BaseActivity.this, "成功存入本地数据库", Toast.LENGTH_SHORT).show();
+                }
+
+
                 try {
                     loginBean = GsonParsing.getMessage(result);
                     InterfaceUrl.code = loginBean.getCode();

@@ -6,6 +6,7 @@ import android.os.Handler;
 import android.os.Message;
 import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -18,8 +19,10 @@ import com.returnlive.dashubiohd.adapter.MainPageAdapter;
 import com.returnlive.dashubiohd.base.BaseFragment;
 import com.returnlive.dashubiohd.bean.ErrorCodeBean;
 import com.returnlive.dashubiohd.bean.MainPageBean;
+import com.returnlive.dashubiohd.bean.UserListBean;
 import com.returnlive.dashubiohd.constant.ErrorCode;
 import com.returnlive.dashubiohd.constant.InterfaceUrl;
+import com.returnlive.dashubiohd.db.DBManager;
 import com.returnlive.dashubiohd.gson.GsonParsing;
 import com.returnlive.dashubiohd.view.ViewHeader;
 import com.zhy.autolayout.AutoLinearLayout;
@@ -27,6 +30,7 @@ import com.zhy.http.okhttp.OkHttpUtils;
 import com.zhy.http.okhttp.callback.StringCallback;
 
 import java.text.SimpleDateFormat;
+import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.List;
 
@@ -44,8 +48,7 @@ import static com.returnlive.dashubiohd.R.id.tv_time;
  * 描述： 第一个页面的首页
  */
 public class MainFirstFragment extends BaseFragment {
-
-
+    private static final String TAG = "MainFirstFragment";
     @BindView(R.id.lv_message)
     RecyclerView lv_message;
     @BindView(R.id.xrefresh_message)
@@ -59,6 +62,7 @@ public class MainFirstFragment extends BaseFragment {
     private Handler downHandler;
     private Runnable downRunable;
     private boolean isdown = false;
+    private final int USER_PAGE = -1;
 
     public MainFirstFragment() {
         // Required empty public constructor
@@ -72,10 +76,12 @@ public class MainFirstFragment extends BaseFragment {
         unbinder = ButterKnife.bind(this, view);
         initView();
         initXRefresh();
+        getUserListInterface(USER_PAGE);
         return view;
     }
 
     private void initView() {
+        dbManager = new DBManager(getActivity());
         isdown = false;
         LinearLayoutManager linearLayoutManager = new LinearLayoutManager(getActivity());
         linearLayoutManager.setOrientation(LinearLayoutManager.VERTICAL);
@@ -98,7 +104,7 @@ public class MainFirstFragment extends BaseFragment {
                 .addParams("m_id", "").build().execute(new StringCallback() {
             @Override
             public void onError(Call call, Exception e, int id) {
-                toastOnUi("获取列表异常，请检查网络");
+//                toastOnUi("获取列表异常，请检查网络");
 
             }
 
@@ -136,10 +142,10 @@ public class MainFirstFragment extends BaseFragment {
                         @Override
                         public void lookingClick(View v, int position, AutoLinearLayout resultLayout) {
 
-                            if (resultLayout.isSelected()==false){
+                            if (resultLayout.isSelected() == false) {
                                 resultLayout.setVisibility(View.VISIBLE);
                                 resultLayout.setSelected(true);
-                            }else {
+                            } else {
                                 resultLayout.setVisibility(View.GONE);
                                 resultLayout.setSelected(false);
                             }
@@ -147,7 +153,7 @@ public class MainFirstFragment extends BaseFragment {
                     });
                     mainPageAdapter.notifyDataSetChanged();
                 } catch (Exception e) {
-                    Toast.makeText(getActivity(), getResources().getString(R.string.connection_timeout_or_illegal_request), Toast.LENGTH_SHORT).show();
+                    Log.e(TAG, "Exception: " + e.getMessage());
                 }
 
             } else {
@@ -214,4 +220,74 @@ public class MainFirstFragment extends BaseFragment {
             }
         });
     }
+
+
+    //获取用户列表接口
+    private void getUserListInterface(int page) {
+        OkHttpUtils.get().url(InterfaceUrl.USER_MESSAGE_URL + sessonWithCode)
+                .addParams("p", String.valueOf(page))
+                .build().execute(new StringCallback() {
+            @Override
+            public void onError(Call call, Exception e, int id) {
+            }
+
+            @Override
+            public void onResponse(String response, int id) {
+                Message msg = new Message();
+                msg.obj = response;
+                allUserHnadler.sendMessage(msg);
+            }
+        });
+    }
+
+
+    private Handler allUserHnadler = new Handler() {
+        @Override
+        public void handleMessage(Message msg) {
+            super.handleMessage(msg);
+            String result = (String) msg.obj;
+            UserListBean userListBean = null;
+            if (result.indexOf(ErrorCode.SUCCESS) > 0) {
+                //遍历用户，存入数据库
+                try {
+                    userListBean = GsonParsing.getUserListMessage(result);
+                    List<UserListBean.UserListDataBean> userList = userListBean.getData();
+                    List<UserListBean.UserListDataBean> dbUserList = new ArrayList<>();
+                    dbUserList = dbManager.searchUserList();
+                    String mResult = "";
+                    for (UserListBean.UserListDataBean userListDataBean : dbUserList) {
+                        mResult = mResult + String.valueOf(userListDataBean.card_id);
+                        mResult = mResult + "\n" + "------------------------------------------" + "\n";
+                    }
+
+                    for (int i = userList.size()-1; i >-1; i--) {
+                        UserListBean.UserListDataBean users = userList.get(i);
+                        String userName = users.getName();
+                        String sex = users.getSex();
+                        String userid = users.getId();
+                        String card_id = users.getCard_id();
+                        String phone = users.getPhone();
+                        if (mResult.indexOf(card_id)!=-1){
+                            //数据库有数据
+                        }else {
+                            dbManager.addUserData(userid,userName,sex,card_id,phone);
+                        }
+                    }
+                } catch (Exception e) {
+                    Log.e(TAG, "allUserHnadlerException: "+e.getMessage() );
+                }
+
+            }else {
+                //解析
+                ErrorCodeBean errorCodeBean = null;
+                try {
+                    errorCodeBean = GsonParsing.sendCodeError(result);
+                    judge(errorCodeBean.getCode() + "");
+                } catch (Exception e) {
+                    Toast.makeText(getActivity(), getResources().getString(R.string.connection_timeout_or_illegal_request), Toast.LENGTH_SHORT).show();
+                }
+            }
+
+        }
+    };
 }

@@ -5,7 +5,6 @@ import android.os.Bundle;
 import android.os.Handler;
 import android.os.Message;
 import android.support.annotation.Nullable;
-import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -194,7 +193,7 @@ public class HistoryDataFragment extends BaseFragment {
                 .build().execute(new StringCallback() {
             @Override
             public void onError(Call call, Exception e, int id) {
-                toastOnUi(getResources().getString(R.string.network_exception_please_try_again_later));
+//                toastOnUi(getResources().getString(R.string.network_exception_please_try_again_later));
             }
 
             @Override
@@ -224,8 +223,6 @@ public class HistoryDataFragment extends BaseFragment {
                     if (healthDetectorFaherList == null || healthDetectorFaherList.size() < 0) {
                         return;
                     }
-
-
                     //设置健康检测仪
                     if (healthDetectorFaherList.size() >= 1) {
                         tvHealthDetector.setVisibility(View.VISIBLE);
@@ -290,11 +287,8 @@ public class HistoryDataFragment extends BaseFragment {
                                 return propertySingleNameTv;
                             }
                         };
-
                         layUrinometer.setAdapter(urinometerAdapter);
                     }
-
-
                 } catch (Exception e) {
                     Toast.makeText(getActivity(), getResources().getString(R.string.connection_timeout_or_illegal_request), Toast.LENGTH_SHORT).show();
                 }
@@ -326,7 +320,6 @@ public class HistoryDataFragment extends BaseFragment {
                     historyDataAdapter = new HistoryDataAdapter(getActivity(), list);
                     lvHistoryData.setAdapter(historyDataAdapter);
                     historyDataAdapter.notifyDataSetChanged();
-
                 } catch (Exception e) {
                     Toast.makeText(getActivity(), getResources().getString(R.string.connection_timeout_or_illegal_request), Toast.LENGTH_SHORT).show();
                 }

@@ -30,7 +30,9 @@
 
             <View style="@style/ViewLineStyleSecond" />
 
-            <com.zhy.autolayout.AutoLinearLayout style="@style/ReisterDialogLayout">
+            <com.zhy.autolayout.AutoLinearLayout
+                android:id="@+id/lay_dialog_name"
+                style="@style/ReisterDialogLayout">
 
                 <TextView
                     style="@style/ReisterDialogTextIntroduce"
@@ -46,7 +48,9 @@
 
             <View style="@style/ViewLineStyleSecond" />
 
-            <com.zhy.autolayout.AutoLinearLayout style="@style/ReisterDialogLayout">
+            <com.zhy.autolayout.AutoLinearLayout
+                android:id="@+id/lay_dialog_sex"
+                style="@style/ReisterDialogLayout">
 
                 <TextView
                     style="@style/ReisterDialogTextIntroduce"
@@ -61,7 +65,9 @@
 
             <View style="@style/ViewLineStyleSecond" />
 
-            <com.zhy.autolayout.AutoLinearLayout style="@style/ReisterDialogLayout">
+            <com.zhy.autolayout.AutoLinearLayout
+                android:id="@+id/lay_dialog_folk"
+                style="@style/ReisterDialogLayout">
 
                 <TextView
                     style="@style/ReisterDialogTextIntroduce"
@@ -76,7 +82,9 @@
 
             <View style="@style/ViewLineStyleSecond" />
 
-            <com.zhy.autolayout.AutoLinearLayout style="@style/ReisterDialogLayout">
+            <com.zhy.autolayout.AutoLinearLayout
+                android:id="@+id/lay_dialog_birth"
+                style="@style/ReisterDialogLayout">
 
                 <TextView
                     style="@style/ReisterDialogTextIntroduce"
@@ -92,7 +100,9 @@
 
             <View style="@style/ViewLineStyleSecond" />
 
-            <com.zhy.autolayout.AutoLinearLayout style="@style/ReisterDialogLayout">
+            <com.zhy.autolayout.AutoLinearLayout
+                android:id="@+id/lay_dialog_area"
+                style="@style/ReisterDialogLayout">
 
                 <TextView
                     style="@style/ReisterDialogTextIntroduce"
@@ -115,7 +125,9 @@
 
             <View style="@style/ViewLineStyleSecond" />
 
-            <com.zhy.autolayout.AutoLinearLayout style="@style/ReisterDialogLayout">
+            <com.zhy.autolayout.AutoLinearLayout
+                android:id="@+id/lay_dialog_address"
+                style="@style/ReisterDialogLayout">
 
                 <TextView
                     style="@style/ReisterDialogTextIntroduce"
@@ -130,7 +142,9 @@
 
             <View style="@style/ViewLineStyleSecond" />
 
-            <com.zhy.autolayout.AutoLinearLayout style="@style/ReisterDialogLayout">
+            <com.zhy.autolayout.AutoLinearLayout
+                android:id="@+id/lay_dialog_card_id"
+                style="@style/ReisterDialogLayout">
 
                 <TextView
                     style="@style/ReisterDialogTextIntroduce"
@@ -148,7 +162,9 @@
 
             <View style="@style/ViewLineStyleSecond" />
 
-            <com.zhy.autolayout.AutoLinearLayout style="@style/ReisterDialogLayout">
+            <com.zhy.autolayout.AutoLinearLayout
+                android:id="@+id/lay_dialog_phone"
+                style="@style/ReisterDialogLayout">
 
                 <TextView
                     style="@style/ReisterDialogTextIntroduce"
@@ -166,7 +182,9 @@
 
             <View style="@style/ViewLineStyleSecond" />
 
-            <com.zhy.autolayout.AutoLinearLayout style="@style/ReisterDialogLayout">
+            <com.zhy.autolayout.AutoLinearLayout
+                android:id="@+id/lay_dialog_mphone"
+                style="@style/ReisterDialogLayout">
 
                 <TextView
                     style="@style/ReisterDialogTextIntroduce"
@@ -181,6 +199,11 @@
             </com.zhy.autolayout.AutoLinearLayout>
 
             <View style="@style/ViewLineStyleSecond" />
+
+            <View android:id="@+id/my_view"
+                android:layout_width="match_parent"
+                android:layout_height="@dimen/px410"
+                android:visibility="gone"/>
 
             <com.zhy.autolayout.AutoLinearLayout
                 android:layout_width="match_parent"

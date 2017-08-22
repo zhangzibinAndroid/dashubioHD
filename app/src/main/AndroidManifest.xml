@@ -59,14 +59,28 @@
         <activity
             android:name=".activity.HomeActivity"
             android:configChanges="keyboardHidden|orientation|screenSize"
-            android:screenOrientation="landscape" />
+            android:launchMode="singleTop"
+            android:screenOrientation="landscape"
+            android:windowSoftInputMode="adjustPan" />
+
+        <activity
+            android:name=".activity.BluetoothDeviceListActivity"
+            android:configChanges="keyboardHidden|orientation|screenSize"
+            android:screenOrientation="landscape"
+            android:theme="@android:style/Theme.Dialog" />
 
         <service
             android:name="com.xtremeprog.sdk.ble.BleService"
             android:enabled="true" />
-       <service
+        <service
             android:name=".service.MyBLEService"
-            android:enabled="true"/>
+            android:enabled="true" />
+
+        <receiver android:name="com.returnlive.dashubiohd.broadcast.NetBroadcastReceiver">
+            <intent-filter>
+                <action android:name="android.net.conn.CONNECTIVITY_CHANGE"/>
+            </intent-filter>
+        </receiver>
     </application>
 
 </manifest>

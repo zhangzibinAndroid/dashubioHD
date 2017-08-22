@@ -29,7 +29,7 @@ public class UserListAdapter extends MyBaseAdapter<UserListBean.UserListDataBean
     }
 
     @Override
-    public View getView(int position, View convertView, ViewGroup parent) {
+    public View getView(final int position, View convertView, ViewGroup parent) {
         ViewHolder viewHolder = null;
         if (convertView == null) {
             convertView = inflater.inflate(R.layout.item_user_list, null);
@@ -40,9 +40,8 @@ public class UserListAdapter extends MyBaseAdapter<UserListBean.UserListDataBean
         }
         UserListBean.UserListDataBean bean = list.get(position);
         viewHolder.btnItemLogin.setTag(bean.getId());
-
         viewHolder.tvItemName.setText(bean.getName());
-        String sex = "";
+        String sex = "0";
         if (bean.getSex().equals("0")){
             sex = "无";
         }else if (bean.getSex().equals("1")){
@@ -57,7 +56,7 @@ public class UserListAdapter extends MyBaseAdapter<UserListBean.UserListDataBean
             public void onClick(View v) {
                 if (mOnButtonClickListener != null) {
                     //注意这里使用getTag方法获取position
-                    mOnButtonClickListener.onButtonClick(v, (String) finalViewHolder.btnItemLogin.getTag());
+                    mOnButtonClickListener.onButtonClick(v, (String) finalViewHolder.btnItemLogin.getTag(),position);
                 }
             }
         });
@@ -68,7 +67,7 @@ public class UserListAdapter extends MyBaseAdapter<UserListBean.UserListDataBean
 
 
     public static interface OnButtonClickListener {
-        void onButtonClick(View view,String id);
+        void onButtonClick(View view,String id,int position);
     }
 
     public void setOnButtonClickListener(OnButtonClickListener listener) {

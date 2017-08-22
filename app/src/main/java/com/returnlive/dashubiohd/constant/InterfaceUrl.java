@@ -1,7 +1,10 @@
 package com.returnlive.dashubiohd.constant;
 
 /**
- * Created by 张梓彬 on 2017/7/13 0013.
+ * 作者： 张梓彬
+ * 日期： 2017/8/21 0021
+ * 时间： 上午 10:15
+ * 描述： 数据接口
  */
 
 public class InterfaceUrl {
@@ -27,9 +30,11 @@ public class InterfaceUrl {
     public static final String HEALTH_GUIDE_URL= BASE_URL+"Testing/warnitem/";//健康指导接口需要添加sesson和code
     public static final String HEALTH_GUIDE_LIST_URL= BASE_URL+"Testing/warninfo/";//健康指导接口需要添加sesson和code
     public static final String SINGLE_WEBVIEW_URL= WEBVIEW_BASE_URL+"Manage/Equid/reportzer";//单项WEBVIEW接口
-    public static final String COMPREHENSIVE_WEBVIEW_URL= WEBVIEW_BASE_URL+"Manage/Equid/compiledzer";//单项WEBVIEW接口
-    public static final String MULTIPARAMETERMONITORDATA_URL= BASE_URL+"Testing/multiple/";//单项WEBVIEW接口
-
+    public static final String COMPREHENSIVE_WEBVIEW_URL= WEBVIEW_BASE_URL+"Manage/Equid/compiledzer";//综合WEBVIEW接口
+    public static final String MULTIPARAMETERMONITORDATA_URL= BASE_URL+"Testing/multiple/";//多参数检测仪上传数据接口
+    public static final String BREATHDATA_URL= BASE_URL+"Testing/breath/";//呼吸机上传数据接口
+    public static final String GANSHIDATA_URL= BASE_URL+"Testing/dry/";//干式生化仪上传数据接口需要添加sesson和code
+    public static final String BCDATA_URL= BASE_URL+"Testing/urine/";//干式生化仪上传数据接口需要添加sesson和code
 
 
 

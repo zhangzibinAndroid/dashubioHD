@@ -622,7 +622,7 @@ public class HealthArchivesFragment extends BaseFragment {
                 .build().execute(new StringCallback() {
             @Override
             public void onError(Call call, Exception e, int id) {
-                toastOnUi(getResources().getString(R.string.network_exception_please_try_again_later));
+//                toastOnUi(getResources().getString(R.string.network_exception_please_try_again_later));
             }
 
             @Override

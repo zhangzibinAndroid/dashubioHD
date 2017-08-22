@@ -24,12 +24,15 @@ import com.returnlive.dashubiohd.bean.UserListBean;
 import com.returnlive.dashubiohd.bean.UserLoginBean;
 import com.returnlive.dashubiohd.constant.ErrorCode;
 import com.returnlive.dashubiohd.constant.InterfaceUrl;
+import com.returnlive.dashubiohd.db.DBManager;
 import com.returnlive.dashubiohd.gson.GsonParsing;
+import com.returnlive.dashubiohd.utils.NetUtil;
 import com.returnlive.dashubiohd.view.ViewFooter;
 import com.returnlive.dashubiohd.view.ViewHeader;
 import com.zhy.http.okhttp.OkHttpUtils;
 import com.zhy.http.okhttp.callback.StringCallback;
 
+import java.util.ArrayList;
 import java.util.List;
 
 import butterknife.BindView;
@@ -63,6 +66,7 @@ public class UserManageFragment extends BaseFragment {
     private int upIsRefresh = 1;
     private int downIsRefresh = 1;
     private static final String TAG = "UserManageFragment";
+
     public UserManageFragment() {
     }
 
@@ -77,28 +81,48 @@ public class UserManageFragment extends BaseFragment {
     }
 
     private void initView() {
+        dbManager = new DBManager(getActivity());
         upIsRefresh = 1;
         downIsRefresh = 1;
         page = 1;
-        new Thread(new Runnable() {
-            @Override
-            public void run() {
-                getUserListInterface(1);
-            }
-        }).start();
-
-        initXRefresh();
         userListAdapter = new UserListAdapter(getActivity());
         lvUserList.setAdapter(userListAdapter);
+        //如果网络可用，则调用接口，否则从数据库查询数据
+        if (NetUtil.isNetworkConnectionActive(getActivity())) {
+            new Thread(new Runnable() {
+                @Override
+                public void run() {
+                    getUserListInterface(1);
+                }
+            }).start();
+        }else {
+            ArrayList<UserListBean.UserListDataBean> userList = dbManager.searchUserList();
+//            userListAdapter.addAllDataToMyadapter(userList);
+            for (int i = userList.size()-1; i >-1; i--) {
+                UserListBean.UserListDataBean bean = userList.get(i);
+                userListAdapter.addDATA(bean);
+                userListAdapter.notifyDataSetChanged();
+            }
+
+        }
+        initXRefresh();
         userListAdapter.setOnButtonClickListener(new UserListAdapter.OnButtonClickListener() {
             @Override
-            public void onButtonClick(View view, final String id) {
-                new Thread(new Runnable() {
-                    @Override
-                    public void run() {
-                        loginInstance(id);
-                    }
-                }).start();
+            public void onButtonClick(View view, final String id,int position) {
+                if (NetUtil.isNetworkConnectionActive(getActivity())){
+                    new Thread(new Runnable() {
+                        @Override
+                        public void run() {
+                            loginInstance(id);
+                        }
+                    }).start();
+                }else {
+                    ArrayList<UserListBean.UserListDataBean> userList = dbManager.searchUserList();
+                    UserListBean.UserListDataBean bean = userList.get(userList.size()-1-position);
+                    JumpActivityWithUserData(HomeActivity.class, bean.getName(), bean.getId());
+                }
+
+
             }
         });
     }
@@ -146,9 +170,11 @@ public class UserManageFragment extends BaseFragment {
 
             @Override
             public void onRefresh(boolean isPullDown) {
-                userListAdapter.removeAllDATA();
-                page = 1;
-                getUserListInterface(1);
+                if (NetUtil.isNetworkConnectionActive(getActivity())){
+                    userListAdapter.removeAllDATA();
+                    page = 1;
+                    getUserListInterface(1);
+                }
             }
 
             @Override
@@ -161,8 +187,12 @@ public class UserManageFragment extends BaseFragment {
                         xrefreshUserList.stopLoadMore();
                     }
                 }, 1000);
-                page = page + 1;
-                getUserListInterface(page);
+
+                if (NetUtil.isNetworkConnectionActive(getActivity())){
+                    page = page + 1;
+                    getUserListInterface(page);
+                }
+
             }
 
             @Override
@@ -184,7 +214,7 @@ public class UserManageFragment extends BaseFragment {
                 .build().execute(new StringCallback() {
             @Override
             public void onError(Call call, Exception e, int id) {
-                toastOnUi("网络异常，请检查网络");
+//                toastOnUi("网络异常，请检查网络");
             }
 
             @Override
@@ -257,7 +287,7 @@ public class UserManageFragment extends BaseFragment {
                 userListAdapter.addAllDataToMyadapterWithoutClean(userList);
                 userListAdapter.notifyDataSetChanged();
             } catch (Exception e) {
-                Log.e(TAG, "userListHandlerException: "+e );
+                Log.e(TAG, "userListHandlerException: " + e);
             }
 
         }
@@ -289,11 +319,11 @@ public class UserManageFragment extends BaseFragment {
             if (result.indexOf(ErrorCode.SUCCESS) > 0) {
                 try {
                     UserLoginBean bean = GsonParsing.getUserLoginMessageJson(result);
-                    if (bean.getData() ==null){
+                    if (bean.getData() == null) {
                         Toast.makeText(getActivity(), getResources().getString(R.string.user_not_exist_please_register_first), Toast.LENGTH_SHORT).show();
-                    }else {
+                    } else {
                         UserLoginBean.UserLoginDataBean dataBean = bean.getData();
-                        JumpActivityWithUserData(HomeActivity.class,dataBean.getName(),dataBean.getId());
+                        JumpActivityWithUserData(HomeActivity.class, dataBean.getName(), dataBean.getId());
                     }
                 } catch (Exception e) {
                     Toast.makeText(getActivity(), getResources().getString(R.string.connection_timeout_or_illegal_request), Toast.LENGTH_SHORT).show();

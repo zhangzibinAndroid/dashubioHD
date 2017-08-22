@@ -37,12 +37,14 @@ import com.returnlive.dashubiohd.bean.CameraCardBean;
 import com.returnlive.dashubiohd.bean.ErrorCodeBean;
 import com.returnlive.dashubiohd.constant.ErrorCode;
 import com.returnlive.dashubiohd.constant.InterfaceUrl;
+import com.returnlive.dashubiohd.db.DBManager;
 import com.returnlive.dashubiohd.gson.GsonParsing;
 import com.returnlive.dashubiohd.utils.CameraManager;
 import com.returnlive.dashubiohd.utils.FileUtil;
 import com.returnlive.dashubiohd.utils.HttpUtil;
 import com.returnlive.dashubiohd.utils.NetUtil;
 import com.returnlive.dashubiohd.view.ActionSheetDialog;
+import com.zhy.autolayout.AutoLinearLayout;
 import com.zhy.http.okhttp.OkHttpUtils;
 import com.zhy.http.okhttp.callback.StringCallback;
 
@@ -178,6 +180,7 @@ public class UserRegisterFragment extends BaseFragment implements Callback {
     public View onCreateView(LayoutInflater inflater, ViewGroup container,
                              Bundle savedInstanceState) {
         view = inflater.inflate(R.layout.fragment_user_register, container, false);
+        dbManager = new DBManager(getActivity());
         mCameraManager = new CameraManager(getActivity(), mHandler);
         initViews(view);
 
@@ -261,6 +264,8 @@ public class UserRegisterFragment extends BaseFragment implements Callback {
     private void showDialog(String name, String id_number, String sex, String folk, String birth, String address) {
         registerDialog = new AlertDialog.Builder(getActivity());
         View dialogView = View.inflate(getActivity(), R.layout.dialog_user_register, null);
+
+
         final ViewHolder viewHolder = new ViewHolder(dialogView);
         viewHolder.dialogTvUserName.setText(name);
         viewHolder.dialogTvUserIdNumber.setText(id_number);
@@ -282,6 +287,17 @@ public class UserRegisterFragment extends BaseFragment implements Callback {
         viewHolder.tvDistrict.setAdapter(countyAdapter);
         viewHolder.tvDistrict.setSelection(0, true);
 
+        if (!NetUtil.isNetworkConnectionActive(getActivity())){
+            viewHolder.lay_dialog_sex.setVisibility(View.GONE);
+            viewHolder.lay_dialog_folk.setVisibility(View.GONE);
+            viewHolder.lay_dialog_birth.setVisibility(View.GONE);
+            viewHolder.lay_dialog_area.setVisibility(View.GONE);
+            viewHolder.lay_dialog_address.setVisibility(View.GONE);
+            viewHolder.lay_dialog_mphone.setVisibility(View.GONE);
+            viewHolder.my_view.setVisibility(View.VISIBLE);
+        }else {
+            viewHolder.my_view.setVisibility(View.GONE);
+        }
         viewHolder.tvProvince.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {
             @Override
             public void onItemSelected(AdapterView<?> parent, View view, int position, long id) {
@@ -351,14 +367,22 @@ public class UserRegisterFragment extends BaseFragment implements Callback {
                     return;
                 }
 
-                new Thread(new Runnable() {
-                    @Override
-                    public void run() {
-                        userRegisterInterface(name, finalSexNo, folk, finalBirth,
-                                province, city, district, address, id_number,
-                                phone_number, user_Frequent_contacts);
-                    }
-                }).start();
+                if (NetUtil.isNetworkConnectionActive(getActivity())){
+                    new Thread(new Runnable() {
+                        @Override
+                        public void run() {
+                            userRegisterInterface(name, finalSexNo, folk, finalBirth,
+                                    province, city, district, address, id_number,
+                                    phone_number, user_Frequent_contacts);
+                        }
+                    }).start();
+                }else {
+                    //如果网络不可用，则储存在本地数据库中
+                    dialog.dismiss();
+                    dbManager.addUserData(null,name,finalSexNo,id_number,phone_number);
+                    Toast.makeText(getActivity(), "离线注册成功，已存入本地数据库", Toast.LENGTH_SHORT).show();
+                }
+
 
 
             }
@@ -533,6 +557,24 @@ public class UserRegisterFragment extends BaseFragment implements Callback {
 
 
     static class ViewHolder {
+        @BindView(R.id.my_view)
+        View my_view;
+
+        @BindView(R.id.lay_dialog_sex)
+        AutoLinearLayout lay_dialog_sex;
+        @BindView(R.id.lay_dialog_folk)
+        AutoLinearLayout lay_dialog_folk;
+        @BindView(R.id.lay_dialog_birth)
+        AutoLinearLayout lay_dialog_birth;
+        @BindView(R.id.lay_dialog_area)
+        AutoLinearLayout lay_dialog_area;
+        @BindView(R.id.lay_dialog_address)
+        AutoLinearLayout lay_dialog_address;
+        @BindView(R.id.lay_dialog_mphone)
+        AutoLinearLayout lay_dialog_mphone;
+
+
+
         @BindView(R.id.dialog_tv_user_name)
         EditText dialogTvUserName;
         @BindView(R.id.dialog_tv_user_sex)

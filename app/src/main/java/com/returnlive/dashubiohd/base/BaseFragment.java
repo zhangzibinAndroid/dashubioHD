@@ -7,6 +7,7 @@ import android.widget.Toast;
 
 import com.returnlive.dashubiohd.R;
 import com.returnlive.dashubiohd.constant.ErrorCode;
+import com.returnlive.dashubiohd.db.DBManager;
 
 import static com.returnlive.dashubiohd.constant.InterfaceUrl.code;
 import static com.returnlive.dashubiohd.constant.InterfaceUrl.t_session_code;
@@ -23,6 +24,7 @@ public class BaseFragment extends Fragment {
     protected View view;
     protected String sessonWithCode = zSesson + code + "/" + t_session_code + "/uid/" + code;
     private static final String TAG = "BaseFragment";
+    protected DBManager dbManager;
 
     protected void toastOnUi(final String text) {
         getActivity().runOnUiThread(new Runnable() {

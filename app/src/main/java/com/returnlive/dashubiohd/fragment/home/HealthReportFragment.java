@@ -29,6 +29,7 @@ import com.returnlive.dashubiohd.bean.HealthReportSecondBean;
 import com.returnlive.dashubiohd.constant.ErrorCode;
 import com.returnlive.dashubiohd.constant.InterfaceUrl;
 import com.returnlive.dashubiohd.gson.GsonParsing;
+import com.returnlive.dashubiohd.utils.NetUtil;
 import com.returnlive.dashubiohd.view.ViewHeader;
 import com.zhy.autolayout.AutoLinearLayout;
 import com.zhy.http.okhttp.OkHttpUtils;
@@ -146,7 +147,7 @@ public class HealthReportFragment extends BaseFragment {
                 .build().execute(new StringCallback() {
             @Override
             public void onError(Call call, Exception e, int id) {
-                toastOnUi(getResources().getString(R.string.network_exception_please_try_again_later));
+//                toastOnUi(getResources().getString(R.string.network_exception_please_try_again_later));
             }
 
             @Override
@@ -181,14 +182,17 @@ public class HealthReportFragment extends BaseFragment {
 
             @Override
             public void onRefresh(boolean isPullDown) {
-                if (isPullDown) {
-                    //加载
-                    if (!isComprehensive){
-                        initView();
-                    }else {
-                        initComprehensive();
+                if (NetUtil.isNetworkConnectionActive(getActivity())) {
+                    if (isPullDown) {
+                        //加载
+                        if (!isComprehensive) {
+                            initView();
+                        } else {
+                            initComprehensive();
+                        }
                     }
                 }
+
             }
 
             @Override
@@ -386,8 +390,8 @@ public class HealthReportFragment extends BaseFragment {
     private List<HealthReportSecondBean.HealthReportTimeDataBean.HealthReportDetBean> healthReportDetList;
     private List<String> moonthStringList = new ArrayList<>();
     private List<String> moonthStringListSecond = new ArrayList<>();
-    private Map<String,ArrayList<String>> monthListString = new HashMap<>();
-    private Map<String,ArrayList<String>> monthList = new HashMap<>();
+    private Map<String, ArrayList<String>> monthListString = new HashMap<>();
+    private Map<String, ArrayList<String>> monthList = new HashMap<>();
     private Handler healthReportComprehensiveHandler = new Handler() {
         @Override
         public void handleMessage(Message msg) {
@@ -401,19 +405,19 @@ public class HealthReportFragment extends BaseFragment {
                     for (int i = 0; i < healthReportTimeDataList.size(); i++) {
                         HealthReportSecondBean.HealthReportTimeDataBean healthReportTimeDataBean = healthReportTimeDataList.get(i);
                         yearData[i] = healthReportTimeDataBean.getYear();
-                         healthReportDetList = healthReportTimeDataBean.getDet();
+                        healthReportDetList = healthReportTimeDataBean.getDet();
                         for (int j = 0; j < healthReportDetList.size(); j++) {
                             HealthReportSecondBean.HealthReportTimeDataBean.HealthReportDetBean healthReportDetBean = healthReportDetList.get(j);
                             moonthStringList.add(healthReportDetBean.getMonth());
                             moonthStringListSecond.add(healthReportDetBean.getMonth());
-                            monthListString.put(i+"and"+j,new ArrayList<String>(moonthStringListSecond));
+                            monthListString.put(i + "and" + j, new ArrayList<String>(moonthStringListSecond));
                             moonthStringListSecond.clear();
                         }
-                        monthList.put("children"+i,new ArrayList<String>(moonthStringList));
+                        monthList.put("children" + i, new ArrayList<String>(moonthStringList));
                         moonthStringList.clear();
 
                     }
-                    healthReportAdapter = new HealthReportAdapter(getActivity(),yearData,monthList);
+                    healthReportAdapter = new HealthReportAdapter(getActivity(), yearData, monthList);
                     lvHealthReport.setAdapter(healthReportAdapter);
                     healthReportAdapter.notifyDataSetChanged();
                     healthReportAdapter.setOnTagFlowLayoutItemClickListener(new HealthReportAdapter.OnTagFlowLayoutItemClickListener() {
@@ -421,16 +425,16 @@ public class HealthReportFragment extends BaseFragment {
                         public void onTagFlowLayoutItemClick(int groupPosition, int position) {
                             layList.setVisibility(View.GONE);
                             layWeb.setVisibility(View.VISIBLE);
-                            myWebView.loadUrl(InterfaceUrl.COMPREHENSIVE_WEBVIEW_URL + "/mid/" + HomeActivity.mid + "/year/" + yearData[groupPosition] + "/month/" + monthListString.get(groupPosition+"and"+position).get(0) + ".html");
+                            myWebView.loadUrl(InterfaceUrl.COMPREHENSIVE_WEBVIEW_URL + "/mid/" + HomeActivity.mid + "/year/" + yearData[groupPosition] + "/month/" + monthListString.get(groupPosition + "and" + position).get(0) + ".html");
 
                         }
                     });
 
 
                 } catch (Exception e) {
-                    Log.e(TAG, "healthReportComprehensiveHandlerException: "+e.getMessage() );
+                    Log.e(TAG, "healthReportComprehensiveHandlerException: " + e.getMessage());
                 }
-            }else {
+            } else {
                 //解析
                 ErrorCodeBean errorCodeBean = null;
                 try {

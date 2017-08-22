@@ -13,6 +13,7 @@
     <color name="blue">#7ECDF4</color>
     <color name="blue_dep">#0075AA</color>
     <color name="red">#CE0A13</color>
+    <color name="orrange">#EEC731</color>
     <color name="gray">#959595</color>
     <color name="menu_color">#0A0F22</color>
     <color name="btn_color">#00A0EA</color>
@@ -49,6 +50,7 @@
 
     <color name="green_passed">#3eb31d</color>
     <color name="green">#3eb31e</color>
+    <color name="green_pro">#00AA01</color>
     <color name="green_dark">#89C997</color>
 
     <color name="btn_blue_normal">#1e90ff</color>
