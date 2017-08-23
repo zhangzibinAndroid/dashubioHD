@@ -16,6 +16,7 @@ import com.returnlive.dashubiohd.bean.MainPageBean;
 import com.returnlive.dashubiohd.bean.UserListBean;
 import com.returnlive.dashubiohd.bean.UserLoginBean;
 import com.returnlive.dashubiohd.bean.WarningBean;
+import com.returnlive.dashubiohd.bean.viewbean.TitleMessageBean;
 import com.returnlive.dashubiohd.constant.InterfaceUrl;
 
 import org.json.JSONException;
@@ -110,6 +111,12 @@ public class GsonParsing {
 
     public static HealthReportSecondBean getHealthReportSecondMessageJson(String json) throws Exception{
         HealthReportSecondBean result = GsonUtils.parseJsonWithGson(json, HealthReportSecondBean.class);
+        return result;
+    }
+
+
+    public static TitleMessageBean getTitleMessageJson(String json) throws Exception{
+        TitleMessageBean result = GsonUtils.parseJsonWithGson(json, TitleMessageBean.class);
         return result;
     }
 

@@ -25,7 +25,6 @@ import com.returnlive.dashubiohd.bean.ErrorCodeBean;
 import com.returnlive.dashubiohd.bean.LoginBean;
 import com.returnlive.dashubiohd.bean.dbmanagerbean.LoginUserBean;
 import com.returnlive.dashubiohd.constant.ErrorCode;
-import com.returnlive.dashubiohd.constant.InterfaceUrl;
 import com.returnlive.dashubiohd.db.DBManager;
 import com.returnlive.dashubiohd.gson.GsonParsing;
 import com.zhy.http.okhttp.OkHttpUtils;
@@ -37,7 +36,9 @@ import java.util.ArrayList;
 
 import okhttp3.Call;
 
+import static com.returnlive.dashubiohd.constant.InterfaceUrl.code;
 import static com.returnlive.dashubiohd.constant.InterfaceUrl.t_session_code;
+import static com.returnlive.dashubiohd.constant.InterfaceUrl.zSesson;
 
 /**
  * 作者： 张梓彬
@@ -57,6 +58,7 @@ public class BaseActivity extends AppCompatActivity {
     protected static String mPhone;
     protected static String mPwds;
 
+    protected String sessonWithCode = zSesson + code + "/" + t_session_code + "/uid/" + code;
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -325,7 +327,7 @@ public class BaseActivity extends AppCompatActivity {
 
                 try {
                     loginBean = GsonParsing.getMessage(result);
-                    InterfaceUrl.code = loginBean.getCode();
+                    code = loginBean.getCode();
                     companyName = loginBean.getCompany();
                 } catch (Exception e) {
                     Toast.makeText(BaseActivity.this, getResources().getString(R.string.connection_timeout_or_illegal_request), Toast.LENGTH_SHORT).show();

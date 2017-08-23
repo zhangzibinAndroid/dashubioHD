@@ -3,6 +3,7 @@ package com.returnlive.dashubiohd.db;
 import android.content.ContentValues;
 import android.content.Context;
 import android.database.Cursor;
+import android.database.SQLException;
 import android.database.sqlite.SQLiteDatabase;
 
 import com.contec.jar.BC401.BC401_Struct;
@@ -95,7 +96,18 @@ public class DBManager {
     }
 
     public void clearUserTable() {
-        ExecSQL("DELETE FROM " + DBHelper.USER_TABLE_NAME);
+        String sql = "DELETE FROM "+DBHelper.USER_TABLE_NAME;
+        try {
+            db.execSQL(sql);
+            revertSeq(db);
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+    }
+
+    private void revertSeq(SQLiteDatabase db) {
+        String sql = "UPDATE sqlite_sequence SET seq = 0 WHERE name = 'user_table'";
+        db.execSQL(sql);
     }
 
 
@@ -201,8 +213,9 @@ public class DBManager {
     }
 
     //向bc_table表中插入尿液检测仪数据
-    public void addBCData(String id, String URO, String BLD, String BIL, String KET, String GLU, String PRO, String PH, String NIT, String LEU, String SG, String VC) {
+    public void addBCData(String id,String time, String URO, String BLD, String BIL, String KET, String GLU, String PRO, String PH, String NIT, String LEU, String SG, String VC) {
         ContentValues cv = new ContentValues();
+        cv.put("time", time);
         cv.put("_id", id);
         cv.put("URO", URO);
         cv.put("BLD", BLD);
@@ -231,6 +244,7 @@ public class DBManager {
         while (c.moveToNext()) {
             BC401_Struct bcBean = new BC401_Struct();
             bcBean.ID = Integer.valueOf(c.getString(c.getColumnIndex("_id")));
+            bcBean.Date = Integer.valueOf(c.getString(c.getColumnIndex("time")));
             bcBean.URO = Byte.valueOf(c.getString(c.getColumnIndex("URO")));
             bcBean.BLD = Byte.valueOf(c.getString(c.getColumnIndex("BLD")));
             bcBean.BIL = Byte.valueOf(c.getString(c.getColumnIndex("BIL")));

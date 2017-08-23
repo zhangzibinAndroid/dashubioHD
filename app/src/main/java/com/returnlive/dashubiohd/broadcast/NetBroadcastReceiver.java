@@ -3,6 +3,8 @@ package com.returnlive.dashubiohd.broadcast;
 import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
+import android.os.Handler;
+import android.os.Message;
 import android.util.Log;
 import android.widget.Toast;
 
@@ -48,20 +50,21 @@ public class NetBroadcastReceiver extends BroadcastReceiver {
     public void onReceive(Context context, Intent intent) {
         this.context = context;
         if (NetUtil.isNetworkConnectionActive(context)) {
+            Log.e(TAG, "网络已连接" );
             dbManager = new DBManager(context);
             ArrayList<LoginUserBean> loginList = dbManager.searchLoginData();
             String phone = "";
             String pwds = "";
-            for (int i = 0; i < loginList.size(); i++) {
-                LoginUserBean loginUserBean = loginList.get(i);
+            try {
+                LoginUserBean loginUserBean = loginList.get(0);
                 phone = loginUserBean.getName();
                 pwds = loginUserBean.getPwds();
+                final String finalPhone = phone;
+                final String finalPwds = pwds;
+                equipmentLoginInterface(InterfaceUrl.LOGIN_URL, finalPhone, finalPwds);
+            } catch (Exception e) {
+                Log.e(TAG, "onReceive: " + e.getMessage());
             }
-
-            final String finalPhone = phone;
-            final String finalPwds = pwds;
-            equipmentLoginInterface(InterfaceUrl.LOGIN_URL, finalPhone, finalPwds);
-
         } else {
             Log.e(TAG, "无网络连接");
         }
@@ -80,7 +83,6 @@ public class NetBroadcastReceiver extends BroadcastReceiver {
 
             @Override
             public void onResponse(String result, int id) {
-                Log.e(TAG, "登录接口返回值: " + result);
                 LoginBean loginBean = null;
                 try {
                     loginBean = GsonParsing.getMessage(result);
@@ -119,8 +121,6 @@ public class NetBroadcastReceiver extends BroadcastReceiver {
 
                 //获取用户数据库重新储存
                 getUserListInterface(-1);
-
-
             }
         }).start();
 
@@ -168,7 +168,6 @@ public class NetBroadcastReceiver extends BroadcastReceiver {
 
             @Override
             public void onResponse(String response, int id) {
-                Log.e(TAG, "获取用户列表接口成功: " + response);
                 UserListBean userListBean = null;
                 if (response.indexOf(ErrorCode.SUCCESS) > 0) {
                     try {
@@ -195,19 +194,37 @@ public class NetBroadcastReceiver extends BroadcastReceiver {
                             }
                         }
 
+                        new Thread(new Runnable() {
+                            @Override
+                            public void run() {
+                                pushData();
+                                Message msg = new Message();
+                                msg.obj = "离线数据上传中...";
+                                handler.sendMessage(msg);
+                            }
+                        }).start();
+
 
                     } catch (Exception e) {
                         Log.e(TAG, "获取用户列表接口解析失败: " + e.getMessage());
                     }
 
-                    pushData();
-                    Toast.makeText(context, "离线数据上传中...", Toast.LENGTH_SHORT).show();
 
                 }
 
             }
         });
     }
+
+    private Handler handler = new Handler(){
+        @Override
+        public void handleMessage(Message msg) {
+            super.handleMessage(msg);
+            String result = (String) msg.obj;
+            Toast.makeText(context, result, Toast.LENGTH_SHORT).show();
+
+        }
+    };
 
     //上传数据
     private void pushData() {
@@ -224,7 +241,6 @@ public class NetBroadcastReceiver extends BroadcastReceiver {
             String oxygen = multiDataBean.getOxygen();
             String resp = multiDataBean.getResp();
             String st = multiDataBean.getSt();
-
             ArrayList<UserListBean.UserListDataBean> userList = dbManager.searchDataWithId(id);
             for (UserListBean.UserListDataBean userListDataBean : userList) {
                 String mid = userListDataBean.getId();
@@ -238,6 +254,7 @@ public class NetBroadcastReceiver extends BroadcastReceiver {
         ArrayList<BC401_Struct> bcList = dbManager.searchBCData();
         for (BC401_Struct bcBean : bcList) {
             String ID = bcBean.ID + "";
+            String time = bcBean.Date + "";
             String URO = bcBean.URO + "";
             String BIL = bcBean.BIL + "";
             String GLU = bcBean.GLU + "";
@@ -252,7 +269,7 @@ public class NetBroadcastReceiver extends BroadcastReceiver {
             ArrayList<UserListBean.UserListDataBean> userList = dbManager.searchDataWithId(ID);
             for (UserListBean.UserListDataBean userListDataBean : userList) {
                 String mid = userListDataBean.getId();
-                pushBCData(mid, URO, BIL, GLU, PH, LEU, BLD, KET, PRO, NIT, SG, VC);
+                pushBCData(mid,time, URO, BIL, GLU, PH, LEU, BLD, KET, PRO, NIT, SG, VC);
             }
         }
         //清空尿液检测仪数据表
@@ -322,10 +339,10 @@ public class NetBroadcastReceiver extends BroadcastReceiver {
     }
 
     //上传尿液检测仪数据表中数据
-    private void pushBCData(String mid, String uro, String bil, String glu, String ph, String leu, String bld, String ket, String pro, String nit, String sg, String vc) {
+    private void pushBCData(String mid,String time, String uro, String bil, String glu, String ph, String leu, String bld, String ket, String pro, String nit, String sg, String vc) {
 
         OkHttpUtils.post().url(InterfaceUrl.BCDATA_URL + sessonWithCode + "/m_id/" + mid)
-//                .addParams("addtime", uro)
+                .addParams("addtime", time)
                 .addParams("URO", uro)
                 .addParams("BIL", bil)
                 .addParams("GLU", glu)
@@ -395,7 +412,7 @@ public class NetBroadcastReceiver extends BroadcastReceiver {
                 if (response.indexOf(ErrorCode.SUCCESS) > 0) {
                     Log.e(TAG, "上传呼吸数据表中的数据成功: " + response);
 
-                }else {
+                } else {
                     Log.e(TAG, "上传呼吸数据表中的数据异常: " + response);
 
                 }

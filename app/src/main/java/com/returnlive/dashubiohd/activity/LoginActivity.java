@@ -77,7 +77,6 @@ public class LoginActivity extends BaseActivity {
                 progressDialog = new ProgressDialog(LoginActivity.this);
                 progressDialog.setProgressStyle(ProgressDialog.STYLE_SPINNER);
                 progressDialog.setMessage("正在登录");
-                progressDialog.show();
                 //手机号
                 final String name = et_account.getText().toString();
                 if (name.equals("")) {
@@ -92,6 +91,7 @@ public class LoginActivity extends BaseActivity {
                     return;
                 }
 
+                progressDialog.show();
                 //如果网络可用，则调用登录接口
                 if (NetUtil.isNetworkConnectionActive(LoginActivity.this)) {
                     new Thread(new Runnable() {

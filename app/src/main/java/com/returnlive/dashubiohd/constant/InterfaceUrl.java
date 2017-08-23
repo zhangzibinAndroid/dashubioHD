@@ -35,6 +35,7 @@ public class InterfaceUrl {
     public static final String BREATHDATA_URL= BASE_URL+"Testing/breath/";//呼吸机上传数据接口
     public static final String GANSHIDATA_URL= BASE_URL+"Testing/dry/";//干式生化仪上传数据接口需要添加sesson和code
     public static final String BCDATA_URL= BASE_URL+"Testing/urine/";//干式生化仪上传数据接口需要添加sesson和code
+    public static final String TITLE_URL= BASE_URL+"Index/getad/";//干式生化仪上传数据接口需要添加sesson和code
 
 
 

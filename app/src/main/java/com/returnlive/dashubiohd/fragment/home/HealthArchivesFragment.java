@@ -2,10 +2,14 @@ package com.returnlive.dashubiohd.fragment.home;
 
 
 import android.content.DialogInterface;
+import android.content.Intent;
 import android.graphics.Color;
+import android.net.Uri;
 import android.os.Bundle;
+import android.os.Environment;
 import android.os.Handler;
 import android.os.Message;
+import android.provider.MediaStore;
 import android.support.v7.app.AlertDialog;
 import android.support.v7.widget.GridLayoutManager;
 import android.support.v7.widget.RecyclerView;
@@ -50,6 +54,7 @@ import com.zhy.autolayout.AutoLinearLayout;
 import com.zhy.http.okhttp.OkHttpUtils;
 import com.zhy.http.okhttp.callback.StringCallback;
 
+import java.io.File;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Calendar;
@@ -62,6 +67,7 @@ import butterknife.OnClick;
 import butterknife.Unbinder;
 import okhttp3.Call;
 
+import static android.app.Activity.RESULT_OK;
 import static com.returnlive.dashubiohd.R.array.diseaseResArray;
 import static com.returnlive.dashubiohd.R.id.tv_woman;
 import static com.returnlive.dashubiohd.constant.CityArray.city;
@@ -75,7 +81,6 @@ import static com.returnlive.dashubiohd.constant.CityArray.province;
  * 描述： 健康档案
  */
 public class HealthArchivesFragment extends BaseFragment {
-
     private static final String TAG = "HealthArchivesFragment";
     @BindView(R.id.img_card)
     ImageView imgCard;
@@ -451,6 +456,10 @@ public class HealthArchivesFragment extends BaseFragment {
 
     //初始化各个控件
     private void initView() {
+        File file = new File(Environment.getExternalStorageDirectory() + "/idCard");
+        if (!file.exists()) {
+            file.mkdir();
+        }
         diseaseAdapter = new DiseaseAdapter(getActivity());
         surgeryAdapter = new SurgerListViewAdapter(getActivity());
         traumaAdapter = new TraumaAdapter(getActivity());
@@ -648,6 +657,7 @@ public class HealthArchivesFragment extends BaseFragment {
     public void onViewClicked(View view) {
         switch (view.getId()) {
             case R.id.btn_camera://拍照
+                getCamera();
                 break;
             case R.id.tv_man://性别：男
                 tvMan.setSelected(true);
@@ -718,6 +728,18 @@ public class HealthArchivesFragment extends BaseFragment {
         }
     }
 
+    protected static Uri tempUri;
+
+    //相机拍照
+    private void getCamera() {
+        Intent openCameraIntent = new Intent(MediaStore.ACTION_IMAGE_CAPTURE);
+
+        File idCardFile = new File(Environment.getExternalStorageDirectory() + "/idCard", "id_card.jpg");
+        tempUri = Uri.fromFile(idCardFile);
+        openCameraIntent.putExtra(MediaStore.EXTRA_OUTPUT, tempUri);
+        startActivityForResult(openCameraIntent, 520);
+    }
+
     private void restartRegister() {
         if (edtName.getText().toString().equals("")) {
             Toast.makeText(getActivity(), "姓名不能为空", Toast.LENGTH_SHORT).show();
@@ -765,7 +787,7 @@ public class HealthArchivesFragment extends BaseFragment {
         String motherJson = gson.toJson(motherAdapter.getList());
         String childrenJson = gson.toJson(childrenAdapter.getList());
 
-        Log.d(TAG, "url: "+InterfaceUrl.USER_REGISTER_URL + sessonWithCode + "/m_id/" + HomeActivity.mid);
+        Log.d(TAG, "url: " + InterfaceUrl.USER_REGISTER_URL + sessonWithCode + "/m_id/" + HomeActivity.mid);
         OkHttpUtils.post().url(InterfaceUrl.USER_REGISTER_URL + sessonWithCode + "/m_id/" + HomeActivity.mid)
                 .addParams("name", edtName.getText().toString())
                 .addParams("sex", String.valueOf(sex))
@@ -1252,4 +1274,18 @@ public class HealthArchivesFragment extends BaseFragment {
                 })
                 .build();
     }
+
+
+    @Override
+    public void onActivityResult(int requestCode, int resultCode, Intent data) {
+        super.onActivityResult(requestCode, resultCode, data);
+        if (resultCode == RESULT_OK) { // 如果返回码是可以用的
+            imgCard.setImageURI(tempUri);
+        }
+    }
+
+
+
+
+
 }

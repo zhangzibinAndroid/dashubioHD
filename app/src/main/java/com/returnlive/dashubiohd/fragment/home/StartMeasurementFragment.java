@@ -1283,6 +1283,7 @@ public class StartMeasurementFragment extends BaseFragment {
                     }).start();
                 } else {
                     dialog.dismiss();
+                    final long time = System.currentTimeMillis() / 1000;
                     for (BC401_Struct bcBean : list) {
                         String URO = bcBean.URO + "";
                         String BIL = bcBean.BIL + "";
@@ -1295,7 +1296,7 @@ public class StartMeasurementFragment extends BaseFragment {
                         String NIT = bcBean.NIT + "";
                         String SG = bcBean.SG + "";
                         String VC = bcBean.VC + "";
-                        dbManager.addBCData(Constants.id, URO, BLD, BIL, KET, GLU, PRO, PH, NIT, LEU, SG, VC);
+                        dbManager.addBCData(Constants.id,String.valueOf(time), URO, BLD, BIL, KET, GLU, PRO, PH, NIT, LEU, SG, VC);
                     }
                     Toast.makeText(getActivity(), "本地保存数据成功", Toast.LENGTH_SHORT).show();
                 }
@@ -1319,7 +1320,7 @@ public class StartMeasurementFragment extends BaseFragment {
         String SG = "";
         String PH = "";
         String VC = "";
-        final long time = System.currentTimeMillis();
+        final long time = System.currentTimeMillis() / 1000;
 
         for (int i = 0; i < list.size(); i++) {
             BC401_Struct mBC401Struct = list.get(i);
@@ -1513,6 +1514,7 @@ public class StartMeasurementFragment extends BaseFragment {
                         }
                     }).start();
                 } else {
+                    dialog.dismiss();
                     dbManager.addBiochemicalData(Constants.id, mDryReceivedData);
                     Toast.makeText(getActivity(), "本地数据保存成功", Toast.LENGTH_SHORT).show();
                 }

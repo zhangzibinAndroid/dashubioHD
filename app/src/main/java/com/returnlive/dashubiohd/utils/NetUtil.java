@@ -12,14 +12,23 @@ public class NetUtil {
 	 * @return
 	 */
 	public static boolean isNetworkConnectionActive(Context context) {
-		ConnectivityManager manager = (ConnectivityManager) context
+		/*ConnectivityManager manager = (ConnectivityManager) context
 				.getSystemService(Context.CONNECTIVITY_SERVICE);
 		NetworkInfo networkInfo = manager.getActiveNetworkInfo();
 
 		if (networkInfo == null || !networkInfo.isConnected()) {
 			return false;
 		}
-		return true;
+		return true;*/
+		if (context != null) {
+			ConnectivityManager mConnectivityManager = (ConnectivityManager) context
+					.getSystemService(Context.CONNECTIVITY_SERVICE);
+			NetworkInfo mNetworkInfo = mConnectivityManager.getActiveNetworkInfo();
+			if (mNetworkInfo != null) {
+				return mNetworkInfo.isAvailable();
+			}
+		}
+		return false;
 	}
 
 }
