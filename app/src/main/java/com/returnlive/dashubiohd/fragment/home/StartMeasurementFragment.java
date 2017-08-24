@@ -180,6 +180,10 @@ public class StartMeasurementFragment extends BaseFragment {
 
 
     private void showBlueToathDialog() {
+        if (singleLeadUtil.getBle()!=null){
+            singleLeadUtil.nullBlue();
+        }
+
         AlertDialog.Builder blueToathDialog = new AlertDialog.Builder(getActivity());
         View view = View.inflate(getActivity(), R.layout.dialog_search_buletooth, null);
         ViewHolderBlueToath viewHolderBlueToath = new ViewHolderBlueToath(view);
@@ -194,11 +198,16 @@ public class StartMeasurementFragment extends BaseFragment {
                 isBuleConnect = true;
                 dialog.dismiss();
                 showMultiParameterMonitorDialog();
+                deviceList.clear();
+                blueAdapter.getList().clear();
+                singleLeadUtil.scanLeDevice(false);
+
             }
         });
         dialog = blueToathDialog.show();
         deviceList.clear();
         singleLeadUtil.scanLeDevice(true);
+        Log.e(TAG, "showBlueToathDialog: " );
     }
 
 
@@ -217,7 +226,7 @@ public class StartMeasurementFragment extends BaseFragment {
         viewHolder.btnSave.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                final long time = System.currentTimeMillis();
+                final long time = System.currentTimeMillis() / 1000;
                 //保存数据
                 singleLeadUtil.disconnect();//点击取消断开蓝夜连接
                 dialog.dismiss();
@@ -254,6 +263,7 @@ public class StartMeasurementFragment extends BaseFragment {
             }
         });
         multiParameterMonitorDialog.setView(view);
+        multiParameterMonitorDialog.setCancelable(false);
         dialog = multiParameterMonitorDialog.show();
         setOnDataCallBackListener(new OnDataCallBackListener() {
             @Override
@@ -283,6 +293,7 @@ public class StartMeasurementFragment extends BaseFragment {
                 viewHolder.tvStSegmentNumerical.setText(st);
             }
         });
+
 
 
     }
@@ -362,6 +373,7 @@ public class StartMeasurementFragment extends BaseFragment {
     @Override
     public void onResume() {
         super.onResume();
+        Log.e(TAG, "onResume: " );
         singleLeadUtil = new SingleLeadUtil(getActivity(), new OnCallBack() {
             @Override
             public void onStatusCallBack(final int status) {
@@ -385,8 +397,8 @@ public class StartMeasurementFragment extends BaseFragment {
                         break;
                 }
 
-                final String finalMsg = msg;
-                Toast.makeText(getActivity(), finalMsg, Toast.LENGTH_SHORT).show();
+//                final String finalMsg = msg;
+//                Toast.makeText(getActivity(), finalMsg, Toast.LENGTH_SHORT).show();
             }
 
             @Override
@@ -537,10 +549,22 @@ public class StartMeasurementFragment extends BaseFragment {
 
             @Override
             public void onDeviceFound(BluetoothDevice device) {
+                Log.e(TAG, "onDeviceFound: >>>>>>>>>>>>>>" );
+
                 //设备发现
-                if (deviceList.contains(device))
+                if (deviceList.contains(device)) {
+                    Log.e(TAG, "onDeviceFound: ");
                     return;
-                deviceList.add(device);
+                }
+
+                if (device.getName().contains("Monitor")){
+                    deviceList.add(device);
+                }
+
+
+                for (int i = 0; i < deviceList.size(); i++) {
+                    Log.e(TAG, "deviceList: "+deviceList.get(i).getName());
+                }
                 blueAdapter.addAllDataToMyadapter(deviceList);
                 getActivity().runOnUiThread(new Runnable() {
                     @Override
@@ -714,7 +738,7 @@ public class StartMeasurementFragment extends BaseFragment {
             @Override
             public void onBleDisconnect() {
                 //蓝牙设备断开连接
-                toastOnUi("蓝牙设备断开连接");
+//                toastOnUi("蓝牙设备断开连接");
             }
 
             @Override
@@ -749,21 +773,23 @@ public class StartMeasurementFragment extends BaseFragment {
         viewHolderHuXiMessage.btnSave.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
-                final String date = viewHolderHuXiMessage.tvDate.getText().toString();
+//                final String date = viewHolderHuXiMessage.tvDate.getText().toString();
                 final String tvPef = viewHolderHuXiMessage.tvPef.getText().toString();
                 final String tvFvc = viewHolderHuXiMessage.tvFvc.getText().toString();
                 final String tvFev1 = viewHolderHuXiMessage.tvFev1.getText().toString();
                 //保存数据接口
+                final long time = System.currentTimeMillis() / 1000;
+
                 if (NetUtil.isNetworkConnectionActive(getActivity())) {
                     new Thread(new Runnable() {
                         @Override
                         public void run() {
-                            huxiInterface(date, tvPef, tvFvc, tvFev1);
+                            huxiInterface(time+"",tvPef, tvFvc, tvFev1);
                         }
                     }).start();
                 } else {
                     mBluetoothController.stopConnectBLe();//保存失败或成功后断开蓝牙
-                    dbManager.addBreathingData(Constants.id, date, tvPef, tvFvc, tvFev1);
+                    dbManager.addBreathingData(time+"",Constants.id, tvPef, tvFvc, tvFev1);
                     Toast.makeText(getActivity(), "本地数据保存成功", Toast.LENGTH_SHORT).show();
                 }
 
@@ -793,7 +819,7 @@ public class StartMeasurementFragment extends BaseFragment {
 
                 }
 
-                int pro1 = (int) (Float.valueOf(fev1) * 100 / 3.36);
+                int pro1 = (int) (Float.valueOf(fev1) * 100 / 3.37);
 
                 int pro2 = (int) (Float.valueOf(fev1) * 100 / Float.valueOf(fvc));
                 if (pro1 >= 80) {
@@ -1296,7 +1322,7 @@ public class StartMeasurementFragment extends BaseFragment {
                         String NIT = bcBean.NIT + "";
                         String SG = bcBean.SG + "";
                         String VC = bcBean.VC + "";
-                        dbManager.addBCData(Constants.id,String.valueOf(time), URO, BLD, BIL, KET, GLU, PRO, PH, NIT, LEU, SG, VC);
+                        dbManager.addBCData(Constants.id,time+"", URO, BLD, BIL, KET, GLU, PRO, PH, NIT, LEU, SG, VC);
                     }
                     Toast.makeText(getActivity(), "本地保存数据成功", Toast.LENGTH_SHORT).show();
                 }
@@ -1339,7 +1365,7 @@ public class StartMeasurementFragment extends BaseFragment {
 
             Log.e(TAG, "bcInterfaceUrl: "+InterfaceUrl.BCDATA_URL + sessonWithCode + "/m_id/" + HomeActivity.mid );
             OkHttpUtils.post().url(InterfaceUrl.BCDATA_URL + sessonWithCode + "/m_id/" + HomeActivity.mid)
-                    .addParams("addtime", String.valueOf(time))
+                    .addParams("addtime", time+"")
                     .addParams("URO", URO)
                     .addParams("BIL", BIL)
                     .addParams("GLU", GLU)

@@ -104,6 +104,7 @@ public class HomeFristFragment extends BaseFragment {
 
             @Override
             public void onResponse(String response, int id) {
+                Log.e(TAG, "首页数据: "+response );
                 Message msg = new Message();
                 msg.obj = response;
                 mainPageMessageHandler.sendMessage(msg);

@@ -205,6 +205,15 @@ public class SingleLeadUtil {
         }
     }
 
+    public void nullBlue(){
+        mBle = null;
+    }
+
+
+    public IBle getBle(){
+        return mBle;
+    }
+
     public void pairDevice(BluetoothDevice bluetoothDevice) {
         mDeviceAddress = bluetoothDevice.getAddress();
         mBle.requestConnect(bluetoothDevice.getAddress());

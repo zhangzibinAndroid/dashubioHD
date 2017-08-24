@@ -152,6 +152,7 @@ public class HealthReportFragment extends BaseFragment {
 
             @Override
             public void onResponse(String response, int id) {
+                Log.e(TAG, "response: " +response);
                 Message msg = new Message();
                 msg.obj = response;
                 healthReportHandler.sendMessage(msg);

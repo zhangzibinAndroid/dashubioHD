@@ -5,6 +5,7 @@ import android.os.Bundle;
 import android.os.Handler;
 import android.os.Message;
 import android.support.annotation.Nullable;
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -51,12 +52,16 @@ public class HistoryDataFragment extends BaseFragment {
     TextView tvDryBiochemicalApparatus;
     @BindView(R.id.tv_urinometer)
     TextView tvUrinometer;
+    @BindView(R.id.tv_huxi)
+    TextView tv_huxi;
     @BindView(R.id.lay_health_detector)
     TagFlowLayout layHealthDetector;
     @BindView(R.id.lay_dry_biochemical_apparatus)
     TagFlowLayout layDryBiochemicalApparatus;
     @BindView(R.id.lay_urinometer)
     TagFlowLayout layUrinometer;
+    @BindView(R.id.lay_huxi)
+    TagFlowLayout lay_huxi;
     @BindView(R.id.scrollView_history)
     ScrollView scrollViewHistory;
     @BindView(R.id.lv_history_data)
@@ -65,6 +70,7 @@ public class HistoryDataFragment extends BaseFragment {
     private TagAdapter<HistoryDataBean.HistoryData.ProjectBean> healthDetectorAdapter;
     private TagAdapter<HistoryDataBean.HistoryData.ProjectBean> dryBiochemicalApparatusAdapter;
     private TagAdapter<HistoryDataBean.HistoryData.ProjectBean> urinometerAdapter;
+    private TagAdapter<HistoryDataBean.HistoryData.ProjectBean> huxiAdapter;
     private List<HistoryDataBean.HistoryData.ProjectBean> healthDetectorChildrenList;
     private List<HistoryDataBean.HistoryData.ProjectBean> healthDetectorChildrenListSecond;
     private List<HistoryDataBean.HistoryData> healthDetectorFaherList;
@@ -99,7 +105,7 @@ public class HistoryDataFragment extends BaseFragment {
                     Iterator<Integer> it = selectPosSet.iterator();
                     while (it.hasNext()) {
                         int pos = it.next();
-                        HistoryDataBean.HistoryData historyDataBean = healthDetectorFaherList.get(0);
+                        HistoryDataBean.HistoryData historyDataBean = healthDetectorFaherList.get(3);
                         healthDetectorChildrenListSecond = historyDataBean.getProject();
                         HistoryDataBean.HistoryData.ProjectBean bean = healthDetectorChildrenListSecond.get(pos);
                         SO_ID_ONE = bean.getId() + "";
@@ -154,6 +160,28 @@ public class HistoryDataFragment extends BaseFragment {
             }
         });
 
+        //呼吸
+        lay_huxi.setOnSelectListener(new TagFlowLayout.OnSelectListener() {
+            @Override
+            public void onSelected(Set<Integer> selectPosSet) {
+                if (selectPosSet == null || selectPosSet.size() == 0) {
+
+                } else {
+                    Iterator<Integer> it = selectPosSet.iterator();
+                    while (it.hasNext()) {
+                        int pos = it.next();
+                        HistoryDataBean.HistoryData historyDataBean = healthDetectorFaherList.get(4);
+                        healthDetectorChildrenListSecond = historyDataBean.getProject();
+                        HistoryDataBean.HistoryData.ProjectBean bean = healthDetectorChildrenListSecond.get(pos);
+                        SO_ID_ONE = bean.getId() + "";
+                        scrollViewHistory.setVisibility(View.GONE);
+                        lvHistoryData.setVisibility(View.VISIBLE);
+                        showListData(FA_ID_THREE, SO_ID_ONE);
+                    }
+                }
+            }
+        });
+
         new Thread(new Runnable() {
             @Override
             public void run() {
@@ -167,6 +195,7 @@ public class HistoryDataFragment extends BaseFragment {
         new Thread(new Runnable() {
             @Override
             public void run() {
+                Log.e(TAG, "fa_id: "+fa_id+"so_id=="+so_id );
                 OkHttpUtils.post().url(InterfaceUrl.HISTORY_DATA_URL + sessonWithCode + "/m_id/" + HomeActivity.mid)
                         .addParams("fa_id", fa_id)
                         .addParams("so_id", so_id)
@@ -178,6 +207,7 @@ public class HistoryDataFragment extends BaseFragment {
 
                     @Override
                     public void onResponse(String response, int id) {
+                        Log.e(TAG, "子onResponse: "+response );
                         Message msg = new Message();
                         msg.obj = response;
                         historyListHandler.sendMessage(msg);
@@ -187,6 +217,7 @@ public class HistoryDataFragment extends BaseFragment {
         }).start();
     }
 
+    private static final String TAG = "HistoryDataFragment";
     private void historyDataInterface() {
         OkHttpUtils.get().url(InterfaceUrl.HISTORY_KIND_URL + sessonWithCode)
                 .addParams("m_id", HomeActivity.mid)
@@ -198,6 +229,7 @@ public class HistoryDataFragment extends BaseFragment {
 
             @Override
             public void onResponse(String response, int id) {
+                Log.e(TAG, "历史数据1: "+response );
                 Message msg = new Message();
                 msg.obj = response;
                 historyDataHandler.sendMessage(msg);
@@ -224,11 +256,11 @@ public class HistoryDataFragment extends BaseFragment {
                         return;
                     }
                     //设置健康检测仪
-                    if (healthDetectorFaherList.size() >= 1) {
+                    if (healthDetectorFaherList.size() >= 4) {
                         tvHealthDetector.setVisibility(View.VISIBLE);
 
                         for (int i = 0; i < healthDetectorFaherList.size(); i++) {
-                            HistoryDataBean.HistoryData historyData = healthDetectorFaherList.get(0);
+                            HistoryDataBean.HistoryData historyData = healthDetectorFaherList.get(3);
                             healthDetectorChildrenList = historyData.getProject();
                             HistoryDataBean.HistoryData.AdeviceBean adevice = historyData.getAdevice();
                             tvHealthDetector.setText(adevice.getName());
@@ -289,6 +321,31 @@ public class HistoryDataFragment extends BaseFragment {
                         };
                         layUrinometer.setAdapter(urinometerAdapter);
                     }
+
+                    //设置呼吸
+                    if (healthDetectorFaherList.size() >= 5) {
+                        tv_huxi.setVisibility(View.VISIBLE);
+                        for (int i = 0; i < healthDetectorFaherList.size(); i++) {
+                            HistoryDataBean.HistoryData historyData = healthDetectorFaherList.get(4);
+                            healthDetectorChildrenList = historyData.getProject();
+                            HistoryDataBean.HistoryData.AdeviceBean adevice = historyData.getAdevice();
+                            tv_huxi.setText(adevice.getName());
+                            FA_ID_THREE = adevice.getId();
+
+                        }
+
+                        huxiAdapter = new TagAdapter<HistoryDataBean.HistoryData.ProjectBean>(healthDetectorChildrenList) {
+                            @Override
+                            public View getView(FlowLayout parent, int position, HistoryDataBean.HistoryData.ProjectBean projectBean) {
+                                TextView propertySingleNameTv = (TextView) LayoutInflater.from(getActivity()).inflate(R.layout.item_textview_children, parent, false);
+                                propertySingleNameTv.setText(projectBean.getName());
+                                return propertySingleNameTv;
+                            }
+                        };
+                        lay_huxi.setAdapter(huxiAdapter);
+                    }
+
+
                 } catch (Exception e) {
                     Toast.makeText(getActivity(), getResources().getString(R.string.connection_timeout_or_illegal_request), Toast.LENGTH_SHORT).show();
                 }
@@ -313,6 +370,7 @@ public class HistoryDataFragment extends BaseFragment {
         public void handleMessage(Message msg) {
             super.handleMessage(msg);
             String result = (String) msg.obj;
+            Log.e(TAG, "result: "+result );
             if (result.indexOf(ErrorCode.SUCCESS) > 0) {
                 try {
                     HistoryListDataBean historyListDataBean = GsonParsing.getHistoryListDataMessageJson(result);
@@ -321,7 +379,8 @@ public class HistoryDataFragment extends BaseFragment {
                     lvHistoryData.setAdapter(historyDataAdapter);
                     historyDataAdapter.notifyDataSetChanged();
                 } catch (Exception e) {
-                    Toast.makeText(getActivity(), getResources().getString(R.string.connection_timeout_or_illegal_request), Toast.LENGTH_SHORT).show();
+                    Log.e(TAG, "handleMessage: "+e.getMessage() );
+//                    Toast.makeText(getActivity(), getResources().getString(R.string.connection_timeout_or_illegal_request), Toast.LENGTH_SHORT).show();
                 }
             } else {
                 //解析
@@ -330,6 +389,7 @@ public class HistoryDataFragment extends BaseFragment {
                     errorCodeBean = GsonParsing.sendCodeError(result);
                     judge(errorCodeBean.getCode() + "");
                 } catch (Exception e) {
+                    Log.e(TAG, "Exception: "+e.getMessage() );
                     Toast.makeText(getActivity(), getResources().getString(R.string.connection_timeout_or_illegal_request), Toast.LENGTH_SHORT).show();
                 }
             }

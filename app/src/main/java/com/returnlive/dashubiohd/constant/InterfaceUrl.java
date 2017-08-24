@@ -36,6 +36,7 @@ public class InterfaceUrl {
     public static final String GANSHIDATA_URL= BASE_URL+"Testing/dry/";//干式生化仪上传数据接口需要添加sesson和code
     public static final String BCDATA_URL= BASE_URL+"Testing/urine/";//干式生化仪上传数据接口需要添加sesson和code
     public static final String TITLE_URL= BASE_URL+"Index/getad/";//干式生化仪上传数据接口需要添加sesson和code
+    public static final String BITMAP_URL= WEBVIEW_BASE_URL+"Uploads/";//加上图片名称
 
 
 

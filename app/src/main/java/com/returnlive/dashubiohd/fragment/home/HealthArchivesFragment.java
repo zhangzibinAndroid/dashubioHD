@@ -3,6 +3,8 @@ package com.returnlive.dashubiohd.fragment.home;
 
 import android.content.DialogInterface;
 import android.content.Intent;
+import android.graphics.Bitmap;
+import android.graphics.BitmapFactory;
 import android.graphics.Color;
 import android.net.Uri;
 import android.os.Bundle;
@@ -50,6 +52,7 @@ import com.returnlive.dashubiohd.constant.ErrorCode;
 import com.returnlive.dashubiohd.constant.InterfaceUrl;
 import com.returnlive.dashubiohd.gson.GsonParsing;
 import com.returnlive.dashubiohd.utils.ViewUtils;
+import com.returnlive.dashubiohd.utils.imageloader.HttpUtils;
 import com.zhy.autolayout.AutoLinearLayout;
 import com.zhy.http.okhttp.OkHttpUtils;
 import com.zhy.http.okhttp.callback.StringCallback;
@@ -207,8 +210,22 @@ public class HealthArchivesFragment extends BaseFragment {
     }
 
     //网络获取各个控件的值
-    private void setUserMessage(HealthArchivesBean.UserMessageDataBean userMessageDataBean) {
+    private void setUserMessage(final HealthArchivesBean.UserMessageDataBean userMessageDataBean) {
         ViewUtils viewUtils = new ViewUtils();
+
+        new Thread(new Runnable() {
+            @Override
+            public void run() {
+                byte[] map = HttpUtils.getInstance().getByteArrayFromWeb(InterfaceUrl.BITMAP_URL + userMessageDataBean.getCard_img());
+                final Bitmap bitmap = BitmapFactory.decodeByteArray(map, 0, map.length);
+                getActivity().runOnUiThread(new Runnable() {
+                    @Override
+                    public void run() {
+                        imgCard.setImageBitmap(bitmap);
+                    }
+                });
+            }
+        }).start();
 
         edtName.setText(userMessageDataBean.getName());
         if (userMessageDataBean.getSex().equals("1")) {
@@ -636,7 +653,6 @@ public class HealthArchivesFragment extends BaseFragment {
 
             @Override
             public void onResponse(String response, int id) {
-                Log.d(TAG, "onResponse: " + response);
                 Message msg = new Message();
                 msg.obj = response;
                 healthArchivesHandler.sendMessage(msg);
@@ -786,8 +802,8 @@ public class HealthArchivesFragment extends BaseFragment {
         String fatherJson = gson.toJson(fatherAdapter.getList());
         String motherJson = gson.toJson(motherAdapter.getList());
         String childrenJson = gson.toJson(childrenAdapter.getList());
+        File file = new File(Environment.getExternalStorageDirectory()+ "/idCard" + "/id_card.jpg");
 
-        Log.d(TAG, "url: " + InterfaceUrl.USER_REGISTER_URL + sessonWithCode + "/m_id/" + HomeActivity.mid);
         OkHttpUtils.post().url(InterfaceUrl.USER_REGISTER_URL + sessonWithCode + "/m_id/" + HomeActivity.mid)
                 .addParams("name", edtName.getText().toString())
                 .addParams("sex", String.valueOf(sex))
@@ -824,6 +840,7 @@ public class HealthArchivesFragment extends BaseFragment {
                 .addParams("water", spWater.getSelectedItem().toString())
                 .addParams("wc", spWc.getSelectedItem().toString())
                 .addParams("poultry", spQcl.getSelectedItem().toString())
+                .addFile("card_img","id_card.jpg",file)
                 .build().execute(new StringCallback() {
             @Override
             public void onError(Call call, Exception e, int id) {
@@ -839,9 +856,8 @@ public class HealthArchivesFragment extends BaseFragment {
 
             }
         });
-
-
     }
+
 
     private boolean[] mDiseaseMulChoice;
     private List<DiseaseBean> diseaseList = new ArrayList<>();
@@ -874,9 +890,7 @@ public class HealthArchivesFragment extends BaseFragment {
                 }
                 int num = diseaseList.size();
                 num = num % 3 == 0 ? num / 3 : num / 3 + 1;//进一法
-
                 ViewUtils.setLayoutHeight(recyViewDisease, num * getActivity().getResources().getDimensionPixelSize(R.dimen.px38));
-
                 diseaseAdapter.notifyDataSetChanged();
             }
         });
@@ -992,7 +1006,6 @@ public class HealthArchivesFragment extends BaseFragment {
         countyAdapter = new ArrayAdapter<String>(getActivity(), R.layout.textview_healtarchves, county[0][0]);
         spDistrict.setAdapter(countyAdapter);
         spDistrict.setSelection(0, true);
-        Log.e(TAG, "initCitySelect: ");
         spProvince.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {
             @Override
             public void onItemSelected(AdapterView<?> parent, View view, int position, long id) {
@@ -1283,9 +1296,6 @@ public class HealthArchivesFragment extends BaseFragment {
             imgCard.setImageURI(tempUri);
         }
     }
-
-
-
 
 
 }

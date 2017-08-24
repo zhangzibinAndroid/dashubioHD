@@ -71,6 +71,16 @@
                 style="@style/HistoryDataTagFlowLayoutStyle"
                 zhy:max_select="1"/>
 
+
+            <TextView
+                android:id="@+id/tv_huxi"
+                style="@style/TextViewHistoryStyle" />
+
+            <com.zhy.view.flowlayout.TagFlowLayout
+                android:id="@+id/lay_huxi"
+                style="@style/HistoryDataTagFlowLayoutStyle"
+                zhy:max_select="1"/>
+
         </com.zhy.autolayout.AutoLinearLayout>
     </ScrollView>
 
