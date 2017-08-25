@@ -13,6 +13,7 @@ import android.content.Intent;
 import android.content.IntentFilter;
 import android.content.ServiceConnection;
 import android.content.pm.PackageManager;
+import android.os.AsyncTask;
 import android.os.Bundle;
 import android.os.Handler;
 import android.os.IBinder;
@@ -44,7 +45,6 @@ import com.breathhome_ble_sdk.bean.ReturnBean;
 import com.breathhome_ble_sdk.broadreceiver.BroadcastResponse;
 import com.breathhome_ble_sdk.controller.BluetoothController;
 import com.breathhome_ble_sdk.message.MessageManager;
-import com.breathhome_ble_sdk.utils.BreathHomeLog;
 import com.breathhome_ble_sdk.utils.ConstantUtils;
 import com.contec.jar.BC401.BC401_Data;
 import com.contec.jar.BC401.BC401_Struct;
@@ -120,7 +120,6 @@ public class StartMeasurementFragment extends BaseFragment {
     private List<BluetoothDevice> deviceList = new ArrayList<>();
     private BlueAdapter blueAdapter;
     private BlueHuXiAdapter blueHuXiAdapter;
-    private boolean isBuleConnect = false;
     public DashuHdApplication myApplication;
 
 
@@ -139,8 +138,9 @@ public class StartMeasurementFragment extends BaseFragment {
 
     private void initView() {
         dbManager = new DBManager(getActivity());
-        isBuleConnect = false;
         myApplication = new DashuHdApplication();
+        blueHuXiAdapter = new BlueHuXiAdapter(getActivity());
+        blueAdapter = new BlueAdapter(getActivity());
         mGson = new Gson();
         mUrineBluetoothSPP = new BluetoothSPP(getActivity(), mSecure);
         if (!mUrineBluetoothSPP.isBluetoothAvailable()) {
@@ -152,6 +152,8 @@ public class StartMeasurementFragment extends BaseFragment {
         }
 
         bindDryBluetoothService();
+        initDatas();
+
     }
 
     @Override
@@ -179,35 +181,30 @@ public class StartMeasurementFragment extends BaseFragment {
     }
 
 
+    private boolean isSacn = true;
     private void showBlueToathDialog() {
-        if (singleLeadUtil.getBle()!=null){
-            singleLeadUtil.nullBlue();
-        }
-
         AlertDialog.Builder blueToathDialog = new AlertDialog.Builder(getActivity());
         View view = View.inflate(getActivity(), R.layout.dialog_search_buletooth, null);
         ViewHolderBlueToath viewHolderBlueToath = new ViewHolderBlueToath(view);
         blueToathDialog.setView(view);
-        blueAdapter = new BlueAdapter(getActivity());
         viewHolderBlueToath.lvSearchBluetooth.setAdapter(blueAdapter);
         viewHolderBlueToath.lvSearchBluetooth.setOnItemClickListener(new AdapterView.OnItemClickListener() {
             @Override
             public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
                 //匹配
+                Log.e(TAG, "onItemClick: "+deviceList.get(position) );
                 singleLeadUtil.pairDevice(deviceList.get(position));
-                isBuleConnect = true;
                 dialog.dismiss();
                 showMultiParameterMonitorDialog();
-                deviceList.clear();
-                blueAdapter.getList().clear();
-                singleLeadUtil.scanLeDevice(false);
 
             }
         });
         dialog = blueToathDialog.show();
-        deviceList.clear();
-        singleLeadUtil.scanLeDevice(true);
-        Log.e(TAG, "showBlueToathDialog: " );
+        Log.e(TAG, "isSacn: "+isSacn );
+        if (isSacn){
+            singleLeadUtil.scanLeDevice(true);
+            isSacn = false;
+        }
     }
 
 
@@ -268,6 +265,7 @@ public class StartMeasurementFragment extends BaseFragment {
         setOnDataCallBackListener(new OnDataCallBackListener() {
             @Override
             public void OnDataCallBack(ArrayList<Float> ecg_list_one) {
+                Log.e(TAG, "ecg_list_one: "+ecg_list_one );
                 viewHolder.ecg_path.addDATA(ecg_list_one);
             }
         });
@@ -295,7 +293,6 @@ public class StartMeasurementFragment extends BaseFragment {
         });
 
 
-
     }
 
 
@@ -320,7 +317,7 @@ public class StartMeasurementFragment extends BaseFragment {
 
             @Override
             public void onResponse(String response, int id) {
-                Log.e(TAG, "response: ");
+                Log.e(TAG, "response: " + response);
 
             }
         });
@@ -363,7 +360,6 @@ public class StartMeasurementFragment extends BaseFragment {
     static class ViewHolderBlueToath {
         @BindView(R.id.lv_search_bluetooth)
         ListView lvSearchBluetooth;
-
         ViewHolderBlueToath(View view) {
             ButterKnife.bind(this, view);
         }
@@ -373,7 +369,6 @@ public class StartMeasurementFragment extends BaseFragment {
     @Override
     public void onResume() {
         super.onResume();
-        Log.e(TAG, "onResume: " );
         singleLeadUtil = new SingleLeadUtil(getActivity(), new OnCallBack() {
             @Override
             public void onStatusCallBack(final int status) {
@@ -397,7 +392,8 @@ public class StartMeasurementFragment extends BaseFragment {
                         break;
                 }
 
-//                final String finalMsg = msg;
+                final String finalMsg = msg;
+                Log.e(TAG, "设备状态: "+finalMsg );
 //                Toast.makeText(getActivity(), finalMsg, Toast.LENGTH_SHORT).show();
             }
 
@@ -549,7 +545,7 @@ public class StartMeasurementFragment extends BaseFragment {
 
             @Override
             public void onDeviceFound(BluetoothDevice device) {
-                Log.e(TAG, "onDeviceFound: >>>>>>>>>>>>>>" );
+//                Log.e(TAG, "onDeviceFound: >>>>>>>>>>>>>>");
 
                 //设备发现
                 if (deviceList.contains(device)) {
@@ -557,14 +553,14 @@ public class StartMeasurementFragment extends BaseFragment {
                     return;
                 }
 
-                if (device.getName().contains("Monitor")){
+                if (device.getName().contains("Monitor")) {
                     deviceList.add(device);
                 }
 
 
-                for (int i = 0; i < deviceList.size(); i++) {
-                    Log.e(TAG, "deviceList: "+deviceList.get(i).getName());
-                }
+                /*for (int i = 0; i < deviceList.size(); i++) {
+                    Log.e(TAG, "deviceList: " + deviceList.get(i).getName());
+                }*/
                 blueAdapter.addAllDataToMyadapter(deviceList);
                 getActivity().runOnUiThread(new Runnable() {
                     @Override
@@ -609,7 +605,7 @@ public class StartMeasurementFragment extends BaseFragment {
     }
 
 
-    private List<BluetoothDeviceBean> devicelist;                            //存放搜索到的蓝牙设备
+    private List<BluetoothDeviceBean> devicelistHuXi = new ArrayList<>();                            //存放搜索到的蓝牙设备
     private String IMEI = "B652276134";                                        //IMEI号,用户绑定的设备IMEI号
     private StringBuffer sb;                                                //用作存放蓝牙设备的指令
     private HolderBean holder;
@@ -620,24 +616,20 @@ public class StartMeasurementFragment extends BaseFragment {
     private BleVersionMsgBean bleVersionMsg;
     private MyBleStateBroadcast myBleStateBroadcast;                        //自定义蓝牙状态监听
     private SystemBleBroadcast systemBleBroadcast;
-
+    public static BluetoothDeviceBean bluetoothDeviceBean;
 
     private void showBlueToathHuXiDialog() {
         AlertDialog.Builder blueToathDialog = new AlertDialog.Builder(getActivity());
         View view = View.inflate(getActivity(), R.layout.dialog_search_buletooth, null);
         ViewHolderBlueToath viewHolderBlueToath = new ViewHolderBlueToath(view);
         blueToathDialog.setView(view);
-        blueHuXiAdapter = new BlueHuXiAdapter(getActivity());
         viewHolderBlueToath.lvSearchBluetooth.setAdapter(blueHuXiAdapter);
         dialog = blueToathDialog.show();
-        initDatas(viewHolderBlueToath.lvSearchBluetooth);
-        startSearchBle();
-
+        setitemOnClickMeathed(viewHolderBlueToath.lvSearchBluetooth);
     }
 
-    private void initDatas(ListView listview) {
-        getTheNewsVersion(listview);                                                //获取最新版本号
-        devicelist = new ArrayList<BluetoothDeviceBean>();
+    private void initDatas() {
+        getTheNewsVersion();                                                //获取最新版本号
         sb = new StringBuffer();
         holder = new HolderBean();
         holder.setDetectedNo(33);
@@ -650,41 +642,38 @@ public class StartMeasurementFragment extends BaseFragment {
         holder.setHeight(183);
         holder.setWeight(78);
         holder.setDevieceNo("B652276134");
-        initTools();
-
     }
 
-    private void getTheNewsVersion(final ListView listview) {
+    private void getTheNewsVersion() {
         getBleCurrentVersionTask = (GetBleCurrentVersionTask) new GetBleCurrentVersionTask(getActivity()).execute();
         getBleCurrentVersionTask.setAsyncResponse(new AsyncResponse<ReturnBean<BleVersionMsgBean>>() {
 
             @Override
             public void onDataReceivedFailed() {
-                // TODO Auto-generated method stub
-                BreathHomeLog.e("Error");
+                Log.e(TAG, "Error");
             }
 
 
             @Override
             public void onDataReceivedSuccess(ReturnBean<BleVersionMsgBean> returnBean) {
+                Log.e(TAG, "onDataReceivedSuccess: ");
                 bleVersionMsg = returnBean.getObject();
                 initTools();                            //初始化工具
-                initBroadcast(listview);                        //定义广播接收
+                initBroadcast();                        //定义广播接收
             }
 
             @Override
-            public void onDataReceivedAndDefaultData(
-                    ReturnBean<BleVersionMsgBean> returnBean) {
+            public void onDataReceivedAndDefaultData(ReturnBean<BleVersionMsgBean> returnBean) {
+                Log.e(TAG, "onDataReceivedAndDefaultData: ");
                 bleVersionMsg = returnBean.getObject();
                 initTools();                            //初始化工具
-                initBroadcast(listview);                        //定义广播接收
-
+                initBroadcast();                        //定义广播接收
             }
         });
     }
 
 
-    private void initBroadcast(final ListView listview) {
+    private void initBroadcast() {
         myBleStateBroadcast = new MyBleStateBroadcast();
         IntentFilter intentFilter = new IntentFilter();
         intentFilter.addAction(ConstantUtils.ACTION_UPDATE_DEVICE_LIST);
@@ -698,7 +687,7 @@ public class StartMeasurementFragment extends BaseFragment {
             public void onSearchBleSuccess(final BluetoothDeviceBean bleDevice) {
                 //搜索到蓝牙设备
                 boolean found = false;//记录该条记录是否在list中
-                for (BluetoothDeviceBean device : devicelist) {
+                for (BluetoothDeviceBean device : devicelistHuXi) {
                     if (device.getAddress().equals(bleDevice.getAddress())) {
                         found = true;
                         break;
@@ -706,22 +695,15 @@ public class StartMeasurementFragment extends BaseFragment {
                 }
                 if (!found) {
                     blueHuXiAdapter.getList().clear();
-                    devicelist.add(bleDevice);
-                    for (int i = 0; i < devicelist.size(); i++) {
-                        BluetoothDeviceBean bluetoothDeviceBean = devicelist.get(i);
+                    if (bleDevice.getName().length() == 10) {
+                        devicelistHuXi.add(bleDevice);
+                    }
+                    for (int i = 0; i < devicelistHuXi.size(); i++) {
+                        BluetoothDeviceBean bluetoothDeviceBean = devicelistHuXi.get(i);
                         blueHuXiAdapter.addDATA(bluetoothDeviceBean);
                     }
                     blueHuXiAdapter.notifyDataSetChanged();
                 }
-
-                listview.setOnItemClickListener(new AdapterView.OnItemClickListener() {
-                    @Override
-                    public void onItemClick(AdapterView<?> adapterView, View view, int i, long l) {
-                        mBluetoothController.connect(devicelist.get(i));
-                        dialog.dismiss();
-                        showHuXiMessageDialog();
-                    }
-                });
             }
 
             @Override
@@ -755,6 +737,19 @@ public class StartMeasurementFragment extends BaseFragment {
 
     }
 
+    private void setitemOnClickMeathed(ListView listview) {
+        listview.setOnItemClickListener(new AdapterView.OnItemClickListener() {
+            @Override
+            public void onItemClick(AdapterView<?> adapterView, View view, int i, long l) {
+                mBluetoothController.stopScanBLE();
+                mBluetoothController.connect(devicelistHuXi.get(i));
+                Log.e(TAG, "onItemClick: " + devicelistHuXi.get(i).getName());
+                dialog.dismiss();
+                showHuXiMessageDialog();
+            }
+        });
+    }
+
     //新版呼吸界面
     private void showHuXiMessageDialog() {
         AlertDialog.Builder huxiDialog = new AlertDialog.Builder(getActivity());
@@ -767,6 +762,7 @@ public class StartMeasurementFragment extends BaseFragment {
             public void onClick(View view) {
                 mBluetoothController.stopConnectBLe();
                 dialog.dismiss();
+
             }
         });
 
@@ -784,12 +780,12 @@ public class StartMeasurementFragment extends BaseFragment {
                     new Thread(new Runnable() {
                         @Override
                         public void run() {
-                            huxiInterface(time+"",tvPef, tvFvc, tvFev1);
+                            huxiInterface(time + "", tvPef, tvFvc, tvFev1);
                         }
                     }).start();
                 } else {
                     mBluetoothController.stopConnectBLe();//保存失败或成功后断开蓝牙
-                    dbManager.addBreathingData(time+"",Constants.id, tvPef, tvFvc, tvFev1);
+                    dbManager.addBreathingData(time + "", Constants.id, tvPef, tvFvc, tvFev1);
                     Toast.makeText(getActivity(), "本地数据保存成功", Toast.LENGTH_SHORT).show();
                 }
 
@@ -876,7 +872,6 @@ public class StartMeasurementFragment extends BaseFragment {
 
             @Override
             public void onResponse(String response, int id) {
-                Log.e(TAG, "保存成功: " + response);
                 dialog.dismiss();
                 toastOnUi("保存成功");
                 mBluetoothController.stopConnectBLe();//保存失败或成功后断开蓝牙
@@ -922,8 +917,8 @@ public class StartMeasurementFragment extends BaseFragment {
         mBluetoothController.setOnGattNoneListener(new BluetoothController.onGattNoneListener() {
             @Override
             public void onGattNone() {
-                if (devicelist.size() != 0) {
-                    for (BluetoothDeviceBean bleDevice : devicelist) {
+                if (devicelistHuXi.size() != 0) {
+                    for (BluetoothDeviceBean bleDevice : devicelistHuXi) {
                         if (bleDevice.getName().equals(IMEI)) {
                             mBluetoothController.stopScanBLE();
                             mBluetoothController.connect(bleDevice);
@@ -945,13 +940,11 @@ public class StartMeasurementFragment extends BaseFragment {
 
             @Override
             public void matchSuccess() {
-                toastOnUi("成功连接");
+//                toastOnUi("成功连接");
             }
 
             @Override
             public void needUpdateBleProgram(Boolean isNeedUpdate) {
-                Log.e(TAG, "需要进行更新设备的程序: " + isNeedUpdate);
-
                 if (isNeedUpdate) {//需要进行更新设备的程序
                     Toast.makeText(getActivity(), R.string.hint_updateprogram, Toast.LENGTH_SHORT).show();
                 }
@@ -964,6 +957,8 @@ public class StartMeasurementFragment extends BaseFragment {
             }
         });
         mySearchBleDeviceTask = new SearchBleDeviceTask(mBluetoothController);
+
+        startSearchBle();
     }
 
 
@@ -1181,17 +1176,36 @@ public class StartMeasurementFragment extends BaseFragment {
     @Override
     public void onDestroy() {
         super.onDestroy();
+        stopBlueMeathed();
+    }
+
+
+    private void stopBlueMeathed() {
         try {
             if (mUrineBluetoothSPP != null) {
                 unRegisterUrineAnalyzerListener();
                 mUrineBluetoothSPP.stopService();
             }
 
-            getActivity().unregisterReceiver(mDryGattUpdateReceiver);
+            if (null != searchIntent) {
+                getActivity().stopService(searchIntent);
+            }
+            if (mySearchBleDeviceTask != null && mySearchBleDeviceTask.getStatus() != AsyncTask.Status.FINISHED) {
+                mySearchBleDeviceTask.cancel(true);
+
+            }
+            if (getBleCurrentVersionTask != null && getBleCurrentVersionTask.getStatus() != AsyncTask.Status.FINISHED) {
+                getBleCurrentVersionTask.cancel(true);
+            }
+            if (myMessageManager != null) {
+                myMessageManager.destroyMessageManager();
+            }
+
             getActivity().unbindService(mDryServiceConnection);
             mDryBluetoothLeService = null;
 
         } catch (Exception e) {
+            Log.e(TAG, "stopBlueMeathed: >>>>>>>>>>>>>>>>>>>>" + e.getMessage());
             e.printStackTrace();
         }
     }
@@ -1246,7 +1260,7 @@ public class StartMeasurementFragment extends BaseFragment {
                         //用户代码
                         if (mUrineData != null && mUrineData.Structs != null) {
                             String jsonData = mGson.toJson(mUrineData.Structs);
-                            Log.e(TAG, "jsonData: "+jsonData );
+                            Log.e(TAG, "jsonData: " + jsonData);
                             dialog.dismiss();
                             showNiaoJiDataDialog(mUrineData.Structs);
                         }
@@ -1322,7 +1336,7 @@ public class StartMeasurementFragment extends BaseFragment {
                         String NIT = bcBean.NIT + "";
                         String SG = bcBean.SG + "";
                         String VC = bcBean.VC + "";
-                        dbManager.addBCData(Constants.id,time+"", URO, BLD, BIL, KET, GLU, PRO, PH, NIT, LEU, SG, VC);
+                        dbManager.addBCData(Constants.id, time + "", URO, BLD, BIL, KET, GLU, PRO, PH, NIT, LEU, SG, VC);
                     }
                     Toast.makeText(getActivity(), "本地保存数据成功", Toast.LENGTH_SHORT).show();
                 }
@@ -1363,9 +1377,9 @@ public class StartMeasurementFragment extends BaseFragment {
             VC = mBC401Struct.VC + "";
 
 
-            Log.e(TAG, "bcInterfaceUrl: "+InterfaceUrl.BCDATA_URL + sessonWithCode + "/m_id/" + HomeActivity.mid );
+            Log.e(TAG, "bcInterfaceUrl: " + InterfaceUrl.BCDATA_URL + sessonWithCode + "/m_id/" + HomeActivity.mid);
             OkHttpUtils.post().url(InterfaceUrl.BCDATA_URL + sessonWithCode + "/m_id/" + HomeActivity.mid)
-                    .addParams("addtime", time+"")
+                    .addParams("addtime", time + "")
                     .addParams("URO", URO)
                     .addParams("BIL", BIL)
                     .addParams("GLU", GLU)

@@ -327,7 +327,7 @@ public class UserManageFragment extends BaseFragment {
                         JumpActivityWithUserData(HomeActivity.class, dataBean.getName(), dataBean.getId());
                     }
                 } catch (Exception e) {
-                    Toast.makeText(getActivity(), getResources().getString(R.string.connection_timeout_or_illegal_request), Toast.LENGTH_SHORT).show();
+                    Log.e(TAG, "loginHandlerException: "+e.getMessage() );
                 }
 
             } else {

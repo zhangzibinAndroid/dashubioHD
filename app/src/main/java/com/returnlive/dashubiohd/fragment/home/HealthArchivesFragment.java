@@ -4,7 +4,6 @@ package com.returnlive.dashubiohd.fragment.home;
 import android.content.DialogInterface;
 import android.content.Intent;
 import android.graphics.Bitmap;
-import android.graphics.BitmapFactory;
 import android.graphics.Color;
 import android.net.Uri;
 import android.os.Bundle;
@@ -34,6 +33,9 @@ import com.bigkoo.pickerview.TimePickerView;
 import com.bigkoo.pickerview.lib.WheelView;
 import com.bigkoo.pickerview.listener.CustomListener;
 import com.google.gson.Gson;
+import com.nostra13.universalimageloader.core.DisplayImageOptions;
+import com.nostra13.universalimageloader.core.ImageLoader;
+import com.nostra13.universalimageloader.core.display.RoundedBitmapDisplayer;
 import com.returnlive.dashubiohd.R;
 import com.returnlive.dashubiohd.activity.HomeActivity;
 import com.returnlive.dashubiohd.adapter.viewadapter.BloodTransfusionAdapter;
@@ -52,7 +54,6 @@ import com.returnlive.dashubiohd.constant.ErrorCode;
 import com.returnlive.dashubiohd.constant.InterfaceUrl;
 import com.returnlive.dashubiohd.gson.GsonParsing;
 import com.returnlive.dashubiohd.utils.ViewUtils;
-import com.returnlive.dashubiohd.utils.imageloader.HttpUtils;
 import com.zhy.autolayout.AutoLinearLayout;
 import com.zhy.http.okhttp.OkHttpUtils;
 import com.zhy.http.okhttp.callback.StringCallback;
@@ -205,27 +206,42 @@ public class HealthArchivesFragment extends BaseFragment {
     private BloodTransfusionAdapter bloodTransfusionAdapter;
     private ChildrenAdapter childrenAdapter;
     private ViewUtils viewUtils;
+    private Runnable runnable;
+    private Bitmap bitmap;
 
     public HealthArchivesFragment() {
     }
 
+    @Override
+    public void onDestroy() {
+        super.onDestroy();
+
+    }
+    private DisplayImageOptions options;
+
+
+
+
     //网络获取各个控件的值
     private void setUserMessage(final HealthArchivesBean.UserMessageDataBean userMessageDataBean) {
         ViewUtils viewUtils = new ViewUtils();
-
-        new Thread(new Runnable() {
+        /*new Thread(runnable = new Runnable() {
             @Override
             public void run() {
+                //耗时操作
                 byte[] map = HttpUtils.getInstance().getByteArrayFromWeb(InterfaceUrl.BITMAP_URL + userMessageDataBean.getCard_img());
-                final Bitmap bitmap = BitmapFactory.decodeByteArray(map, 0, map.length);
-                getActivity().runOnUiThread(new Runnable() {
+                bitmap = BitmapFactory.decodeByteArray(map, 0, map.length);
+                getActivity().runOnUiThread(runnable =new Runnable() {
                     @Override
                     public void run() {
                         imgCard.setImageBitmap(bitmap);
                     }
                 });
+
             }
-        }).start();
+        }).start();*/
+
+        ImageLoader.getInstance().displayImage(InterfaceUrl.BITMAP_URL + userMessageDataBean.getCard_img(), imgCard,options);
 
         edtName.setText(userMessageDataBean.getName());
         if (userMessageDataBean.getSex().equals("1")) {
@@ -467,6 +483,12 @@ public class HealthArchivesFragment extends BaseFragment {
                              Bundle savedInstanceState) {
         view = inflater.inflate(R.layout.fragment_health_archives, container, false);
         unbinder = ButterKnife.bind(this, view);
+        options = new DisplayImageOptions.Builder()
+                .showImageForEmptyUri(R.drawable.ic_empty)//设置图片Uri为空或是错误的时候显示的图片
+                .cacheInMemory()//设置下载的图片缓存在内存中
+                .cacheOnDisc()//设置下载的图片缓存在SD卡中
+                .displayer(new RoundedBitmapDisplayer(5))
+                .build();
         initView();
         return view;
     }
@@ -632,7 +654,15 @@ public class HealthArchivesFragment extends BaseFragment {
         spQclAdapter = new ArrayAdapter<String>(getActivity(), R.layout.textview_healtarchves, getResources().getStringArray(R.array.qcls));
         spQcl.setAdapter(spQclAdapter);
         spQcl.setSelection(0, true);
-
+        /*setOnUrlCallBack(new OnUrlCallBack() {
+            @Override
+            public void getUrlCallBack(String url) {
+                new Thread(new R).start();
+                byte[] map = HttpUtils.getInstance().getByteArrayFromWeb(InterfaceUrl.BITMAP_URL + url);
+                bitmap = BitmapFactory.decodeByteArray(map, 0, map.length);
+                imgCard.setImageBitmap(bitmap);
+            }
+        });*/
 
         new Thread(new Runnable() {
             @Override
@@ -750,7 +780,8 @@ public class HealthArchivesFragment extends BaseFragment {
     private void getCamera() {
         Intent openCameraIntent = new Intent(MediaStore.ACTION_IMAGE_CAPTURE);
 
-        File idCardFile = new File(Environment.getExternalStorageDirectory() + "/idCard", "id_card.jpg");
+        File idCardFile = new File(Environment.getExternalStorageDirectory() + "/idCard", HomeActivity.mid+"_id_card.jpg");
+
         tempUri = Uri.fromFile(idCardFile);
         openCameraIntent.putExtra(MediaStore.EXTRA_OUTPUT, tempUri);
         startActivityForResult(openCameraIntent, 520);
@@ -802,7 +833,7 @@ public class HealthArchivesFragment extends BaseFragment {
         String fatherJson = gson.toJson(fatherAdapter.getList());
         String motherJson = gson.toJson(motherAdapter.getList());
         String childrenJson = gson.toJson(childrenAdapter.getList());
-        File file = new File(Environment.getExternalStorageDirectory()+ "/idCard" + "/id_card.jpg");
+        File file = new File(Environment.getExternalStorageDirectory()+ "/idCard/" + HomeActivity.mid+"_id_card.jpg");
 
         OkHttpUtils.post().url(InterfaceUrl.USER_REGISTER_URL + sessonWithCode + "/m_id/" + HomeActivity.mid)
                 .addParams("name", edtName.getText().toString())

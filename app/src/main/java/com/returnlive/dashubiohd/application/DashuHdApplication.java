@@ -9,6 +9,11 @@ import android.content.ServiceConnection;
 import android.os.IBinder;
 
 import com.breathhome_ble_sdk.utils.BreathHomeLog;
+import com.nostra13.universalimageloader.cache.disc.naming.Md5FileNameGenerator;
+import com.nostra13.universalimageloader.core.DisplayImageOptions;
+import com.nostra13.universalimageloader.core.ImageLoader;
+import com.nostra13.universalimageloader.core.ImageLoaderConfiguration;
+import com.nostra13.universalimageloader.core.assist.QueueProcessingType;
 import com.xtremeprog.sdk.ble.BleService;
 import com.xtremeprog.sdk.ble.IBle;
 import com.zhy.autolayout.config.AutoLayoutConifg;
@@ -22,6 +27,7 @@ import java.util.List;
 
 
 public class DashuHdApplication extends Application {
+    public static ImageLoader imageLoader = ImageLoader.getInstance();
     private static DashuHdApplication sInstance = null; // 单件对象
     public static DashuHdApplication dashuhdApplication; // 单件对象
     private BleService mService = null;
@@ -56,7 +62,15 @@ public class DashuHdApplication extends Application {
         Intent bindIntent = new Intent(this, BleService.class);
         bindService(bindIntent, mServiceConnection, Context.BIND_AUTO_CREATE);
         dashuhdApplication = this;
-        BreathHomeLog.isDebug=true;
+        BreathHomeLog.isDebug = true;
+
+        ImageLoaderConfiguration config = new ImageLoaderConfiguration.Builder(getApplicationContext())
+                .threadPriority(Thread.NORM_PRIORITY - 2)//线程优先级
+                .denyCacheImageMultipleSizesInMemory()
+                .discCacheFileNameGenerator(new Md5FileNameGenerator())
+                .tasksProcessingOrder(QueueProcessingType.LIFO)
+                .build();
+        ImageLoader.getInstance().init(config);
 
     }
 

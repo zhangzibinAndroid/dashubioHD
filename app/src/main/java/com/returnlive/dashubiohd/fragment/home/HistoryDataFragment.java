@@ -347,7 +347,7 @@ public class HistoryDataFragment extends BaseFragment {
 
 
                 } catch (Exception e) {
-                    Toast.makeText(getActivity(), getResources().getString(R.string.connection_timeout_or_illegal_request), Toast.LENGTH_SHORT).show();
+                    Log.e(TAG, "historyDataHandlerException: "+e.getMessage() );
                 }
             } else {
                 //解析

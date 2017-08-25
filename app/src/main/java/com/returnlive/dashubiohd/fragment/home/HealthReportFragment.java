@@ -87,7 +87,6 @@ public class HealthReportFragment extends BaseFragment {
     private boolean isComprehensive = false;
 
     public HealthReportFragment() {
-        // Required empty public constructor
     }
 
 
@@ -357,7 +356,7 @@ public class HealthReportFragment extends BaseFragment {
         webSettings.setDisplayZoomControls(false); //隐藏原生的缩放控件
 
         //其他细节操作
-        webSettings.setCacheMode(WebSettings.LOAD_CACHE_ELSE_NETWORK); //关闭webview中缓存
+//        webSettings.setCacheMode(WebSettings.LOAD_CACHE_ELSE_NETWORK); //关闭webview中缓存
         webSettings.setAllowFileAccess(true); //设置可以访问文件
         webSettings.setJavaScriptCanOpenWindowsAutomatically(true); //支持通过JS打开新窗口
         webSettings.setLoadsImagesAutomatically(true); //支持自动加载图片
@@ -427,7 +426,7 @@ public class HealthReportFragment extends BaseFragment {
                             layList.setVisibility(View.GONE);
                             layWeb.setVisibility(View.VISIBLE);
                             myWebView.loadUrl(InterfaceUrl.COMPREHENSIVE_WEBVIEW_URL + "/mid/" + HomeActivity.mid + "/year/" + yearData[groupPosition] + "/month/" + monthListString.get(groupPosition + "and" + position).get(0) + ".html");
-
+                            Log.e(TAG, "url: =="+InterfaceUrl.COMPREHENSIVE_WEBVIEW_URL + "/mid/" + HomeActivity.mid + "/year/" + yearData[groupPosition] + "/month/" + monthListString.get(groupPosition + "and" + position).get(0) + ".html" );
                         }
                     });
 

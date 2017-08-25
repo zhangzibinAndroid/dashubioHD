@@ -229,6 +229,7 @@ public class BaseActivity extends AppCompatActivity {
                 .build().execute(new StringCallback() {
             @Override
             public void onError(Call call, Exception e, int id) {
+                Log.e(TAG, "onError: "+e.getMessage() );
                 toastOnUiWithProgress("登陆失败，请检查网络");
             }
 

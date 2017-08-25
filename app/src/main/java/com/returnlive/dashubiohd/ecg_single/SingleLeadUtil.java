@@ -205,14 +205,7 @@ public class SingleLeadUtil {
         }
     }
 
-    public void nullBlue(){
-        mBle = null;
-    }
 
-
-    public IBle getBle(){
-        return mBle;
-    }
 
     public void pairDevice(BluetoothDevice bluetoothDevice) {
         mDeviceAddress = bluetoothDevice.getAddress();
@@ -305,7 +298,7 @@ public class SingleLeadUtil {
             scanLeDevice(false);
         }
         mBle.disconnect(mDeviceAddress);
-        context.unregisterReceiver(mBleReceiver);
+//        context.unregisterReceiver(mBleReceiver);
     }
 
     /**
