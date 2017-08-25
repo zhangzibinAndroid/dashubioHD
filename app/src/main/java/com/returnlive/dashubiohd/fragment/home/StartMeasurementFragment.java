@@ -562,12 +562,8 @@ public class StartMeasurementFragment extends BaseFragment {
                     Log.e(TAG, "deviceList: " + deviceList.get(i).getName());
                 }*/
                 blueAdapter.addAllDataToMyadapter(deviceList);
-                getActivity().runOnUiThread(new Runnable() {
-                    @Override
-                    public void run() {
-                        blueAdapter.notifyDataSetChanged();
-                    }
-                });
+                blueAdapter.notifyDataSetChanged();
+
             }
         });
     }

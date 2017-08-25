@@ -834,59 +834,116 @@ public class HealthArchivesFragment extends BaseFragment {
         String motherJson = gson.toJson(motherAdapter.getList());
         String childrenJson = gson.toJson(childrenAdapter.getList());
         File file = new File(Environment.getExternalStorageDirectory()+ "/idCard/" + HomeActivity.mid+"_id_card.jpg");
+        if (file.exists()) {
+            OkHttpUtils.post().url(InterfaceUrl.USER_REGISTER_URL + sessonWithCode + "/m_id/" + HomeActivity.mid)
+                    .addParams("name", edtName.getText().toString())
+                    .addParams("sex", String.valueOf(sex))
+                    .addParams("birth", tvDate.getText().toString())
+                    .addParams("nation", spFolk.getSelectedItem().toString())
+                    .addParams("card_id", edtCardId.getText().toString())
+                    .addParams("province", spProvince.getSelectedItem().toString())
+                    .addParams("city", spCity.getSelectedItem().toString())
+                    .addParams("district", spDistrict.getSelectedItem().toString())
+                    .addParams("resident", String.valueOf(resident))
+                    .addParams("address", edtAddress.getText().toString())
+                    .addParams("work", edtCompany.getText().toString())
+                    .addParams("phone", edtMyPhone.getText().toString())
+                    .addParams("phone_contacts", edtFriendPhone.getText().toString())
+                    .addParams("blood", spBloodType.getSelectedItem().toString())
+                    .addParams("blood_hr", spRh.getSelectedItem().toString())
+                    .addParams("edu", spEducationDegree.getSelectedItem().toString())
+                    .addParams("occ", spProfession.getSelectedItem().toString())
+                    .addParams("marr", spMarriage.getSelectedItem().toString())
+                    .addParams("pay_type", spPayStyle.getSelectedItem().toString())
+                    .addParams("allergor", spMedicine.getSelectedItem().toString())
+                    .addParams("expose", spExpose.getSelectedItem().toString())
+                    .addParams("p_dis", disJson)
+                    .addParams("p_opera", operaJson)
+                    .addParams("p_trau", trauJson)
+                    .addParams("p_trans", transJson)
+                    .addParams("f_p", fatherJson)
+                    .addParams("f_m", motherJson)
+                    .addParams("f_chi", childrenJson)
+                    .addParams("inheri", etGeneticHistory.getText().toString())
+                    .addParams("deformity", spCanji.getSelectedItem().toString())
+                    .addParams("exha", spExhaust.getSelectedItem().toString())
+                    .addParams("fuel", spFuel.getSelectedItem().toString())
+                    .addParams("water", spWater.getSelectedItem().toString())
+                    .addParams("wc", spWc.getSelectedItem().toString())
+                    .addParams("poultry", spQcl.getSelectedItem().toString())
+                    .addFile("card_img","id_card.jpg",file)
+                    .build().execute(new StringCallback() {
+                @Override
+                public void onError(Call call, Exception e, int id) {
+                    Log.e(TAG, "onError: "+e.getMessage() );
+                    toastOnUi(getResources().getString(R.string.network_exception_please_try_again_later));
 
-        OkHttpUtils.post().url(InterfaceUrl.USER_REGISTER_URL + sessonWithCode + "/m_id/" + HomeActivity.mid)
-                .addParams("name", edtName.getText().toString())
-                .addParams("sex", String.valueOf(sex))
-                .addParams("birth", tvDate.getText().toString())
-                .addParams("nation", spFolk.getSelectedItem().toString())
-                .addParams("card_id", edtCardId.getText().toString())
-                .addParams("province", spProvince.getSelectedItem().toString())
-                .addParams("city", spCity.getSelectedItem().toString())
-                .addParams("district", spDistrict.getSelectedItem().toString())
-                .addParams("resident", String.valueOf(resident))
-                .addParams("address", edtAddress.getText().toString())
-                .addParams("work", edtCompany.getText().toString())
-                .addParams("phone", edtMyPhone.getText().toString())
-                .addParams("phone_contacts", edtFriendPhone.getText().toString())
-                .addParams("blood", spBloodType.getSelectedItem().toString())
-                .addParams("blood_hr", spRh.getSelectedItem().toString())
-                .addParams("edu", spEducationDegree.getSelectedItem().toString())
-                .addParams("occ", spProfession.getSelectedItem().toString())
-                .addParams("marr", spMarriage.getSelectedItem().toString())
-                .addParams("pay_type", spPayStyle.getSelectedItem().toString())
-                .addParams("allergor", spMedicine.getSelectedItem().toString())
-                .addParams("expose", spExpose.getSelectedItem().toString())
-                .addParams("p_dis", disJson)
-                .addParams("p_opera", operaJson)
-                .addParams("p_trau", trauJson)
-                .addParams("p_trans", transJson)
-                .addParams("f_p", fatherJson)
-                .addParams("f_m", motherJson)
-                .addParams("f_chi", childrenJson)
-                .addParams("inheri", etGeneticHistory.getText().toString())
-                .addParams("deformity", spCanji.getSelectedItem().toString())
-                .addParams("exha", spExhaust.getSelectedItem().toString())
-                .addParams("fuel", spFuel.getSelectedItem().toString())
-                .addParams("water", spWater.getSelectedItem().toString())
-                .addParams("wc", spWc.getSelectedItem().toString())
-                .addParams("poultry", spQcl.getSelectedItem().toString())
-                .addFile("card_img","id_card.jpg",file)
-                .build().execute(new StringCallback() {
-            @Override
-            public void onError(Call call, Exception e, int id) {
-                toastOnUi(getResources().getString(R.string.network_exception_please_try_again_later));
+                }
 
-            }
+                @Override
+                public void onResponse(String response, int id) {
+                    Message msg = new Message();
+                    msg.obj = response;
+                    restartRegisterHandler.sendMessage(msg);
 
-            @Override
-            public void onResponse(String response, int id) {
-                Message msg = new Message();
-                msg.obj = response;
-                restartRegisterHandler.sendMessage(msg);
+                }
+            });
+        }else {
+            OkHttpUtils.post().url(InterfaceUrl.USER_REGISTER_URL + sessonWithCode + "/m_id/" + HomeActivity.mid)
+                    .addParams("name", edtName.getText().toString())
+                    .addParams("sex", String.valueOf(sex))
+                    .addParams("birth", tvDate.getText().toString())
+                    .addParams("nation", spFolk.getSelectedItem().toString())
+                    .addParams("card_id", edtCardId.getText().toString())
+                    .addParams("province", spProvince.getSelectedItem().toString())
+                    .addParams("city", spCity.getSelectedItem().toString())
+                    .addParams("district", spDistrict.getSelectedItem().toString())
+                    .addParams("resident", String.valueOf(resident))
+                    .addParams("address", edtAddress.getText().toString())
+                    .addParams("work", edtCompany.getText().toString())
+                    .addParams("phone", edtMyPhone.getText().toString())
+                    .addParams("phone_contacts", edtFriendPhone.getText().toString())
+                    .addParams("blood", spBloodType.getSelectedItem().toString())
+                    .addParams("blood_hr", spRh.getSelectedItem().toString())
+                    .addParams("edu", spEducationDegree.getSelectedItem().toString())
+                    .addParams("occ", spProfession.getSelectedItem().toString())
+                    .addParams("marr", spMarriage.getSelectedItem().toString())
+                    .addParams("pay_type", spPayStyle.getSelectedItem().toString())
+                    .addParams("allergor", spMedicine.getSelectedItem().toString())
+                    .addParams("expose", spExpose.getSelectedItem().toString())
+                    .addParams("p_dis", disJson)
+                    .addParams("p_opera", operaJson)
+                    .addParams("p_trau", trauJson)
+                    .addParams("p_trans", transJson)
+                    .addParams("f_p", fatherJson)
+                    .addParams("f_m", motherJson)
+                    .addParams("f_chi", childrenJson)
+                    .addParams("inheri", etGeneticHistory.getText().toString())
+                    .addParams("deformity", spCanji.getSelectedItem().toString())
+                    .addParams("exha", spExhaust.getSelectedItem().toString())
+                    .addParams("fuel", spFuel.getSelectedItem().toString())
+                    .addParams("water", spWater.getSelectedItem().toString())
+                    .addParams("wc", spWc.getSelectedItem().toString())
+                    .addParams("poultry", spQcl.getSelectedItem().toString())
+                    .build().execute(new StringCallback() {
+                @Override
+                public void onError(Call call, Exception e, int id) {
+                    Log.e(TAG, "onError: "+e.getMessage() );
+                    toastOnUi(getResources().getString(R.string.network_exception_please_try_again_later));
 
-            }
-        });
+                }
+
+                @Override
+                public void onResponse(String response, int id) {
+                    Message msg = new Message();
+                    msg.obj = response;
+                    restartRegisterHandler.sendMessage(msg);
+
+                }
+            });
+        }
+
+
     }
 
 

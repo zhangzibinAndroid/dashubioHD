@@ -112,6 +112,7 @@ public class HealthReportFragment extends BaseFragment {
     }
 
     private void initComprehensive() {
+        Log.e(TAG, "initComprehensive: "+InterfaceUrl.HEALTH_REPORT_SECOND_LIST_URL + sessonWithCode );
         new Thread(new Runnable() {
             @Override
             public void run() {
@@ -126,7 +127,8 @@ public class HealthReportFragment extends BaseFragment {
                 .build().execute(new StringCallback() {
             @Override
             public void onError(Call call, Exception e, int id) {
-                toastOnUi(getResources().getString(R.string.network_exception_please_try_again_later));
+                Log.e(TAG, "获取数据异常onError: "+e.getMessage() );
+//                toastOnUi(getResources().getString(R.string.network_exception_please_try_again_later));
             }
 
             @Override
@@ -141,11 +143,13 @@ public class HealthReportFragment extends BaseFragment {
 
 
     private void healthReportInterface(String url) {
+        Log.e(TAG, "url: "+url);
         OkHttpUtils.get().url(url)
                 .addParams("m_id", HomeActivity.mid)
                 .build().execute(new StringCallback() {
             @Override
             public void onError(Call call, Exception e, int id) {
+                Log.e(TAG, "onError: "+e.getMessage() );
 //                toastOnUi(getResources().getString(R.string.network_exception_please_try_again_later));
             }
 
