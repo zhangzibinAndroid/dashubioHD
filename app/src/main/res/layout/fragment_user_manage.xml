@@ -35,10 +35,9 @@
             android:orientation="horizontal">
 
             <com.zhy.autolayout.AutoLinearLayout
+                android:id="@+id/lay_edt"
                 android:layout_width="0px"
-                android:layout_height="0px"
-                android:focusable="true"
-                android:focusableInTouchMode="true" />
+                android:layout_height="0px" />
 
             <include
                 layout="@layout/search_input"

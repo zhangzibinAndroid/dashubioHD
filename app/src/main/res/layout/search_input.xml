@@ -11,11 +11,12 @@
         android:layout_gravity="center"
         android:layout_marginLeft="@dimen/px10"
         android:layout_weight="1"
-        android:textSize="@dimen/px32"
         android:background="@drawable/search_input"
         android:hint="@string/enter_query_char"
         android:maxLength="30"
-        android:singleLine="true" />
+        android:singleLine="true"
+        android:focusable="true"
+        android:textSize="@dimen/px32" />
 
     <com.zhy.autolayout.AutoLinearLayout
         android:id="@+id/go_search"

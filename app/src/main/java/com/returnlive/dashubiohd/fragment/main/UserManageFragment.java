@@ -8,7 +8,6 @@ import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
-import android.view.WindowManager;
 import android.widget.EditText;
 import android.widget.ListView;
 import android.widget.TextView;
@@ -51,10 +50,11 @@ import okhttp3.Call;
 public class UserManageFragment extends BaseFragment {
 
 
-    @BindView(R.id.user_list_tv)
-    TextView userListTv;
+
     @BindView(R.id.input_query_et)
     EditText inputQueryEt;
+    @BindView(R.id.user_list_tv)
+    TextView userListTv;
     @BindView(R.id.lv_user_list)
     ListView lvUserList;
     @BindView(R.id.xrefresh_user_list)
@@ -67,6 +67,8 @@ public class UserManageFragment extends BaseFragment {
     private int upIsRefresh = 1;
     private int downIsRefresh = 1;
     private static final String TAG = "UserManageFragment";
+    private boolean isSearch = false;
+
 
     public UserManageFragment() {
     }
@@ -75,13 +77,19 @@ public class UserManageFragment extends BaseFragment {
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container,
                              Bundle savedInstanceState) {
-        view = inflater.inflate(R.layout.fragment_user_manage, container, false);
+        view = inflater.inflate(R.layout.fragment_user_manage, null);
         unbinder = ButterKnife.bind(this, view);
+        isSearch = false;
         initView();
         return view;
     }
 
+
+
     private void initView() {
+
+        /*lay_edt.setFocusable(true);
+        lay_edt.setFocusableInTouchMode(true);*/
         dbManager = new DBManager(getActivity());
         upIsRefresh = 1;
         downIsRefresh = 1;
@@ -96,9 +104,9 @@ public class UserManageFragment extends BaseFragment {
                     getUserListInterface(1);
                 }
             }).start();
-        }else {
+        } else {
             ArrayList<UserListBean.UserListDataBean> userList = dbManager.searchUserList();
-            for (int i = userList.size()-1; i >-1; i--) {
+            for (int i = userList.size() - 1; i > -1; i--) {
                 UserListBean.UserListDataBean bean = userList.get(i);
                 userListAdapter.addDATA(bean);
                 userListAdapter.notifyDataSetChanged();
@@ -108,19 +116,21 @@ public class UserManageFragment extends BaseFragment {
         initXRefresh();
         userListAdapter.setOnButtonClickListener(new UserListAdapter.OnButtonClickListener() {
             @Override
-            public void onButtonClick(View view, final String id,int position) {
-                if (NetUtil.isNetworkConnectionActive(getActivity())){
+            public void onButtonClick(View view, final String id, int position) {
+                inputQueryEt.setText("");
+
+                if (NetUtil.isNetworkConnectionActive(getActivity())) {
                     new Thread(new Runnable() {
                         @Override
                         public void run() {
                             loginInstance(id);
                         }
                     }).start();
-                }else {
+                } else {
                     ArrayList<UserListBean.UserListDataBean> userList = dbManager.searchUserList();
-                    UserListBean.UserListDataBean bean = userList.get(userList.size()-1-position);
+                    UserListBean.UserListDataBean bean = userList.get(userList.size() - 1 - position);
                     JumpActivityWithUserData(HomeActivity.class, bean.getName(), bean.getId());
-                    Constants.id = (userList.size()-position)+"";
+                    Constants.id = (userList.size() - position) + "";
                 }
 
 
@@ -171,11 +181,15 @@ public class UserManageFragment extends BaseFragment {
 
             @Override
             public void onRefresh(boolean isPullDown) {
-                if (NetUtil.isNetworkConnectionActive(getActivity())){
-                    userListAdapter.removeAllDATA();
-                    page = 1;
-                    getUserListInterface(1);
+                if (!isSearch) {
+                    if (NetUtil.isNetworkConnectionActive(getActivity())) {
+                        userListAdapter.removeAllDATA();
+                        page = 1;
+                        getUserListInterface(1);
+                    }
                 }
+
+
             }
 
             @Override
@@ -189,11 +203,12 @@ public class UserManageFragment extends BaseFragment {
                     }
                 }, 1000);
 
-                if (NetUtil.isNetworkConnectionActive(getActivity())){
-                    page = page + 1;
-                    getUserListInterface(page);
+                if (!isSearch) {
+                    if (NetUtil.isNetworkConnectionActive(getActivity())) {
+                        page = page + 1;
+                        getUserListInterface(page);
+                    }
                 }
-
             }
 
             @Override
@@ -260,12 +275,14 @@ public class UserManageFragment extends BaseFragment {
             refreshdownHandler.removeCallbacks(downRunable);
         }
 
+        isSearch = false;
     }
 
     @OnClick(R.id.go_search)
     public void onViewClicked() {
-        getActivity().getWindow().getAttributes().softInputMode = WindowManager.LayoutParams.SOFT_INPUT_STATE_HIDDEN;
+        isSearch = true;
         final String search = inputQueryEt.getText().toString();
+        inputQueryEt.setText("");
         userListTv.setText("搜索： " + search);
         new Thread(new Runnable() {
             @Override
@@ -327,7 +344,7 @@ public class UserManageFragment extends BaseFragment {
                         JumpActivityWithUserData(HomeActivity.class, dataBean.getName(), dataBean.getId());
                     }
                 } catch (Exception e) {
-                    Log.e(TAG, "loginHandlerException: "+e.getMessage() );
+                    Log.e(TAG, "loginHandlerException: " + e.getMessage());
                 }
 
             } else {

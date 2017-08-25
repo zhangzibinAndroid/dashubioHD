@@ -49,4 +49,5 @@ dependencies {
     compile project(':BluetoothSPPLibrary')
     compile files('libs/BC01_SDK v1.3.jar')
     compile files('libs/universal-image-loader-1.9.4-SNAPSHOT.jar')
+
 }
