@@ -79,7 +79,6 @@ import com.returnlive.dashubiohd.utils.DryDetectResult;
 import com.returnlive.dashubiohd.utils.NetUtil;
 import com.returnlive.dashubiohd.utils.Utils;
 import com.returnlive.dashubiohd.view.EcgPathOne;
-import com.returnlive.dashubiohd.view.EcgPathSecond;
 import com.zhy.autolayout.AutoLinearLayout;
 import com.zhy.http.okhttp.OkHttpUtils;
 import com.zhy.http.okhttp.callback.StringCallback;
@@ -270,12 +269,12 @@ public class StartMeasurementFragment extends BaseFragment {
             }
         });
 
-        setOnDataCallBackListenerSecond(new OnDataCallBackListenerSecond() {
+        /*setOnDataCallBackListenerSecond(new OnDataCallBackListenerSecond() {
             @Override
             public void OnDataCallBack(ArrayList<Float> ecg_list_two) {
-                viewHolder.ecg_path_second.addDATA(ecg_list_two);
+//                viewHolder.ecg_path_second.addDATA(ecg_list_two);
             }
-        });
+        });*/
 
         setOnTextDataCallBackListener(new OnTextDataCallBackListener() {
             @Override
@@ -313,10 +312,12 @@ public class StartMeasurementFragment extends BaseFragment {
             @Override
             public void onError(Call call, Exception e, int id) {
                 Log.e(TAG, "onError: " + e.getMessage());
+                toastOnUi("保存异常，请检查网络");
             }
 
             @Override
             public void onResponse(String response, int id) {
+                toastOnUi("保存成功");
                 Log.e(TAG, "response: " + response);
 
             }
@@ -349,8 +350,8 @@ public class StartMeasurementFragment extends BaseFragment {
         Button btnSave;
         @BindView(R.id.ecg_path)
         EcgPathOne ecg_path;
-        @BindView(R.id.ecg_path_second)
-        EcgPathSecond ecg_path_second;
+        /*@BindView(R.id.ecg_path_second)
+        EcgPathSecond ecg_path_second;*/
 
         ViewHolderMultiParameterMonitor(View view) {
             ButterKnife.bind(this, view);
@@ -535,10 +536,9 @@ public class StartMeasurementFragment extends BaseFragment {
                         break;
                     case Data.TYPE_WAVE_1_DATA:
                         onDataCallBackListener.OnDataCallBack(data.getWaveData());
-
+//                        onDataCallBackListenerSecond.OnDataCallBack(data.getWaveData());
                         break;
                     case Data.TYPE_WAVE_2_DATA:
-                        onDataCallBackListenerSecond.OnDataCallBack(data.getWaveData());
                         break;
                 }
             }
@@ -602,7 +602,7 @@ public class StartMeasurementFragment extends BaseFragment {
 
 
     private List<BluetoothDeviceBean> devicelistHuXi = new ArrayList<>();                            //存放搜索到的蓝牙设备
-    private String IMEI = "B652276134";                                        //IMEI号,用户绑定的设备IMEI号
+    private String IMEI = "";                                        //IMEI号,用户绑定的设备IMEI号
     private StringBuffer sb;                                                //用作存放蓝牙设备的指令
     private HolderBean holder;
     private GetBleCurrentVersionTask getBleCurrentVersionTask;
@@ -637,18 +637,16 @@ public class StartMeasurementFragment extends BaseFragment {
         holder.setGender(1);
         holder.setHeight(183);
         holder.setWeight(78);
-        holder.setDevieceNo("B652276134");
+        holder.setDevieceNo("B652276135");
     }
 
     private void getTheNewsVersion() {
         getBleCurrentVersionTask = (GetBleCurrentVersionTask) new GetBleCurrentVersionTask(getActivity()).execute();
         getBleCurrentVersionTask.setAsyncResponse(new AsyncResponse<ReturnBean<BleVersionMsgBean>>() {
-
             @Override
             public void onDataReceivedFailed() {
                 Log.e(TAG, "Error");
             }
-
 
             @Override
             public void onDataReceivedSuccess(ReturnBean<BleVersionMsgBean> returnBean) {
@@ -1102,7 +1100,6 @@ public class StartMeasurementFragment extends BaseFragment {
             return;
         }
         switch (requestCode) {
-
             case BluetoothDeviceListActivity.REQUEST_CONNECT_DEVICE_URINE_ANALYZER://连接尿液分析仪
                 toConnectBluetoothDevice(data, BluetoothDeviceListActivity.REQUEST_CONNECT_DEVICE_URINE_ANALYZER);
                 break;
@@ -1162,7 +1159,6 @@ public class StartMeasurementFragment extends BaseFragment {
     static class ViewHolderStartMeasure {
         @BindView(R.id.tv_stop_measure)
         TextView tvStopMeasure;
-
         ViewHolderStartMeasure(View view) {
             ButterKnife.bind(this, view);
         }

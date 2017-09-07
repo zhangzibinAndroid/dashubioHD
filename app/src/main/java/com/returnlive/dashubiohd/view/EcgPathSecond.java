@@ -11,7 +11,7 @@ import java.util.ArrayList;
  * 作者： 张梓彬
  * 日期： 2017/8/3 0003
  * 时间： 下午 12:08
- * 描述： 心电图
+ * 描述： 心电图暂时作废2017/09/07
  */
 
 public class EcgPathSecond extends CardiographView {
@@ -45,9 +45,8 @@ public class EcgPathSecond extends CardiographView {
         mPaint.setStyle(Paint.Style.STROKE);
         mPaint.setColor(mLineColor);
         for (int i = 0; i < arrast.size(); i++) {
-            moveY =(128- arrast.get(i));//按屏幕比例缩小Y轴比例
+            moveY =(128- arrast.get(i))*2;//按屏幕比例缩小Y轴比例
             moveX = (float) (moveX + 1);
-            moveY = 0-moveY;
             mPath.lineTo(moveX, moveY);
             scrollTo((int) moveX,0);
         }

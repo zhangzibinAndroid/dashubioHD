@@ -1,10 +1,20 @@
 package com.returnlive.dashubiohd.activity;
 
+import android.annotation.SuppressLint;
 import android.app.ActionBar;
+import android.app.AlertDialog;
 import android.app.ProgressDialog;
 import android.content.Context;
+import android.content.DialogInterface;
+import android.content.Intent;
+import android.content.pm.PackageInfo;
+import android.content.pm.PackageManager;
 import android.graphics.drawable.ColorDrawable;
+import android.net.Uri;
 import android.os.Bundle;
+import android.os.Environment;
+import android.os.Handler;
+import android.os.Message;
 import android.view.Gravity;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -21,12 +31,18 @@ import com.returnlive.dashubiohd.base.BaseActivity;
 import com.returnlive.dashubiohd.bean.dbmanagerbean.LoginUserBean;
 import com.returnlive.dashubiohd.constant.InterfaceUrl;
 import com.returnlive.dashubiohd.utils.NetUtil;
+import com.returnlive.dashubiohd.versionUpdate.UpdateInfo;
+import com.returnlive.dashubiohd.versionUpdate.UpdateInfoService;
+import com.zhy.http.okhttp.OkHttpUtils;
+import com.zhy.http.okhttp.callback.FileCallBack;
 
+import java.io.File;
 import java.util.ArrayList;
 
 import butterknife.ButterKnife;
 import butterknife.OnClick;
 import butterknife.Unbinder;
+import okhttp3.Call;
 
 /**
  * 作者： 张梓彬
@@ -37,13 +53,29 @@ import butterknife.Unbinder;
 public class LoginActivity extends BaseActivity {
     private Unbinder unbinder;
     private PopupWindow login_window = null, register_window = null;
-
+    // 更新版本要用到的一些信息
+    private UpdateInfo info;
+    private ProgressDialog pBar;
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_login);
         unbinder = ButterKnife.bind(this);
         DashuHdApplication.addActivity(this);
+        Toast.makeText(getApplicationContext(), "正在检查版本更新..", Toast.LENGTH_SHORT).show();
+        // 自动检查有没有新版本 如果有新版本就提示更新
+        new Thread() {
+            public void run() {
+                try {
+                    UpdateInfoService updateInfoService = new UpdateInfoService(
+                            getApplicationContext());
+                    info = updateInfoService.getUpDateInfo();
+                    handler1.sendEmptyMessage(0);
+                } catch (Exception e) {
+                    e.printStackTrace();
+                }
+            };
+        }.start();
     }
 
     private void showLoginWindow() {
@@ -261,6 +293,125 @@ public class LoginActivity extends BaseActivity {
     protected void onDestroy() {
         super.onDestroy();
         unbinder.unbind();
+    }
+
+    @SuppressLint("HandlerLeak")
+    private Handler handler1 = new Handler() {
+        public void handleMessage(Message msg) {
+            // 如果有更新就提示
+            if (isNeedUpdate()) {
+                showUpdateDialog();
+            }
+        };
+    };
+
+
+    private void showUpdateDialog() {
+        AlertDialog.Builder builder = new AlertDialog.Builder(this);
+        builder.setIcon(android.R.drawable.ic_dialog_info);
+        builder.setTitle("有新版本" + info.getVersion());
+        builder.setMessage(info.getDescription());
+        builder.setCancelable(false);
+
+        builder.setPositiveButton("确定", new DialogInterface.OnClickListener() {
+
+            @Override
+            public void onClick(DialogInterface dialog, int which) {
+                if (Environment.getExternalStorageState().equals(
+                        Environment.MEDIA_MOUNTED)) {
+                    downFile(info.getUrl());
+                } else {
+                    Toast.makeText(getApplicationContext(), "SD卡不可用，请插入SD卡",
+                            Toast.LENGTH_SHORT).show();
+                }
+            }
+        });
+        builder.setNegativeButton("取消", new DialogInterface.OnClickListener() {
+
+            @Override
+            public void onClick(DialogInterface dialog, int which) {
+            }
+
+        });
+        builder.create().show();
+    }
+
+    private boolean isNeedUpdate() {
+
+        String v = info.getVersion(); // 最新版本的版本号
+        Toast.makeText(getApplicationContext(), v, Toast.LENGTH_SHORT).show();
+        if (v.equals(getVersion())) {
+            return false;
+        } else {
+            return true;
+        }
+    }
+
+    // 获取当前版本的版本号
+    private String getVersion() {
+        try {
+            PackageManager packageManager = getPackageManager();
+            PackageInfo packageInfo = packageManager.getPackageInfo(
+                    getPackageName(), 0);
+
+            return packageInfo.versionName;
+        } catch (PackageManager.NameNotFoundException e) {
+            e.printStackTrace();
+            return "版本号未知";
+
+        }
+    }
+
+    void downFile(final String url) {
+        pBar = new ProgressDialog(this);    //进度条，在下载的时候实时更新进度，提高用户友好度
+        pBar.setProgressStyle(ProgressDialog.STYLE_HORIZONTAL);
+        pBar.setCanceledOnTouchOutside(false);
+        pBar.setTitle("正在更新");
+        pBar.setMessage("请稍候...");
+        pBar.setProgress(0);
+        pBar.show();
+        new Thread(new Runnable() {
+            @Override
+            public void run() {
+                OkHttpUtils.get().url(url).build().execute(new FileCallBack(Environment.getExternalStorageDirectory()+"/dashuhd" , "dashuhd.apk") {
+                    @Override
+                    public void onError(Call call, Exception e, int id) {
+                    }
+
+                    @Override
+                    public void onResponse(File response, int id) {
+                        down();
+                    }
+
+
+                    @Override
+                    public void inProgress(float progress, long total, int id) {
+                        super.inProgress(progress, total, id);
+
+                        int mtotal = (int) total;
+                        pBar.setMax(mtotal);
+                        pBar.setProgress((int)(mtotal* progress));
+                    }
+                });
+            }
+        }).start();
+    }
+
+    void down() {
+        handler1.post(new Runnable() {
+            public void run() {
+                pBar.cancel();
+                update();
+            }
+        });
+    }
+
+    void update() {
+        Intent intent = new Intent(Intent.ACTION_VIEW);
+        intent.setDataAndType(Uri.fromFile(new File(Environment
+                        .getExternalStorageDirectory()+"/dashuhd", "dashuhd.apk")),
+                "application/vnd.android.package-archive");
+        startActivity(intent);
     }
 
 }

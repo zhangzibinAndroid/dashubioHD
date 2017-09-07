@@ -18,6 +18,8 @@ public class EcgPathOne extends CardiographView {
     public static ArrayList<Float> arrast = new ArrayList();
     public static float moveX = 0;
     public static float moveY = 0;
+    public static float moveYfirst = 0;
+    public static float moveYsecond = 0;
 
     public EcgPathOne(Context context) {
         super(context);
@@ -39,20 +41,26 @@ public class EcgPathOne extends CardiographView {
     protected void onDraw(Canvas canvas) {
         canvas.translate(mWidth, mHeight/2);
         //用path模拟一个心电图样式
-        mPath.moveTo(moveX, moveY);
+        mPath.moveTo(moveX, moveYfirst);
+        mPathSecond.moveTo(moveX, moveYsecond);
         //设置画笔style
         mPaint.setStyle(Paint.Style.STROKE);
         mPaint.setColor(mLineColor);
         for (int i = 0; i < arrast.size(); i++) {
-            moveY =(128- arrast.get(i));//按屏幕比例缩小Y轴比例
+            moveYfirst =((128- arrast.get(i))*2);//按屏幕比例缩小Y轴比例
+            moveYsecond =((128- arrast.get(i))*2);//按屏幕比例缩小Y轴比例
             moveX = (float) (moveX + 1);
-            moveY = 0-moveY;
-            mPath.lineTo(moveX, moveY);
+            moveYfirst = moveYfirst-(mHeight/4);
+            moveYsecond = moveYsecond+(mHeight/4);
+            mPath.lineTo(moveX, moveYfirst);
+            mPathSecond.lineTo(moveX, moveYsecond);
             scrollTo((int) moveX,0);
+
         }
         arrast.clear();
         canvas.drawPath(mPath, mPaint);
-        invalidate();
+        canvas.drawPath(mPathSecond, mPaint);
+        postInvalidate();
     }
 
 }

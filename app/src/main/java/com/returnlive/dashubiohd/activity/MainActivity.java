@@ -77,6 +77,7 @@ public class MainActivity extends BaseActivity {
     private HelpDetailFragment helpDetailFragment;
     private static final String TAG = "MainActivity";
 
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -85,6 +86,7 @@ public class MainActivity extends BaseActivity {
         EventBus.getDefault().register(this);
         getWindow().getAttributes().softInputMode = WindowManager.LayoutParams.SOFT_INPUT_STATE_HIDDEN;
         initView();
+
     }
 
     private void initView() {
@@ -263,4 +265,7 @@ public class MainActivity extends BaseActivity {
             }
         }
     };
+
+
+
 }
