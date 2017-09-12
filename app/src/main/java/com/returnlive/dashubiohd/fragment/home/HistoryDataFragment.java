@@ -30,6 +30,7 @@ import com.zhy.view.flowlayout.FlowLayout;
 import com.zhy.view.flowlayout.TagAdapter;
 import com.zhy.view.flowlayout.TagFlowLayout;
 
+import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Set;
@@ -74,10 +75,10 @@ public class HistoryDataFragment extends BaseFragment {
     private List<HistoryDataBean.HistoryData.ProjectBean> healthDetectorChildrenList;
     private List<HistoryDataBean.HistoryData.ProjectBean> healthDetectorChildrenListSecond;
     private List<HistoryDataBean.HistoryData> healthDetectorFaherList;
-    private static String FA_ID_ONE = "", FA_ID_TWO = "", FA_ID_THREE = "";
+    private static String FA_ID_ONE = "", FA_ID_TWO = "", FA_ID_THREE = "", FA_ID_FOUR = "";
     private static String SO_ID_ONE = "";
     private HistoryDataAdapter historyDataAdapter;
-
+    private static final String TAG = "HistoryDataFragment";
 
     public HistoryDataFragment() {
         // Required empty public constructor
@@ -176,7 +177,7 @@ public class HistoryDataFragment extends BaseFragment {
                         SO_ID_ONE = bean.getId() + "";
                         scrollViewHistory.setVisibility(View.GONE);
                         lvHistoryData.setVisibility(View.VISIBLE);
-                        showListData(FA_ID_THREE, SO_ID_ONE);
+                        showListData(FA_ID_FOUR, SO_ID_ONE);
                     }
                 }
             }
@@ -195,7 +196,7 @@ public class HistoryDataFragment extends BaseFragment {
         new Thread(new Runnable() {
             @Override
             public void run() {
-                Log.e(TAG, "fa_id: "+fa_id+"so_id=="+so_id );
+                Log.e(TAG, "fa_id: " + fa_id + "so_id==" + so_id);
                 OkHttpUtils.post().url(InterfaceUrl.HISTORY_DATA_URL + sessonWithCode + "/m_id/" + HomeActivity.mid)
                         .addParams("fa_id", fa_id)
                         .addParams("so_id", so_id)
@@ -207,7 +208,7 @@ public class HistoryDataFragment extends BaseFragment {
 
                     @Override
                     public void onResponse(String response, int id) {
-                        Log.e(TAG, "子onResponse: "+response );
+                        Log.e(TAG, "子onResponse: " + response);
                         Message msg = new Message();
                         msg.obj = response;
                         historyListHandler.sendMessage(msg);
@@ -217,7 +218,6 @@ public class HistoryDataFragment extends BaseFragment {
         }).start();
     }
 
-    private static final String TAG = "HistoryDataFragment";
     private void historyDataInterface() {
         OkHttpUtils.get().url(InterfaceUrl.HISTORY_KIND_URL + sessonWithCode)
                 .addParams("m_id", HomeActivity.mid)
@@ -229,7 +229,7 @@ public class HistoryDataFragment extends BaseFragment {
 
             @Override
             public void onResponse(String response, int id) {
-                Log.e(TAG, "历史数据1: "+response );
+                Log.e(TAG, "历史数据1: " + response);
                 Message msg = new Message();
                 msg.obj = response;
                 historyDataHandler.sendMessage(msg);
@@ -330,7 +330,7 @@ public class HistoryDataFragment extends BaseFragment {
                             healthDetectorChildrenList = historyData.getProject();
                             HistoryDataBean.HistoryData.AdeviceBean adevice = historyData.getAdevice();
                             tv_huxi.setText(adevice.getName());
-                            FA_ID_THREE = adevice.getId();
+                            FA_ID_FOUR = adevice.getId();
 
                         }
 
@@ -347,7 +347,7 @@ public class HistoryDataFragment extends BaseFragment {
 
 
                 } catch (Exception e) {
-                    Log.e(TAG, "historyDataHandlerException: "+e.getMessage() );
+                    Log.e(TAG, "historyDataHandlerException: " + e.getMessage());
                 }
             } else {
                 //解析
@@ -364,22 +364,24 @@ public class HistoryDataFragment extends BaseFragment {
         }
     };
 
-
+    private List<HistoryListDataBean.HistoryDataBean> list = new ArrayList<>();
     private Handler historyListHandler = new Handler() {
         @Override
         public void handleMessage(Message msg) {
             super.handleMessage(msg);
             String result = (String) msg.obj;
-            Log.e(TAG, "result: "+result );
+            Log.e(TAG, "result: " + result);
             if (result.indexOf(ErrorCode.SUCCESS) > 0) {
                 try {
                     HistoryListDataBean historyListDataBean = GsonParsing.getHistoryListDataMessageJson(result);
-                    List<HistoryListDataBean.HistoryDataBean> list = historyListDataBean.getData();
+                    for (int i = historyListDataBean.getData().size() - 1; i > -1; i--) {
+                        list.add(historyListDataBean.getData().get(i));
+                    }
                     historyDataAdapter = new HistoryDataAdapter(getActivity(), list);
                     lvHistoryData.setAdapter(historyDataAdapter);
                     historyDataAdapter.notifyDataSetChanged();
                 } catch (Exception e) {
-                    Log.e(TAG, "handleMessage: "+e.getMessage() );
+                    Log.e(TAG, "handleMessage: " + e.getMessage());
 //                    Toast.makeText(getActivity(), getResources().getString(R.string.connection_timeout_or_illegal_request), Toast.LENGTH_SHORT).show();
                 }
             } else {
@@ -389,7 +391,7 @@ public class HistoryDataFragment extends BaseFragment {
                     errorCodeBean = GsonParsing.sendCodeError(result);
                     judge(errorCodeBean.getCode() + "");
                 } catch (Exception e) {
-                    Log.e(TAG, "Exception: "+e.getMessage() );
+                    Log.e(TAG, "Exception: " + e.getMessage());
                     Toast.makeText(getActivity(), getResources().getString(R.string.connection_timeout_or_illegal_request), Toast.LENGTH_SHORT).show();
                 }
             }

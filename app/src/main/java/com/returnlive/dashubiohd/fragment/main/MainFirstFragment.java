@@ -100,6 +100,7 @@ public class MainFirstFragment extends BaseFragment {
     }
 
     private void getMessageInterface() {
+        Log.e(TAG, "mainUrl: "+InterfaceUrl.MESSAGE_URL + sessonWithCode);
         OkHttpUtils.get().url(InterfaceUrl.MESSAGE_URL + sessonWithCode)
                 .addParams("m_id", "").build().execute(new StringCallback() {
             @Override
@@ -275,7 +276,7 @@ public class MainFirstFragment extends BaseFragment {
                         }
                     }
                 } catch (Exception e) {
-                    Log.e(TAG, "allUserHnadlerException: "+e.getMessage() );
+                    Log.e(TAG, "allUserHnadlerException: "+e.getMessage());
                 }
 
             }else {
